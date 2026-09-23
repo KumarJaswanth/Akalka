@@ -13,6 +13,23 @@ const CARD_IMG = {
   profiles: IMG.profiles.track,
 };
 
+/* Honest at-a-glance counts, computed from the confirmed catalogue. */
+const CARD_COUNT = {
+  doors: `${CATEGORIES[0].variants.length} types`,
+  sandwich: `${CATEGORIES[1].panels.length} types`,
+  cleanroom: `${CATEGORIES[2].items.length} products`,
+  partition: `${CATEGORIES[3].items.length} products`,
+  profiles: `${CATEGORIES[4].groups.length} groups`,
+};
+
+/* Plain-function descriptors drawn only from confirmed option names. */
+const GROUP_NOTE = {
+  corner: 'Edges and corners — powder-coated or non-coated.',
+  formed3d: '2D and 3D forms, channels, angles and box sections.',
+  alucoat: 'Aluminium-coated options in R-70 and R-90.',
+  track: 'Floor tracks in 50 and 100 mm, coated or non-coated.',
+};
+
 /* Jump straight to a chapter when the URL carries a hash. */
 function useHashJump() {
   const { hash } = useLocation();
@@ -74,6 +91,24 @@ function DoorsBlock({ data }) {
           </div>
         </ClipReveal>
         <div style={{ height: 36 }} />
+        <Reveal>
+          <p className="meta" style={{ color: 'var(--muted-fg)', marginBottom: 18 }}>Specify a door in four steps</p>
+          <div className="steps">
+            {[
+              { n: '01', t: 'Type', d: data.variants.map((v) => v.name).join('  ·  ') },
+              { n: '02', t: 'Core', d: data.cores.join('  ·  ') },
+              { n: '03', t: 'Finish', d: data.finishes.join('  ·  ') },
+              { n: '04', t: 'Colour & size', d: `${data.colours.join('  ·  ')} — sizes vary` },
+            ].map((s) => (
+              <div className="step-card" key={s.n}>
+                <span className="meta">{s.n}</span>
+                <h3 className="h3">{s.t}</h3>
+                <p className="body-sm">{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+        <div style={{ height: 32 }} />
         <div className="spec-tables">
           <div className="spec-table">
             <p className="meta">Variants</p>
@@ -121,6 +156,22 @@ function SandwichBlock({ data }) {
           <h2 className="h2" style={{ marginBottom: 12 }}>Sandwich panels: the thickness ledger.</h2>
           <p className="lede">{data.description} Only the thicknesses below are confirmed. No insulation, fire, thermal or acoustic values are claimed.</p>
         </Materialize>
+        <Reveal>
+          <p className="meta" style={{ color: 'var(--muted-fg)', margin: '32px 0 18px' }}>Three core families in the range</p>
+          <div className="steps">
+            {[
+              { n: 'PUF', t: 'PUF panels', d: 'Double-skin wall panels in 50 and 100 mm.' },
+              { n: 'RW', t: 'Rockwool panels', d: 'Double-skin wall panels in 50 and 100 mm, plus sandwich types.' },
+              { n: 'HC', t: 'Honeycomb panels', d: 'Honeycomb sandwich panels and honeycomb door cores.' },
+            ].map((s) => (
+              <div className="step-card" key={s.n}>
+                <span className="meta">{s.n}</span>
+                <h3 className="h3">{s.t}</h3>
+                <p className="body-sm">{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
         <ClipReveal>
           <figure className="band-ph" style={{ marginTop: 32 }}>
             <ParallaxImg src={IMG.sandwich.src} alt={IMG.sandwich.alt} ratio="21/9" speed={0.12} onError={(e) => { e.currentTarget.closest('.band-ph').style.display = 'none'; }} />
@@ -194,6 +245,15 @@ function CleanroomBlock({ data }) {
             <span className="chip needs">Pressure / hygiene ratings: needs confirmation</span>
           </div>
         </Reveal>
+        <Reveal>
+          <div className="note-card">
+            <p className="meta" style={{ color: 'var(--datum)', marginBottom: 8 }}>Shared product</p>
+            <p className="body-sm" style={{ margin: 0 }}>
+              Flush Wall Panels appear here and under Partition / Wall Panels — the same
+              confirmed product, specified per application on enquiry.
+            </p>
+          </div>
+        </Reveal>
         <ChapterCTA interest="Cleanroom Panels" blurb="Controlled environment to fit out? Describe the rooms for a confirmed cleanroom range." />
       </div>
     </section>
@@ -215,6 +275,16 @@ function PartitionBlock({ data }) {
                 <div key={it.code} className="pt-card">
                   <p className="meta" style={{ color: 'var(--datum)', marginBottom: 10 }}>{it.code}</p>
                   <h3 className="h3">{it.name}</h3>
+                  <p className="body-sm" style={{ marginTop: 8 }}>
+                    {it.code === 'PT-P'
+                      ? 'For dividing interior space with a clean architectural finish.'
+                      : 'For flat, continuous wall surfaces — also listed in the cleanroom range.'}
+                  </p>
+                  {it.code === 'PT-F' && (
+                    <div className="chips" style={{ marginTop: 12 }}>
+                      <span className="chip">Also in cleanroom range</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -256,6 +326,7 @@ function ProfilesBlock({ data }) {
               <div>
                 <p className="meta" style={{ color: 'var(--ink)' }}>{g.code}</p>
                 <h3 className="h3" style={{ marginTop: 8 }}>{g.name}</h3>
+                <p className="body-sm" style={{ marginTop: 8 }}>{GROUP_NOTE[g.fig]}</p>
               </div>
               <div className="chips" style={{ alignContent: 'center' }}>
                 {g.options.map((o) => (
@@ -300,7 +371,7 @@ export default function Products() {
                     <img src={img.src} alt="" loading={i < 2 ? 'eager' : 'lazy'} decoding="async" />
                   </span>
                   <span className="cat-card-body">
-                    <span className="meta">{c.index} / 05</span>
+                    <span className="meta">{c.index} / 05 · {CARD_COUNT[c.id]}</span>
                     <span className="cat-card-name">{c.name}</span>
                   </span>
                 </a>
@@ -315,6 +386,29 @@ export default function Products() {
       <PartitionBlock data={CATEGORIES[3]} />
       <ProfilesBlock data={CATEGORIES[4]} />
       <section className="section">
+        <div className="wrap">
+          <SectionHead index="How" label="How specifying works" hint="3 steps" />
+          <Materialize>
+            <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 34 }}>From chapter to confirmed specification.</h2>
+          </Materialize>
+          <div className="steps">
+            {[
+              { n: '01', t: 'Find your range', d: 'Pick one of the five chapters above — doors, sandwich, cleanroom, partition or profiles.' },
+              { n: '02', t: 'Note the options', d: 'Variant, core, thickness, finish, colour and size — everything on this page is confirmed data.' },
+              { n: '03', t: 'Send drawings', d: 'Openings, layouts and quantities through the enquiry form for a confirmed specification.' },
+            ].map((s) => (
+              <Reveal key={s.n}>
+                <div className="step-card">
+                  <span className="meta">{s.n}</span>
+                  <h3 className="h3">{s.t}</h3>
+                  <p className="body-sm">{s.d}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="section" style={{ paddingTop: 0 }}>
         <div className="wrap">
           <Reveal>
             <div className="cta-band">

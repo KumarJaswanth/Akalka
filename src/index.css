@@ -416,6 +416,16 @@ button.chip:active { transform: scale(0.96); }
 .spec-thumb .px { position: absolute; inset: 0; }
 .spec-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
+/* ---------- guided steps + notes ---------- */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: clamp(14px, 2vw, 24px); }
+.step-card { background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); padding: clamp(24px, 3vw, 34px); display: grid; gap: 10px; align-content: start; transition: transform 0.4s var(--ease-soft); }
+.step-card:hover { transform: translateY(-5px); }
+.step-card > .meta { color: var(--datum); }
+.note-card { margin-top: 26px; padding: 24px 28px; background: var(--accent-soft); border-radius: 18px; }
+.dark-sec .note-card, .on-dark .note-card { background: rgba(125, 178, 0, 0.12); }
+.note-card .body-sm { color: var(--secondary); }
+.on-dark .note-card .body-sm { color: var(--on-dark-muted); }
+
 /* ---------- catalogue tables (borderless, tint-block rows) ---------- */
 .spec-tables { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px, 2.5vw, 28px); margin-top: 4px; }
 .spec-table { background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); padding: clamp(24px, 3vw, 36px); }
