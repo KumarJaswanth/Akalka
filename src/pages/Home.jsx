@@ -60,7 +60,7 @@ function DoorsFeature() {
         </Materialize>
         <div style={{ height: 36 }} />
         <Reveal>
-          <Carousel slides={DOOR_SLIDES} label="Door gallery" hint="Drag / scroll" thumbs />
+          <Carousel slides={DOOR_SLIDES} label="Door gallery" hint="Drag / scroll" />
         </Reveal>
         <div style={{ height: 36 }} />
         <div className="split">
@@ -329,7 +329,7 @@ function Profiles() {
         </Materialize>
         <div style={{ height: 36 }} />
         <Reveal>
-          <Carousel slides={slides} label="Profile gallery" hint="Drag / scroll" thumbs />
+          <Carousel slides={slides} label="Profile gallery" hint="Drag / scroll" />
         </Reveal>
         <Reveal>
           <div style={{ marginTop: 26 }}><Link to="/products#profiles" className="link-line">Full profiles range</Link></div>
