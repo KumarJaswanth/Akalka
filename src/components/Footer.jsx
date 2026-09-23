@@ -65,6 +65,8 @@ export default function Footer() {
 
         <div className="foot-crafted" aria-hidden="true">Crafted <em>with care.</em></div>
 
+        <div className="foot-giant" aria-hidden="true">akalka</div>
+
         <div className="foot-base">
           <span>© {new Date().getFullYear()} AKALKA Doors &amp; Panels</span>
           <span>Manufacturing identity v1.2</span>

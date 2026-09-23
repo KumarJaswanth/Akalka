@@ -1,7 +1,7 @@
-﻿import { useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CATEGORIES, FINISHES } from '../data/products.js';
-import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
+import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg, ScrollWords, CountUp } from '../components/Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import Flow from '../components/Flow.jsx';
@@ -60,7 +60,7 @@ function DoorsFeature() {
         </Materialize>
         <div style={{ height: 36 }} />
         <Reveal>
-          <Carousel slides={DOOR_SLIDES} label="Door gallery" hint="Drag / scroll" />
+          <Carousel slides={DOOR_SLIDES} label="Door gallery" hint="Drag / scroll" thumbs />
         </Reveal>
         <div style={{ height: 36 }} />
         <div className="split">
@@ -139,13 +139,13 @@ function SandwichBand() {
           <div className="thick-band">
             <div className="thick-cell">
               <span className="meta">PUF double-skin wall panel</span>
-              <div className="thick-num">50<sup>MM</sup> / 100<sup>MM</sup></div>
+              <div className="thick-num"><CountUp to={50} /><sup>MM</sup> / <CountUp to={100} /><sup>MM</sup></div>
               <p className="body-sm" style={{ marginTop: 14 }}>Double-skin wall panel in the two confirmed thicknesses.</p>
               <div className="chips" style={{ marginTop: 18 }}><span className="chip">SW-PUF</span><span className="chip">50 mm</span><span className="chip">100 mm</span></div>
             </div>
             <div className="thick-cell">
               <span className="meta">Rockwool double-skin wall panel</span>
-              <div className="thick-num">50<sup>MM</sup> / 100<sup>MM</sup></div>
+              <div className="thick-num"><CountUp to={50} /><sup>MM</sup> / <CountUp to={100} /><sup>MM</sup></div>
               <p className="body-sm" style={{ marginTop: 14 }}>Double-skin wall panel in the two confirmed thicknesses.</p>
               <div className="chips" style={{ marginTop: 18 }}><span className="chip">SW-RW</span><span className="chip">50 mm</span><span className="chip">100 mm</span></div>
             </div>
@@ -176,10 +176,37 @@ function SandwichBand() {
 }
 
 /* ---------------- Cleanroom dark list ---------------- */
+const CR_PEEKS = [
+  V('1748000970909-845f4aa144d2', 600, 760),
+  V('1584677123573-7446380b6d69', 600, 760),
+  V('1762928289094-197055a5d5c3', 600, 760),
+  V('1746021375306-9dec0f637732', 600, 760),
+];
+
 function Cleanroom() {
   const cr = CATEGORIES[2];
+  const [peek, setPeek] = useState(-1);
+  const [canPeek, setCanPeek] = useState(false);
+  const peekRef = useRef(null);
+  useEffect(() => {
+    setCanPeek(
+      window.matchMedia('(hover: hover)').matches &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }, []);
+  const follow = (e) => {
+    const el = peekRef.current;
+    if (!el) return;
+    const pad = 28;
+    const w = 250;
+    const h = 312;
+    let x = e.clientX + pad;
+    if (x + w > window.innerWidth - 12) x = e.clientX - w - pad;
+    const y = Math.max(12, Math.min(window.innerHeight - h - 12, e.clientY - h / 2));
+    el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+  };
   return (
-    <section className="section dark-sec on-dark" id="cleanroom">
+    <section className="section dark-sec on-dark" id="cleanroom" onMouseMove={canPeek ? follow : undefined}>
       <div className="wrap">
         <SectionHead index="CR" label="Cleanroom panels" hint="CR series" />
         <Materialize>
@@ -194,10 +221,15 @@ function Cleanroom() {
           </figure>
         </ClipReveal>
         <div style={{ height: 8 }} />
-        <div>
+        <div onMouseLeave={() => setPeek(-1)}>
           {cr.items.map((it, i) => (
             <Reveal key={it.code}>
-              <Link to="/products#cleanroom" className="cr-row">
+              <Link
+                to="/products#cleanroom"
+                className="cr-row"
+                onMouseEnter={() => setPeek(i)}
+                onFocus={() => setPeek(i)}
+              >
                 <span className="fill" aria-hidden="true" />
                 <span className="cr-code">{it.code} / 0{i + 1}</span>
                 <span className="cr-name">{it.name}</span>
@@ -206,6 +238,13 @@ function Cleanroom() {
             </Reveal>
           ))}
         </div>
+        {canPeek && (
+          <div ref={peekRef} className={`cr-peek${peek >= 0 ? ' on' : ''}`} aria-hidden="true">
+            {CR_PEEKS.map((src, i) => (
+              <img key={i} src={src} alt="" loading="lazy" decoding="async" className={i === peek ? 'on' : ''} />
+            ))}
+          </div>
+        )}
         <Reveal>
           <p className="meta" style={{ marginTop: 26, color: 'var(--on-dark-muted)' }}>
             Classifications, ratings, performance: <span className="chip needs" style={{ marginLeft: 8 }}>Needs confirmation</span>
@@ -290,7 +329,7 @@ function Profiles() {
         </Materialize>
         <div style={{ height: 36 }} />
         <Reveal>
-          <Carousel slides={slides} label="Profile gallery" hint="Drag / scroll" />
+          <Carousel slides={slides} label="Profile gallery" hint="Drag / scroll" thumbs />
         </Reveal>
         <Reveal>
           <div style={{ marginTop: 26 }}><Link to="/products#profiles" className="link-line">Full profiles range</Link></div>
@@ -368,6 +407,13 @@ function Principles() {
         </Reveal>
         <Reveal>
           <div className="cta-band" style={{ marginTop: 40 }}>
+            <div
+              className="cta-bg"
+              style={{
+                backgroundImage: `linear-gradient(rgba(43,48,54,0.84), rgba(43,48,54,0.88)), url("${V('1671022442106-c787685d9fed', 1600, 900)}")`,
+              }}
+              aria-hidden="true"
+            />
             <h2 className="h2">Have a requirement?<br />Send the sizes.</h2>
             <p className="body-sm" style={{ color: 'var(--on-dark-muted)', marginTop: 14, maxWidth: '52ch' }}>
               Doors, panels and profiles are manufactured to order. Share your drawings or dimensions and receive a confirmed specification.
@@ -395,9 +441,7 @@ export default function Home() {
             <SectionHead index="Sheet A" label="Brand introduction" hint="Manufacturing first" />
             <Materialize>
               <p className="manifesto-big">
-                AKALKA is a product-focused manufacturer. We make the doors,
-                panels and profiles that shape controlled, finished interiors.
-                That is the whole list.
+                <ScrollWords text="AKALKA is a product-focused manufacturer. We make the doors, panels and profiles that shape controlled, finished interiors. That is the whole list." />
               </p>
             </Materialize>
             <div className="manifesto-cols">

@@ -1,14 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from './icons.jsx';
 
-/* Full-bleed editorial carousel: tall slides, overlay captions, drag,
-   snap, arrows, keyboard, counter, progress. Motion answers the visitor. */
+/* Cinematic carousel: full-bleed tall slides, overlay captions, drag,
+   arrows, keyboard, counter, progress — plus gentle autoplay, slow
+   Ken Burns drift on the active frame, and an optional thumbnail rail. */
 
-export default function Carousel({ slides, label, hint, dark = false }) {
+export default function Carousel({ slides, label, hint, dark = false, thumbs = false, play = true }) {
   const trackRef = useRef(null);
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
   const drag = useRef(null);
+  const reduce = useReducedMotion();
   const n = slides.length;
+  const activeRef = useRef(0);
+  activeRef.current = active;
 
   useEffect(() => {
     const track = trackRef.current;
@@ -26,14 +32,22 @@ export default function Carousel({ slides, label, hint, dark = false }) {
     return () => io.disconnect();
   }, [n]);
 
-  const go = (dir) => {
+  const goTo = (i) => {
     const track = trackRef.current;
     if (!track) return;
-    const next = (active + dir + n) % n;
+    const next = ((i % n) + n) % n;
     track
       .querySelector(`.car-slide[data-i="${next}"]`)
-      ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
   };
+  const go = (dir) => goTo(activeRef.current + dir);
+
+  /* Gentle autoplay: advances until the visitor takes over. */
+  useEffect(() => {
+    if (!play || reduce || paused || n < 2) return;
+    const t = setInterval(() => goTo(activeRef.current + 1), 5200);
+    return () => clearInterval(t);
+  }, [play, reduce, paused, n, active]);
 
   const onKey = (e) => {
     if (e.key === 'ArrowRight') go(1);
@@ -58,7 +72,16 @@ export default function Carousel({ slides, label, hint, dark = false }) {
   };
 
   return (
-    <div className={`car${dark ? ' dark' : ''}`}>
+    <div
+      className={`car${dark ? ' dark' : ''}`}
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => {
+        setPaused(false);
+        endDrag();
+      }}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
       <div className="car-top">
         <div className="car-label">
           {label && <span className="meta">{label}</span>}
@@ -122,6 +145,23 @@ export default function Carousel({ slides, label, hint, dark = false }) {
         <div className="car-progress" aria-hidden="true">
           <span style={{ transform: `scaleX(${(active + 1) / n})` }} />
         </div>
+        {thumbs && (
+          <div className="car-thumbs" role="tablist" aria-label="Slides">
+            {slides.map((sl, i) => (
+              <button
+                key={`t-${i}`}
+                type="button"
+                role="tab"
+                aria-selected={i === active}
+                aria-label={`Go to slide ${i + 1}: ${sl.title}`}
+                className={`car-thumb${i === active ? ' active' : ''}`}
+                onClick={() => goTo(i)}
+              >
+                <img src={sl.src} alt="" loading="lazy" decoding="async" draggable={false} />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

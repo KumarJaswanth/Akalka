@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 
 /* Motion system for v1.2: restrained, scroll-linked, GPU-only.
    - Reveal / Materialize / ClipReveal: one IntersectionObserver each,
@@ -127,8 +128,72 @@ export function ParallaxImg({ src, alt = '', speed = 0.1, eager = false, ratio, 
   );
 }
 
-export function SectionHead({ index, label, hint }) {
+/* Scroll-filled statement: each word ignites as it travels through
+   the viewport — the luxury-editorial signature moment. */
+function Word({ progress, range, children }) {
+  const opacity = useTransform(progress, range, [0.13, 1]);
+  return <motion.span style={{ opacity }}>{children} </motion.span>;
+}
+
+export function ScrollWords({ text, className = '' }) {
+  const ref = useRef(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.85', 'end 0.45'] });
+  const words = text.split(' ');
+  if (reduce) return <span className={className}>{text}</span>;
   return (
+    <span ref={ref} className={className} style={{ display: 'block' }}>
+      {words.map((w, i) => (
+        <Word key={i} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]}>
+          {w}
+        </Word>
+      ))}
+    </span>
+  );
+}
+
+/* Count-up numeral: eases from zero when scrolled into view. */
+export function CountUp({ to, duration = 1.6 }) {
+  const ref = useRef(null);
+  const reduce = useReducedMotion();
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (reduce) {
+      setVal(to);
+      return;
+    }
+    let raf = 0;
+    let started = false;
+    const tick = (t0) => (now) => {
+      const t = Math.min(1, (now - t0) / (duration * 1000));
+      setVal(Math.round(to * (1 - Math.pow(2, -10 * t))));
+      if (t < 1) raf = requestAnimationFrame(tick(t0));
+      else setVal(to);
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting && !started) {
+            started = true;
+            raf = requestAnimationFrame(tick(performance.now()));
+            io.disconnect();
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [to, duration, reduce]);
+  return <span ref={ref}>{val}</span>;
+}
+
+export function SectionHead({ index, label, hint }) {  return (
     <div className="sec-head">
       <div className="sec-index">
         <span className="meta idx">{index}</span>

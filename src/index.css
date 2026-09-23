@@ -362,6 +362,18 @@ button.chip:active { transform: scale(0.96); }
 .cr-name { font-family: var(--display); font-weight: 600; font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.1; position: relative; }
 .cr-code { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em; color: var(--datum); position: relative; white-space: nowrap; }
 .cr-tag { position: relative; }
+/* Floating hover preview — desktop delight, follows the cursor. */
+.cr-peek {
+  position: fixed; top: 0; left: 0; z-index: 55;
+  width: 250px; aspect-ratio: 4/5;
+  border-radius: 16px; overflow: hidden;
+  pointer-events: none; box-shadow: var(--shadow-lift);
+  opacity: 0; scale: 0.85;
+  transition: opacity 0.35s var(--ease-soft), scale 0.45s var(--ease-soft);
+}
+.cr-peek.on { opacity: 1; scale: 1; }
+.cr-peek img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.35s; }
+.cr-peek img.on { opacity: 1; }
 
 /* ---------- partition composition ---------- */
 .part-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(28px, 5vw, 80px); align-items: start; }
@@ -507,6 +519,9 @@ button.chip:active { transform: scale(0.96); }
 .car-slide.active { transform: scale(1); opacity: 1; filter: grayscale(0%); }
 .car-ph { height: clamp(360px, 58vh, 600px); background: var(--tint); }
 .car-ph img { width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+/* Ken Burns drift on the live frame. */
+.car-slide.active .car-ph img { animation: kenburns 7s var(--ease-out) forwards; }
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
 .car-cap {
   position: absolute; left: 0; right: 0; bottom: 0;
   display: flex; align-items: baseline; gap: 8px 20px; flex-wrap: wrap;
@@ -522,6 +537,18 @@ button.chip:active { transform: scale(0.96); }
 .car-progress { height: 2px; border-radius: 2px; background: rgba(66, 71, 77, 0.14); overflow: hidden; }
 .dark .car-progress { background: var(--on-dark-border); }
 .car-progress span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(0); transition: transform 0.5s var(--ease-soft); }
+.car-thumbs { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.car-thumbs::-webkit-scrollbar { display: none; }
+.car-thumb {
+  flex: none; width: 76px; height: 54px; padding: 0;
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid transparent; background: var(--tint);
+  opacity: 0.55; transition: opacity 0.3s, border-color 0.3s, transform 0.3s var(--ease-out);
+}
+.car-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.car-thumb:hover { opacity: 0.9; transform: translateY(-2px); }
+.car-thumb.active { opacity: 1; border-color: var(--datum); }
+.dark .car-thumb.active { border-color: var(--datum); }
 
 /* ---------- finish bench ---------- */
 .lab { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 80px); align-items: stretch; }
@@ -556,6 +583,8 @@ button.chip:active { transform: scale(0.96); }
 
 /* ---------- CTA ---------- */
 .cta-band { background: var(--worksurface); color: var(--on-dark); border-radius: var(--radius-card); overflow: hidden; position: relative; padding: clamp(56px, 7vw, 100px) clamp(30px, 5vw, 76px); box-shadow: var(--shadow-lift); }
+.cta-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.cta-band > *:not(.cta-bg) { position: relative; }
 .cta-band h2 { position: relative; }
 .cta-band .body-sm { color: var(--on-dark-muted); }
 .cta-row { position: relative; display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
@@ -579,6 +608,19 @@ footer { background: var(--worksurface); color: var(--on-dark); border-radius: c
   user-select: none;
 }
 .foot-crafted em { font-style: normal; color: var(--datum); }
+.foot-giant {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(4.5rem, 19vw, 19rem);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.24);
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  margin: 26px 0 0;
+}
 .foot-base { padding: 26px 0; display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; color: var(--on-dark-muted); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
 
 /* ---------- product / page heroes ---------- */
@@ -702,6 +744,7 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   .mz { filter: none; }
   .cp { clip-path: inset(0 0 0 0); opacity: 1; transform: none; }
   .mask > span { transform: none; }
+  .car-slide.active .car-ph img { animation: none; }
   .page { animation: none; }
   .scroll-cue i { animation: none; }
 }
