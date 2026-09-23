@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
 import Lenis from 'lenis';
 import Nav from './components/Nav.jsx';
+import Boot from './components/Boot.jsx';
 import Footer from './components/Footer.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Home from './pages/Home.jsx';
@@ -71,6 +72,7 @@ export default function App() {
   return (
     <>
       <SmoothScroll />
+      <Boot />
       <ScrollToTop />
       <PageTitle />
       <ScrollProgress />

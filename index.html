@@ -16,13 +16,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="/Akalka/Akalka-logo.svg" />
+    <style>
+      /* Instant branded loader: wordmark, rule, sweeping bar. No JS needed. */
+      #boot-shell { min-height: 100svh; display: grid; place-items: center; background: #2B3036; color: #fff; text-align: center; padding: 32px; }
+      #boot-shell .w { font-family: 'Comfortaa','Montserrat',sans-serif; font-weight: 700; font-size: clamp(2.2rem, 6vw, 3.2rem); color: #7DB200; letter-spacing: 0.01em; margin: 0 0 8px; }
+      #boot-shell .m { font-family: 'Montserrat',sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin: 0 0 28px; }
+      #boot-shell .rule { width: min(180px, 44vw); height: 2px; margin: 0 auto 28px; border-radius: 2px; background: rgba(125,178,0,0.9); }
+      #boot-shell .bar { width: min(220px, 50vw); height: 2px; margin: 0 auto; border-radius: 2px; background: rgba(255,255,255,0.14); overflow: hidden; }
+      #boot-shell .bar i { display: block; height: 100%; width: 40%; border-radius: inherit; background: #7DB200; animation: scan 1.2s ease-in-out infinite; }
+      @keyframes scan { 0% { transform: translateX(-110%); } 100% { transform: translateX(280%); } }
+    </style>
   </head>
   <body>
     <div id="root">
-      <div style="min-height:100svh;display:grid;place-items:center;background:#2B3036;color:#FFFFFF;text-align:center;padding:32px">
+      <div id="boot-shell">
         <div>
-          <p style="font-family:monospace;font-size:11px;letter-spacing:0.28em;color:#7DB200;margin:0 0 14px">AKALKA — DOORS · PANELS</p>
-          <p style="font-family:'Comfortaa','Montserrat',sans-serif;font-weight:700;font-size:30px;margin:0">Preparing the experience…</p>
+          <p class="w">akalka</p>
+          <p class="m">Doors · Panels</p>
+          <div class="rule" aria-hidden="true"></div>
+          <div class="bar" aria-hidden="true"><i></i></div>
           <noscript><p style="font-family:monospace;font-size:12px;opacity:0.7">This site needs JavaScript enabled.</p></noscript>
         </div>
       </div>
