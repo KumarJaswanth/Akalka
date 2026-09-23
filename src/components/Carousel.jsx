@@ -51,8 +51,8 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
   };
 
   /* One rAF clock drives both the advance and the progress bar, so the
-     timer you see is the timer you get. Hover, focus or a fresh touch
-     freezes the beat; it resumes exactly where it left off. */
+     timer you see is the timer you get. Only real input restarts the
+     beat — hovering changes nothing. */
   useEffect(() => {
     if (!play || reduce || n < 2) return;
     lastTRef.current = 0;
@@ -63,7 +63,7 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
       const dt = Math.min(now - last, 100);
       const busy = pausedRef.current || Date.now() - idleRef.current < IDLE_MS;
       if (!busy) {
-        elapsedRef.current += now - last;
+        elapsedRef.current += dt;
         if (elapsedRef.current >= interval) {
           elapsedRef.current = 0;
           const next = (indexRef.current + 1) % n;

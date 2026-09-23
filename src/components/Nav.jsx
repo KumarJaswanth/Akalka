@@ -40,10 +40,12 @@ export default function Nav() {
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = 'hidden';
+    if (window.__lenis) window.__lenis.stop();
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = '';
+      if (window.__lenis) window.__lenis.start();
       window.removeEventListener('keydown', onKey);
     };
   }, [open ]);

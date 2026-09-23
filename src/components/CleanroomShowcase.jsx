@@ -21,6 +21,10 @@ export default function CleanroomShowcase({ items }) {
   const reduce = useReducedMotion();
   const current = items[Math.max(0, active)] || items[0];
   const shot = SHOTS[current.code] || SHOTS['CR-W'];
+  /* Hover previews on precise pointers only — touch uses taps, where a
+     synthesized mouseenter would otherwise open-then-instantly-close. */
+  const canHover = () =>
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   return (
     <div className="cr-show">
@@ -56,7 +60,9 @@ export default function CleanroomShowcase({ items }) {
                 aria-expanded={open}
                 className="cr-head"
                 onClick={() => setActive(open ? -1 : i)}
-                onMouseEnter={() => setActive(i)}
+                onMouseEnter={() => {
+                  if (canHover()) setActive(i);
+                }}
               >
                 <span className="meta cr-num">{String(i + 1).padStart(2, '0')}</span>
                 <span className="cr-name">{it.name}</span>

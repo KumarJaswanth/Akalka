@@ -800,6 +800,12 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
 .about-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 3vw, 36px); }
 .about-facts > div { padding: clamp(30px, 3vw, 46px); background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); }
 .form { display: grid; gap: 18px; }
+.form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 640px) { .form-2col { grid-template-columns: 1fr; } }
+.sent-card {
+  background: var(--card); border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft); padding: clamp(32px, 4vw, 48px) clamp(24px, 3vw, 36px);
+}
 .field { display: grid; gap: 8px; }
 .field label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--secondary); }
 .field input, .field select, .field textarea {

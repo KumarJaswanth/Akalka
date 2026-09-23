@@ -24,7 +24,7 @@ const CARD_COUNT = {
 
 /* Plain-function descriptors drawn only from confirmed option names. */
 const GROUP_NOTE = {
-  corner: 'Edges and corners â€” powder-coated or non-coated.',
+  corner: 'Edges and corners — powder-coated or non-coated.',
   formed3d: '2D and 3D forms, channels, angles and box sections.',
   alucoat: 'Aluminium-coated options in R-70 and R-90.',
   track: 'Floor tracks in 50 and 100 mm, coated or non-coated.',
@@ -54,7 +54,7 @@ function Chips({ items, accent = false }) {
   );
 }
 
-/* Per-chapter enquiry strip â€” carries the range into the contact form. */
+/* Per-chapter enquiry strip — carries the range into the contact form. */
 function ChapterCTA({ interest, blurb }) {
   return (
     <Reveal>
@@ -99,10 +99,10 @@ function DoorsBlock({ data }) {
           <p className="meta" style={{ color: 'var(--muted-fg)', marginBottom: 18 }}>Specify a door in four steps</p>
           <div className="steps">
             {[
-              { n: '01', t: 'Type', d: data.variants.map((v) => v.name).join('  Â·  ') },
-              { n: '02', t: 'Core', d: data.cores.join('  Â·  ') },
-              { n: '03', t: 'Finish', d: data.finishes.join('  Â·  ') },
-              { n: '04', t: 'Colour & size', d: `${data.colours.join('  Â·  ')} â€” sizes vary` },
+              { n: '01', t: 'Type', d: data.variants.map((v) => v.name).join('  ·  ') },
+              { n: '02', t: 'Core', d: data.cores.join('  ·  ') },
+              { n: '03', t: 'Finish', d: data.finishes.join('  ·  ') },
+              { n: '04', t: 'Colour & size', d: `${data.colours.join('  ·  ')} — sizes vary` },
             ].map((s) => (
               <div className="step-card" key={s.n}>
                 <span className="meta">{s.n}</span>
@@ -127,19 +127,19 @@ function DoorsBlock({ data }) {
             <p className="meta">Options</p>
             <div className="spec-tr">
               <span className="meta">Core</span>
-              <span>{data.cores.join('  Â·  ')}</span>
+              <span>{data.cores.join('  ·  ')}</span>
             </div>
             <div className="spec-tr">
               <span className="meta">Finish</span>
-              <span>{data.finishes.join('  Â·  ')}</span>
+              <span>{data.finishes.join('  ·  ')}</span>
             </div>
             <div className="spec-tr">
               <span className="meta">Colour</span>
-              <span>{data.colours.join('  Â·  ')}</span>
+              <span>{data.colours.join('  ·  ')}</span>
             </div>
             <div className="spec-tr">
               <span className="meta">Size</span>
-              <span>Sizes vary according to requirement â€” no fixed dimensions published</span>
+              <span>Sizes vary according to requirement — no fixed dimensions published</span>
             </div>
           </div>
         </div>
@@ -196,7 +196,7 @@ function SandwichBlock({ data }) {
                   {p.thicknesses.includes(t) ? (
                     <span className="chip chip-accent">{t}</span>
                   ) : (
-                    <span className="meta" style={{ color: 'var(--muted-fg)' }} title="Not confirmed">â€”</span>
+                    <span className="meta" style={{ color: 'var(--muted-fg)' }} title="Not confirmed">—</span>
                   )}
                 </span>
               ))}
@@ -205,14 +205,13 @@ function SandwichBlock({ data }) {
         </div>
         <Reveal>
           <p className="meta" style={{ marginTop: 18, color: 'var(--muted-fg)' }}>
-            â€” means not confirmed. Only the thicknesses above are confirmed client data.
+            — means not confirmed. Only the thicknesses above are confirmed client data.
           </p>
           <div style={{ marginTop: 20 }}>
             <p className="meta" style={{ marginBottom: 12, color: 'var(--muted-fg)' }}>Panel finishes &amp; colours</p>
             <Chips items={[...data.finishes, ...data.colours]} />
           </div>
         </Reveal>
-        <ChapterCTA interest="Sandwich Panels" blurb="Panel layouts ready? Send areas, thicknesses and finishes for a confirmed panel schedule." />
         <ChapterCTA interest="Sandwich Panels" blurb="Panel layouts ready? Send areas, thicknesses and finishes for a confirmed panel schedule." />
         </div>
       </div>
@@ -253,7 +252,7 @@ function CleanroomBlock({ data }) {
           <div className="note-card">
             <p className="meta" style={{ color: 'var(--datum-ink)', marginBottom: 8 }}>Shared product</p>
             <p className="body-sm" style={{ margin: 0 }}>
-              Flush Wall Panels appear here and under Partition / Wall Panels â€” the same
+              Flush Wall Panels appear here and under Partition / Wall Panels — the same
               confirmed product, specified per application on enquiry.
             </p>
           </div>
@@ -282,7 +281,7 @@ function PartitionBlock({ data }) {
                   <p className="body-sm" style={{ marginTop: 8 }}>
                     {it.code === 'PT-P'
                       ? 'For dividing interior space with a clean architectural finish.'
-                      : 'For flat, continuous wall surfaces â€” also listed in the cleanroom range.'}
+                      : 'For flat, continuous wall surfaces — also listed in the cleanroom range.'}
                   </p>
                   {it.code === 'PT-F' && (
                     <div className="chips" style={{ marginTop: 12 }}>
@@ -374,7 +373,7 @@ export default function Products() {
                     <img src={img.src} alt="" loading={i < 2 ? 'eager' : 'lazy'} decoding="async" />
                   </span>
                   <span className="cat-card-body">
-                    <span className="meta">{c.index} / 05 Â· {CARD_COUNT[c.id]}</span>
+                    <span className="meta">{c.index} / 05 · {CARD_COUNT[c.id]}</span>
                     <span className="cat-card-name">{c.name}</span>
                   </span>
                 </a>
@@ -396,8 +395,8 @@ export default function Products() {
           </Materialize>
           <div className="steps">
             {[
-              { n: '01', t: 'Find your range', d: 'Pick one of the five chapters above â€” doors, sandwich, cleanroom, partition or profiles.' },
-              { n: '02', t: 'Note the options', d: 'Variant, core, thickness, finish, colour and size â€” everything on this page is confirmed data.' },
+              { n: '01', t: 'Find your range', d: 'Pick one of the five chapters above — doors, sandwich, cleanroom, partition or profiles.' },
+              { n: '02', t: 'Note the options', d: 'Variant, core, thickness, finish, colour and size — everything on this page is confirmed data.' },
               { n: '03', t: 'Send drawings', d: 'Openings, layouts and quantities through the enquiry form for a confirmed specification.' },
             ].map((s) => (
               <Reveal key={s.n}>

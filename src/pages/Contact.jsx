@@ -39,7 +39,7 @@ export default function Contact() {
             <SectionHead index="Form" label="Enquiry form" hint="Response: TBC" />
             {sent ? (
               <Reveal>
-                <div style={{ border: '1px solid var(--line-strong)', borderRadius: 3, padding: '40px 32px', background: 'var(--card)' }}>
+                <div className="sent-card">
                   <p className="meta" style={{ color: 'var(--ink)', marginBottom: 12 }}>Enquiry noted</p>
                   <h2 className="h2" style={{ fontSize: '2rem' }}>Thank you, {form.name.split(' ')[0] || 'there'}. We will confirm shortly.</h2>
                   <p className="body-sm" style={{ marginTop: 12 }}>
@@ -51,7 +51,7 @@ export default function Contact() {
               </Reveal>
             ) : (
               <form className="form" onSubmit={(e) => { e.preventDefault(); setSent(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <div className="form-2col">
                   <div className="field">
                     <label htmlFor="cf-name">Full name *</label>
                     <input id="cf-name" required value={form.name} onChange={set('name')} placeholder="e.g. Project Engineer" autoComplete="name" />
@@ -61,7 +61,7 @@ export default function Contact() {
                     <input id="cf-org" value={form.org} onChange={set('org')} placeholder="Company or site name" autoComplete="organization" />
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <div className="form-2col">
                   <div className="field">
                     <label htmlFor="cf-phone">Phone / email *</label>
                     <input id="cf-phone" required value={form.phone} onChange={set('phone')} placeholder="How do we reach you?" autoComplete="tel" />

@@ -38,8 +38,23 @@ function ScrollToTop() {
   useEffect(() => {
     if (hash) return;
     if (window.__lenis) window.__lenis.scrollTo(0, { immediate: true });
-    else window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    else window.scrollTo({ top: 0, behavior: 'auto' });
   }, [pathname, hash]);
+  return null;
+}
+
+/* Per-route document titles — the tab always says where you are. */
+const TITLES = {
+  '/': 'AKALKA — Doors & Panels | Precision Manufacturing',
+  '/products': 'Products catalogue | AKALKA Doors & Panels',
+  '/about': 'About | AKALKA Doors & Panels',
+  '/contact': 'Contact & enquiries | AKALKA Doors & Panels',
+};
+function PageTitle() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    document.title = TITLES[pathname] || TITLES['/'];
+  }, [pathname]);
   return null;
 }
 
@@ -57,6 +72,7 @@ export default function App() {
     <>
       <SmoothScroll />
       <ScrollToTop />
+      <PageTitle />
       <ScrollProgress />
       <Nav />
       <main key={pathname.split('#')[0]}>

@@ -66,7 +66,7 @@ export default function About() {
         </div>
       </section>
 
-<section className="section">
+      <section className="section">
         <div className="wrap">
           <div className="panel manifesto">
             <SectionHead index="Sheet" label="Position" hint="Scope, stated plainly" />
@@ -87,7 +87,7 @@ export default function About() {
             </div>
             <div>
               <p className="meta" style={{ color: 'var(--ink)', marginBottom: 10 }}>We leave out</p>
-              <p className="body-sm">No galleries, logos or testimonials. The products carry the brand.</p>
+              <p className="body-sm">No project galleries, client logos or testimonials. The products carry the brand.</p>
             </div>
           </div>
         </div>

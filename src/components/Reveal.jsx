@@ -193,7 +193,8 @@ export function CountUp({ to, duration = 1.6 }) {
   return <span ref={ref}>{val}</span>;
 }
 
-export function SectionHead({ index, label, hint }) {  return (
+export function SectionHead({ index, label, hint }) {
+  return (
     <div className="sec-head">
       <div className="sec-index">
         <span className="meta idx">{index}</span>

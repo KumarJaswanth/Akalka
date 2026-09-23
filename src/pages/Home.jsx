@@ -14,7 +14,7 @@ function Strip() {
   const items = ['Single & Double Doors', 'PUF / Rockwool / Honeycomb', '50 / 100 mm', 'Cleanroom Wall & Ceiling', 'Partition Systems', 'R-70 / R-90 Profiles'];
   const row = (hidden) => (
     <span aria-hidden={hidden || undefined}>
-      {items.map((t, i) => <span key={i}>{t}{i < items.length - 1 && <b>Â·</b>}</span>)}
+      {items.map((t, i) => <span key={i}>{t}{i < items.length - 1 && <b>·</b>}</span>)}
     </span>
   );
   return (
@@ -267,7 +267,7 @@ function Profiles() {
     alt: c.alt,
     code: c.code,
     title: c.name,
-    note: c.opts.join('  Â·  '),
+    note: c.opts.join('  ·  '),
   }));
   return (
     <section className="section fit" id="profiles">
