@@ -46,20 +46,42 @@ export default function Flow() {
     const root = rootRef.current;
     const track = trackRef.current;
     if (!root || !track) return;
+    const panelEls = () => track.querySelectorAll('.flow-panel');
+    const clearVars = () => {
+      panelEls().forEach((p) =>
+        ['--bx', '--cx', '--cy', '--gy', '--co'].forEach((v) => p.style.removeProperty(v))
+      );
+    };
     if (staticMode) {
       track.style.transform = '';
+      clearVars();
       return;
     }
     let raf = 0;
     const update = () => {
       const vh = window.innerHeight;
+      const vw = window.innerWidth;
       const top = root.getBoundingClientRect().top + window.scrollY;
       const span = root.offsetHeight - vh;
       const p = span > 0 ? Math.min(1, Math.max(0, (window.scrollY - top) / span)) : 0;
-      const maxX = track.scrollWidth - window.innerWidth;
+      const maxX = track.scrollWidth - vw;
       track.style.transform = `translate3d(${(-p * maxX).toFixed(1)}px, 0, 0)`;
       const idx = Math.min(total - 1, Math.round(p * (total - 1)));
       setActive((prev) => (prev === idx ? prev : idx));
+      /* Inner choreography: even panels drift one way, odd panels the
+         other — backgrounds counter-slide, copies rise and fade, ghosts
+         float upward. Every screen enters differently. */
+      panelEls().forEach((panel, i) => {
+        const r = panel.getBoundingClientRect();
+        if (r.right < -vw || r.left > vw * 2) return;
+        const q = (r.left + r.width / 2 - vw / 2) / vw;
+        const dir = i % 2 === 0 ? 1 : -1;
+        panel.style.setProperty('--bx', `${(q * dir * 140).toFixed(1)}px`);
+        panel.style.setProperty('--cx', `${(q * dir * -90).toFixed(1)}px`);
+        panel.style.setProperty('--cy', `${(q * 70).toFixed(1)}px`);
+        panel.style.setProperty('--gy', `${(q * -120).toFixed(1)}px`);
+        panel.style.setProperty('--co', `${Math.max(0, 1 - Math.abs(q) * 1.7).toFixed(3)}`);
+      });
     };
     const onScroll = () => {
       cancelAnimationFrame(raf);
