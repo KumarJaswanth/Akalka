@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAV_LINKS } from '../data/products.js';
 import { useScrolled } from './Reveal.jsx';
@@ -9,8 +9,9 @@ export default function Nav() {
   const scrolled = useScrolled(24);
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const { pathname } = useLocation();
-  const dark = open || (pathname === '/' && !scrolled);
+  /* Transparent pill over dark heroes → light text; glass pill once
+     scrolled → dark text. Every page opens on a dark hero. */
+  const dark = open || !scrolled;
 
   /* Smooth auto-hide: nav glides away scrolling down, returns on the
      way up. Paused while the mobile menu is open. */
@@ -52,7 +53,7 @@ export default function Nav() {
       <header className={`nav${scrolled ? ' scrolled' : ''}${dark ? ' dark' : ''}${open ? ' open' : ''}${hidden ? ' hidden' : ''}`}>
         <div className="wrap nav-inner">
           <Link to="/" className="brand-link" aria-label="AKALKA home" onClick={() => setOpen(false)}>
-            <Logo height={52} />
+            <Logo height={54} />
           </Link>
           <nav className="nav-links" aria-label="Primary">
             {NAV_LINKS.map((l) => (

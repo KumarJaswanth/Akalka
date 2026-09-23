@@ -29,8 +29,8 @@ export default function Footer() {
 
         <div className="foot-grid">
           <div>
-            <Logo height={62} big />
-            <p style={{ marginTop: 20, fontWeight: 300, fontSize: '0.9rem', color: 'var(--on-dark-muted)', maxWidth: '34ch' }}>
+            <Logo height={64} big />
+            <p style={{ marginTop: 22, fontWeight: 400, fontSize: '0.95rem', color: 'rgba(255,255,255,0.82)', maxWidth: '34ch', lineHeight: 1.7 }}>
               A product-focused manufacturer of doors, wall systems and the profiles that join them.
             </p>
           </div>
