@@ -1,12 +1,21 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Reveal, SectionHead, Magnetic } from '../components/Reveal.jsx';
 import { ArrowRight } from '../components/icons.jsx';
 
 const PRODUCT_OPTIONS = ['Doors', 'Sandwich Panels', 'Cleanroom Panels', 'Partition / Wall Panels', 'Profiles & Accessories', 'Multiple / full system'];
 
 export default function Contact() {
+  const [params] = useSearchParams();
+  const requested = params.get('interest');
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ name: '', org: '', phone: '', interest: 'Doors', msg: '' });
+  const [form, setForm] = useState({
+    name: '',
+    org: '',
+    phone: '',
+    interest: PRODUCT_OPTIONS.includes(requested) ? requested : 'Doors',
+    msg: '',
+  });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   return (

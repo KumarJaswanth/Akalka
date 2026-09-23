@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CATEGORIES } from '../data/products.js';
 import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
-import { ArrowRight, ArrowUpRight, Plus } from '../components/icons.jsx';
-import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
+import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import { IMG } from '../data/images.js';
 
 const CARD_IMG = {
@@ -34,12 +33,21 @@ function Chips({ items, accent = false }) {
   );
 }
 
-function Spec({ title, children, open = false }) {
+/* Per-chapter enquiry strip — carries the range into the contact form. */
+function ChapterCTA({ interest, blurb }) {
   return (
-    <details className="spec" open={open}>
-      <summary>{title}<span className="plus"><Plus /></span></summary>
-      <div className="spec-body">{children}</div>
-    </details>
+    <Reveal>
+      <div className="chap-cta">
+        <p className="body-sm" style={{ margin: 0 }}>{blurb}</p>
+        <Link
+          to={`/contact?interest=${encodeURIComponent(interest)}`}
+          className="link-line"
+          style={{ whiteSpace: 'nowrap' }}
+        >
+          Enquire <ArrowRight style={{ width: 14, height: 14 }} />
+        </Link>
+      </div>
+    </Reveal>
   );
 }
 
@@ -65,51 +73,38 @@ function DoorsBlock({ data }) {
             </figure>
           </div>
         </ClipReveal>
-        <div style={{ height: 32 }} />
-        <div className="split">
-          <div className="split-cell">
-            <p className="meta" style={{ color: 'var(--ink)', marginBottom: 6 }}>Configurations</p>
-            <div style={{ display: 'grid', gap: '4px', marginTop: 18 }}>
-              {data.variants.map((v, i) => (
-                <Reveal key={v.code} delay={i * 0.05}>
-                  <div className="part-step plain" style={{ gridTemplateColumns: '90px 1fr' }}>
-                    <b>{v.code}</b>
-                    <div>
-                      <h3 className="h3">{v.name}</h3>
-                      <p className="body-sm" style={{ marginTop: 6 }}>{v.note}</p>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-            <Reveal>
-              <Spec title="Cores, finishes & colours" open>
-                <p style={{ marginBottom: 12 }}><b>Core options</b></p>
-                <Chips items={data.cores} accent />
-                <p style={{ margin: '16px 0 12px' }}><b>Finishes</b></p>
-                <Chips items={data.finishes} />
-                <p style={{ margin: '16px 0 12px' }}><b>Colours</b></p>
-                <Chips items={data.colours} />
-              </Spec>
-              <Spec title="Sizing">
-                <p>{data.sizingNote} No fixed dimensions are published. Share drawings or opening sizes via the enquiry form.</p>
-              </Spec>
-            </Reveal>
+        <div style={{ height: 36 }} />
+        <div className="spec-tables">
+          <div className="spec-table">
+            <p className="meta">Variants</p>
+            {data.variants.map((v) => (
+              <div className="spec-tr" key={v.code}>
+                <span className="meta">{v.code}</span>
+                <span><b>{v.name}</b><small>{v.note}</small></span>
+              </div>
+            ))}
           </div>
-          <div className="split-cell dark on-dark" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 18 }}>
-            <p className="meta t-bright">Configuration summary</p>
-            <div className="h-card on-dark" style={{ background: 'transparent', color: 'var(--on-dark)' }}>
-              <span className="meta t-bright">DR-S</span>
-              <h3 className="h3">Single door</h3>
-              <Chips items={['Honeycomb / Rockwool', 'Pre-powder / Powder', 'Size: requirement']} />
+          <div className="spec-table">
+            <p className="meta">Options</p>
+            <div className="spec-tr">
+              <span className="meta">Core</span>
+              <span>{data.cores.join('  ·  ')}</span>
             </div>
-            <div className="h-card on-dark" style={{ background: 'rgba(125,178,0,0.16)', color: 'var(--on-dark)' }}>
-              <span className="meta t-bright">DR-D</span>
-              <h3 className="h3">Double door</h3>
-              <Chips items={['Honeycomb / Rockwool', 'White / Matt White / Custom']} />
+            <div className="spec-tr">
+              <span className="meta">Finish</span>
+              <span>{data.finishes.join('  ·  ')}</span>
+            </div>
+            <div className="spec-tr">
+              <span className="meta">Colour</span>
+              <span>{data.colours.join('  ·  ')}</span>
+            </div>
+            <div className="spec-tr">
+              <span className="meta">Size</span>
+              <span>Sizes vary according to requirement — no fixed dimensions published</span>
             </div>
           </div>
         </div>
+        <ChapterCTA interest="Doors" blurb="Openings scheduled? Send sizes, cores and finishes for a confirmed door specification." />
       </div>
     </section>
   );
@@ -132,27 +127,38 @@ function SandwichBlock({ data }) {
             <figcaption><span className="meta">SW series</span><span>50 / 100 mm wall systems</span></figcaption>
           </figure>
         </ClipReveal>
-        <div className="h-scroll" style={{ marginTop: 32 }}>
-          {data.panels.map((p, i) => (
-            <Reveal key={p.code} delay={Math.min(i * 0.05, 0.15)}>
-              <div className="h-card">
-                <span className="meta" style={{ color: 'var(--ink)' }}>{p.code}</span>
-                <h3 className="h3">{p.name}</h3>
-                {p.thicknesses.length > 0 ? (
-                  <div className="chips">{p.thicknesses.map((t) => <span key={t} className="chip chip-accent">{t}</span>)}</div>
-                ) : (
-                  <span className="chip needs" style={{ alignSelf: 'flex-start' }}>Thickness: needs confirmation</span>
-                )}
-              </div>
-            </Reveal>
+        <div className="spec-matrix" style={{ marginTop: 32 }}>
+          <div className="spec-mrow head" aria-hidden="true">
+            <span className="meta">Product</span>
+            <span className="meta">50 mm</span>
+            <span className="meta">100 mm</span>
+          </div>
+          {data.panels.map((p) => (
+            <div className="spec-mrow" key={p.code}>
+              <span><b>{p.name}</b><small>{p.code}</small></span>
+              {['50 mm', '100 mm'].map((t) => (
+                <span key={t}>
+                  {p.thicknesses.includes(t) ? (
+                    <span className="chip chip-accent">{t}</span>
+                  ) : (
+                    <span className="meta" style={{ color: 'var(--muted-fg)' }} title="Not confirmed">—</span>
+                  )}
+                </span>
+              ))}
+            </div>
           ))}
         </div>
         <Reveal>
+          <p className="meta" style={{ marginTop: 18, color: 'var(--muted-fg)' }}>
+            — means not confirmed. Only the thicknesses above are confirmed client data.
+          </p>
           <div style={{ marginTop: 20 }}>
             <p className="meta" style={{ marginBottom: 12, color: 'var(--muted-fg)' }}>Panel finishes &amp; colours</p>
             <Chips items={[...data.finishes, ...data.colours]} />
           </div>
         </Reveal>
+        <ChapterCTA interest="Sandwich Panels" blurb="Panel layouts ready? Send areas, thicknesses and finishes for a confirmed panel schedule." />
+        <ChapterCTA interest="Sandwich Panels" blurb="Panel layouts ready? Send areas, thicknesses and finishes for a confirmed panel schedule." />
         </div>
       </div>
     </section>
@@ -170,9 +176,17 @@ function CleanroomBlock({ data }) {
           <p className="lede">{data.description}</p>
         </Materialize>
         <div style={{ height: 36 }} />
-        <Reveal>
-          <CleanroomShowcase items={data.items} />
-        </Reveal>
+        <div className="spec-list">
+          {data.items.map((it, i) => (
+            <Reveal key={it.code} delay={Math.min(i * 0.05, 0.15)}>
+              <div className="spec-li">
+                <span className="meta">{it.code}</span>
+                <span className="h3">{it.name}</span>
+                <span className="chip">Range item</span>
+              </div>
+            </Reveal>
+          ))}
+        </div>
         <Reveal>
           <div className="chips" style={{ marginTop: 30 }}>
             <span className="chip needs">ISO class: needs confirmation</span>
@@ -180,6 +194,7 @@ function CleanroomBlock({ data }) {
             <span className="chip needs">Pressure / hygiene ratings: needs confirmation</span>
           </div>
         </Reveal>
+        <ChapterCTA interest="Cleanroom Panels" blurb="Controlled environment to fit out? Describe the rooms for a confirmed cleanroom range." />
       </div>
     </section>
   );
@@ -195,10 +210,10 @@ function PartitionBlock({ data }) {
           <Materialize>
             <h2 className="h2" style={{ marginBottom: 12 }}>Partition panels: kept distinct.</h2>
             <p className="lede">{data.description}</p>
-            <div style={{ display: 'flex', gap: 18, marginTop: 30, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 16, marginTop: 30, flexWrap: 'wrap' }}>
               {data.items.map((it) => (
-                <div key={it.code} style={{ flex: '1 1 200px', border: '1px solid var(--line-strong)', borderRadius: 0, padding: 26, background: 'var(--card)' }}>
-                  <p className="meta" style={{ color: 'var(--ink)', marginBottom: 10 }}>{it.code}</p>
+                <div key={it.code} className="pt-card">
+                  <p className="meta" style={{ color: 'var(--datum)', marginBottom: 10 }}>{it.code}</p>
                   <h3 className="h3">{it.name}</h3>
                 </div>
               ))}
@@ -214,6 +229,7 @@ function PartitionBlock({ data }) {
             </div>
           </ClipReveal>
         </div>
+        <ChapterCTA interest="Partition / Wall Panels" blurb="Interior division to plan? Send layouts for a confirmed partition specification." />
       </div>
     </section>
   );
@@ -250,8 +266,9 @@ function ProfilesBlock({ data }) {
           </Reveal>
         ))}
         <Reveal>
-          <p className="meta" style={{ marginTop: 24, color: 'var(--muted-fg)' }}>Additional profile dimensions: <span className="chip needs" style={{ marginLeft: 8 }}>Needs confirmation</span></p>
+          <p className="meta" style={{ marginTop: 28, color: 'var(--muted-fg)' }}>Additional profile dimensions: <span className="chip needs" style={{ marginLeft: 8 }}>Needs confirmation</span></p>
         </Reveal>
+        <ChapterCTA interest="Profiles & Accessories" blurb="Junctions, edges and tracks to close out? List the profiles for confirmed options." />
         </div>
       </div>
     </section>

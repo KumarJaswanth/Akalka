@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
-/* Door mark drawn from the AKALKA logo: charcoal door slab,
-   lime frame + handle, white rounded badge. */
+/* Official AKALKA lockup with graceful fallbacks:
+   vector SVG → PNG → drawn mark. */
+
 export function DoorMark({ size = 40 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false">
@@ -13,18 +14,29 @@ export function DoorMark({ size = 40 }) {
   );
 }
 
-/* Uses the official logo file when present (public/akalka-logo.png),
-   otherwise falls back to a drawn lockup echoing the brand. */
 export default function Logo({ height = 42, big = false }) {
-  const [real, setReal] = useState(true);
-  if (real) {
+  const [stage, setStage] = useState(0);
+  const cls = big ? 'logo-img big' : 'logo-img';
+  const alt = 'AKALKA Doors and Panels — crafted with care';
+  if (stage === 0) {
+    return (
+      <img
+        src="/Akalka-logo.svg"
+        alt={alt}
+        height={height}
+        className={cls}
+        onError={() => setStage(1)}
+      />
+    );
+  }
+  if (stage === 1) {
     return (
       <img
         src="/akalka-logo.png"
-        alt="AKALKA Doors and Panels — crafted with care"
+        alt={alt}
         height={height}
-        className={big ? 'logo-img big' : 'logo-img'}
-        onError={() => setReal(false)}
+        className={cls}
+        onError={() => setStage(2)}
       />
     );
   }
