@@ -1,9 +1,10 @@
-﻿import { useEffect, useRef, useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CATEGORIES, FINISHES } from '../data/products.js';
 import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg, ScrollWords, CountUp } from '../components/Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
+import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
 import Flow from '../components/Flow.jsx';
 import { IMG, V } from '../data/images.js';
 
@@ -175,80 +176,28 @@ function SandwichBand() {
   );
 }
 
-/* ---------------- Cleanroom dark list ---------------- */
-const CR_PEEKS = [
-  V('1748000970909-845f4aa144d2', 600, 760),
-  V('1584677123573-7446380b6d69', 600, 760),
-  V('1762928289094-197055a5d5c3', 600, 760),
-  V('1746021375306-9dec0f637732', 600, 760),
-];
-
+/* ---------------- Cleanroom showcase chapter ---------------- */
 function Cleanroom() {
   const cr = CATEGORIES[2];
-  const [peek, setPeek] = useState(-1);
-  const [canPeek, setCanPeek] = useState(false);
-  const peekRef = useRef(null);
-  useEffect(() => {
-    setCanPeek(
-      window.matchMedia('(hover: hover)').matches &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    );
-  }, []);
-  const follow = (e) => {
-    const el = peekRef.current;
-    if (!el) return;
-    const pad = 28;
-    const w = 250;
-    const h = 312;
-    let x = e.clientX + pad;
-    if (x + w > window.innerWidth - 12) x = e.clientX - w - pad;
-    const y = Math.max(12, Math.min(window.innerHeight - h - 12, e.clientY - h / 2));
-    el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
-  };
   return (
-    <section className="section dark-sec on-dark" id="cleanroom" onMouseMove={canPeek ? follow : undefined}>
+    <section className="section dark-sec on-dark" id="cleanroom">
       <div className="wrap">
         <SectionHead index="CR" label="Cleanroom panels" hint="CR series" />
         <Materialize>
           <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 14 }}>Controlled interiors, flush surfaces.</h2>
           <p className="lede">{cr.description}</p>
         </Materialize>
-        <div style={{ height: 32 }} />
-        <ClipReveal>
-          <figure className="band-ph band-ph-dark">
-            <ParallaxImg src={IMG.cleanroom.src} alt={IMG.cleanroom.alt} ratio="21/9" speed={0.12} onError={(e) => { e.currentTarget.closest('.band-ph').style.display = 'none'; }} />
-            <figcaption><span className="meta">CR series</span><span>Flush, washable surfaces</span></figcaption>
-          </figure>
-        </ClipReveal>
-        <div style={{ height: 8 }} />
-        <div onMouseLeave={() => setPeek(-1)}>
-          {cr.items.map((it, i) => (
-            <Reveal key={it.code}>
-              <Link
-                to="/products#cleanroom"
-                className="cr-row"
-                onMouseEnter={() => setPeek(i)}
-                onFocus={() => setPeek(i)}
-              >
-                <span className="fill" aria-hidden="true" />
-                <span className="cr-code">{it.code} / 0{i + 1}</span>
-                <span className="cr-name">{it.name}</span>
-                <span className="cr-tag chip">Range item</span>
-              </Link>
-            </Reveal>
-          ))}
-        </div>
-        {canPeek && (
-          <div ref={peekRef} className={`cr-peek${peek >= 0 ? ' on' : ''}`} aria-hidden="true">
-            {CR_PEEKS.map((src, i) => (
-              <img key={i} src={src} alt="" loading="lazy" decoding="async" className={i === peek ? 'on' : ''} />
-            ))}
-          </div>
-        )}
+        <div style={{ height: 36 }} />
         <Reveal>
-          <p className="meta" style={{ marginTop: 26, color: 'var(--on-dark-muted)' }}>
-            Classifications, ratings, performance: <span className="chip needs" style={{ marginLeft: 8 }}>Needs confirmation</span>
-          </p>
+          <CleanroomShowcase items={cr.items} />
+        </Reveal>
+        <Reveal>
+          <div style={{ marginTop: 30, display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
+            <p className="meta" style={{ color: 'var(--on-dark-muted)' }}>
+              Classifications, ratings, performance: <span className="chip needs" style={{ marginLeft: 8 }}>Needs confirmation</span>
+            </p>
+            <Link to="/products#cleanroom" className="link-line">Full cleanroom range</Link>
+          </div>
         </Reveal>
       </div>
     </section>

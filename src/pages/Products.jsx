@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { CATEGORIES } from '../data/products.js';
 import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
 import { ArrowRight, ArrowUpRight, Plus } from '../components/icons.jsx';
+import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
 import { IMG } from '../data/images.js';
 
 const SUB = CATEGORIES.map((c) => ({ id: c.id, label: `${c.index} / ${c.name}` }));
@@ -142,7 +143,7 @@ function SandwichBlock({ data }) {
   );
 }
 
-/* ---- 03 Cleanroom: calm technical table ---- */
+/* ---- 03 Cleanroom: interactive showcase ---- */
 function CleanroomBlock({ data }) {
   return (
     <section className="section prod-block dark-sec on-dark" id="cleanroom">
@@ -152,25 +153,12 @@ function CleanroomBlock({ data }) {
           <h2 className="h2" style={{ marginBottom: 12 }}>Cleanroom panels: stated as range.</h2>
           <p className="lede">{data.description}</p>
         </Materialize>
-        <ClipReveal>
-          <figure className="band-ph band-ph-dark" style={{ marginTop: 28 }}>
-            <ParallaxImg src={IMG.cleanroomAlt.src} alt={IMG.cleanroomAlt.alt} ratio="21/9" speed={0.12} onError={(e) => { e.currentTarget.closest('.band-ph').style.display = 'none'; }} />
-            <figcaption><span className="meta">CR series</span><span>Wall / ceiling / washable / flush</span></figcaption>
-          </figure>
-        </ClipReveal>
-        <div style={{ height: 28 }} />
-        {data.items.map((it, i) => (
-          <Reveal key={it.code} delay={i * 0.04}>
-            <div className="cr-row">
-              <span className="fill" aria-hidden="true" />
-              <span className="cr-code">{it.code}</span>
-              <span className="cr-name">{it.name}</span>
-              <span className="cr-tag chip">Range item</span>
-            </div>
-          </Reveal>
-        ))}
+        <div style={{ height: 36 }} />
         <Reveal>
-          <div className="chips" style={{ marginTop: 26 }}>
+          <CleanroomShowcase items={data.items} />
+        </Reveal>
+        <Reveal>
+          <div className="chips" style={{ marginTop: 30 }}>
             <span className="chip needs">ISO class: needs confirmation</span>
             <span className="chip needs">GMP: needs confirmation</span>
             <span className="chip needs">Pressure / hygiene ratings: needs confirmation</span>

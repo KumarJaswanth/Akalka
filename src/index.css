@@ -346,34 +346,44 @@ button.chip:active { transform: scale(0.96); }
 .dark-sec .lede { color: var(--on-dark-muted); }
 .panel { background: transparent; border: 0; border-radius: 0; padding: 0; }
 .panel-inset { margin-inline: 0; border-radius: 0; }
-.cr-row {
-  display: grid;
-  grid-template-columns: 110px 1fr auto;
-  gap: 20px;
-  align-items: center;
-  padding: 22px clamp(16px, 2vw, 28px);
-  border-radius: var(--radius-card);
-  position: relative;
-  overflow: hidden;
-  transition: background 0.4s var(--ease-soft), transform 0.4s var(--ease-soft);
+/* ---------- cleanroom showcase ---------- */
+.cr-show { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: clamp(28px, 4vw, 64px); align-items: start; }
+.cr-visual {
+  position: sticky; top: calc(var(--nav-h) + 20px);
+  aspect-ratio: 4/5; border-radius: var(--radius-img); overflow: hidden;
+  background: var(--dark-2); box-shadow: var(--shadow-lift);
 }
-.cr-row:hover { background: rgba(255, 255, 255, 0.06); transform: translateX(10px); }
-.cr-row .fill { display: none; }
-.cr-name { font-family: var(--display); font-weight: 600; font-size: clamp(1.7rem, 3.4vw, 2.6rem); line-height: 1.1; position: relative; }
-.cr-code { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em; color: var(--datum); position: relative; white-space: nowrap; }
-.cr-tag { position: relative; }
-/* Floating hover preview — desktop delight, follows the cursor. */
-.cr-peek {
-  position: fixed; top: 0; left: 0; z-index: 55;
-  width: 250px; aspect-ratio: 4/5;
-  border-radius: 16px; overflow: hidden;
-  pointer-events: none; box-shadow: var(--shadow-lift);
-  opacity: 0; scale: 0.85;
-  transition: opacity 0.35s var(--ease-soft), scale 0.45s var(--ease-soft);
+.cr-visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cr-vtag {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 52px 22px 18px;
+  background: linear-gradient(transparent, rgba(18, 20, 23, 0.8));
+  font-size: 0.82rem; color: rgba(255, 255, 255, 0.85);
 }
-.cr-peek.on { opacity: 1; scale: 1; }
-.cr-peek img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.35s; }
-.cr-peek img.on { opacity: 1; }
+.cr-vtag .meta { color: var(--datum); }
+.cr-rows { display: flex; flex-direction: column; }
+.cr-item { padding: 8px 0; }
+.cr-head {
+  width: 100%; display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: center;
+  padding: 26px 10px; background: none; border: 0; color: inherit; text-align: left;
+  border-radius: 16px; transition: background 0.35s var(--ease-soft);
+}
+.cr-head:hover { background: rgba(255, 255, 255, 0.05); }
+.cr-num { color: var(--datum); }
+.cr-name { font-family: var(--display); font-weight: 600; font-size: clamp(1.5rem, 2.8vw, 2.2rem); line-height: 1.12; }
+.cr-item:not(.open) .cr-name { color: var(--on-dark-muted); transition: color 0.3s; }
+.cr-item.open .cr-name, .cr-head:hover .cr-name { color: var(--on-dark); }
+.cr-plus { display: inline-flex; color: var(--datum); }
+.cr-plus svg { width: 18px; height: 18px; transition: transform 0.4s var(--ease-soft); }
+.cr-item.open .cr-plus svg { transform: rotate(45deg); }
+.cr-more { overflow: hidden; }
+.cr-more-in { display: grid; gap: 14px; padding: 4px 10px 28px 72px; }
+.cr-more-in .body-sm { color: var(--on-dark-muted); max-width: 46ch; }
+@media (max-width: 900px) {
+  .cr-show { grid-template-columns: 1fr; }
+  .cr-visual { position: relative; top: auto; aspect-ratio: 16/10; }
+}
 
 /* ---------- partition composition ---------- */
 .part-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(28px, 5vw, 80px); align-items: start; }
@@ -716,9 +726,6 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   .cat-num { display: none; }
   .cat-desc { grid-column: 1 / -1; }
   .lab-surface { min-height: 300px; }
-  .cr-row { grid-template-columns: 1fr auto; }
-  .cr-row:hover { transform: none; }
-  .cr-row .cr-code { display: none; }
   .info-row { grid-template-columns: 1fr; gap: 4px; }
   .sec-head { align-items: start; }
   .gal-stage { height: clamp(380px, 64vh, 560px); }
