@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
 import Lenis from 'lenis';
@@ -6,10 +6,21 @@ import Nav from './components/Nav.jsx';
 import Boot from './components/Boot.jsx';
 import Footer from './components/Footer.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
-import Home from './pages/Home.jsx';
-import Products from './pages/Products.jsx';
-import About from './pages/About.jsx';
-import Contact from './pages/Contact.jsx';
+
+/* Route-split: visitors download only the page they open. Shared UI
+   (nav, motion, galleries) stays in one common chunk automatically. */
+const Home = lazy(() => import('./pages/Home.jsx'));
+const Products = lazy(() => import('./pages/Products.jsx'));
+const About = lazy(() => import('./pages/About.jsx'));
+const Contact = lazy(() => import('./pages/Contact.jsx'));
+
+function RouteFallback() {
+  return (
+    <div className="route-loading" role="status" aria-label="Loading page">
+      <span />
+    </div>
+  );
+}
 
 /* Inertial smooth scrolling (Lenis, Jakub lens): expo-out easing for a
    weighted, settled stop; native rAF loop and anchor handling; skipped
@@ -36,6 +47,19 @@ function SmoothScroll() {
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
+  /* Reloads must start cleanly at the top — never resume mid-journey.
+     Browsers restore scroll asynchronously, so we claim manual control
+     and re-assert top on full load as well. */
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    const toTop = () => {
+      if (window.__lenis) window.__lenis.scrollTo(0, { immediate: true });
+      else window.scrollTo(0, 0);
+    };
+    toTop();
+    window.addEventListener('load', toTop);
+    return () => window.removeEventListener('load', toTop);
+  }, []);
   useEffect(() => {
     if (hash) return;
     if (window.__lenis) window.__lenis.scrollTo(0, { immediate: true });
@@ -79,13 +103,15 @@ export default function App() {
       <Nav />
       <main key={pathname.split('#')[0]}>
         <ErrorBoundary>
-          <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<Home />} />
-          </Routes>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<Home />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </main>
       <Footer />

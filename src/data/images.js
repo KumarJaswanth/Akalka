@@ -12,7 +12,7 @@ export const V = (id, w, h) =>
 
 export const IMG = {
   heroBg: {
-    src: U('1749467140438-feda1a2bbbd8', 2000),
+    src: U('1749467140438-feda1a2bbbd8', 1600),
     alt: 'Steel roof structure with skylights in a dark industrial hall',
   },
   doorSingle: {
@@ -24,7 +24,7 @@ export const IMG = {
     alt: 'Wide industrial metal door in a grey facade',
   },
   sandwich: {
-    src: U('1759310347407-b0dbfeb8745d', 1800),
+    src: U('1759310347407-b0dbfeb8745d', 1600),
     alt: 'Corrugated metal cladding on industrial buildings',
   },
   cleanroom: {

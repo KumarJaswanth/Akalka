@@ -25,6 +25,8 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
 
   const indexRef = useRef(0);
   indexRef.current = index;
+  const rootRef = useRef(null);
+  const visibleRef = useRef(true);
   const segRef = useRef(null);
   const elapsedRef = useRef(0);
   const lastTRef = useRef(0);
@@ -52,14 +54,35 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
 
   /* One rAF clock drives both the advance and the progress bar, so the
      timer you see is the timer you get. Only real input restarts the
-     beat — hovering changes nothing. */
+     beat — hovering changes nothing. The clock sleeps while its gallery
+     is off-screen or the tab is hidden, and resumes exactly on beat, so
+     long sessions never accumulate lag. */
   useEffect(() => {
     if (!play || reduce || n < 2) return;
     lastTRef.current = 0;
     let raf = 0;
+    const root = rootRef.current;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          visibleRef.current = e.isIntersecting;
+        });
+      },
+      { threshold: 0 }
+    );
+    if (root) io.observe(root);
+    const onVis = () => {
+      lastTRef.current = 0;
+    };
+    document.addEventListener('visibilitychange', onVis);
     const step = (now) => {
       const last = lastTRef.current || now;
       lastTRef.current = now;
+      /* Asleep — spend nothing, keep the beat position frozen. */
+      if (document.hidden || !visibleRef.current) {
+        raf = requestAnimationFrame(step);
+        return;
+      }
       const dt = Math.min(now - last, 100);
       const busy = pausedRef.current || Date.now() - idleRef.current < IDLE_MS;
       if (!busy) {
@@ -76,7 +99,11 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVis);
+      cancelAnimationFrame(raf);
+    };
   }, [play, reduce, n, interval]);
 
   const onKey = (e) => {
@@ -87,7 +114,7 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
   const s = slides[index];
 
   return (
-    <div className={`car${dark ? ' dark' : ''}`}>
+    <div ref={rootRef} className={`car${dark ? ' dark' : ''}`}>
       <div className="car-top">
         <div className="car-label">
           {label && <span className="meta">{label}</span>}

@@ -759,6 +759,10 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
 .form { display: grid; gap: 18px; }
 .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 @media (max-width: 640px) { .form-2col { grid-template-columns: 1fr; } }
+/* ---------- home enquiry section ---------- */
+.enquiry-grid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: clamp(32px, 5vw, 88px); align-items: start; }
+.enquiry-card { background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-lift); padding: clamp(28px, 3.5vw, 44px); }
+@media (max-width: 900px) { .enquiry-grid { grid-template-columns: 1fr; } }
 .sent-card {
   background: var(--card); border-radius: var(--radius-card);
   box-shadow: var(--shadow-soft); padding: clamp(32px, 4vw, 48px) clamp(24px, 3vw, 36px);
@@ -797,6 +801,12 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
 .boot-bar { display: block; width: min(220px, 50vw); height: 2px; border-radius: 2px; background: rgba(255, 255, 255, 0.14); overflow: hidden; margin-top: 10px; }
 .boot-bar i { display: block; height: 100%; background: var(--datum); border-radius: inherit; transform-origin: left; animation: bootFill 1.25s var(--ease-soft) forwards; }
 @keyframes bootFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---------- route-change shimmer (code-split boundary) ---------- */
+.route-loading { min-height: 60svh; display: grid; place-items: center; }
+.route-loading span { display: block; width: min(220px, 50vw); height: 2px; border-radius: 2px; background: rgba(66, 71, 77, 0.14); overflow: hidden; position: relative; }
+.route-loading span::after { content: ''; position: absolute; inset: 0; background: var(--datum); border-radius: inherit; transform-origin: left; animation: routeFill 1s var(--ease-soft) infinite alternate; }
+@keyframes routeFill { from { transform: scaleX(0.15); } to { transform: scaleX(1); } }
 
 /* ---------- scroll reveals ---------- */
 .rv, .mz { opacity: 0; }

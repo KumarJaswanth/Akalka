@@ -5,6 +5,7 @@ import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg, Sc
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
+import EnquiryForm from '../components/EnquiryForm.jsx';
 import Flow from '../components/Flow.jsx';
 import { IMG, V } from '../data/images.js';
 
@@ -354,25 +355,43 @@ function Principles() {
             ))}
           </div>
         </Reveal>
-        <Reveal>
-          <div className="cta-band" style={{ marginTop: 40 }}>
-            <div
-              className="cta-bg"
-              style={{
-                backgroundImage: `linear-gradient(rgba(43,48,54,0.84), rgba(43,48,54,0.88)), url("${V('1671022442106-c787685d9fed', 1600, 900)}")`,
-              }}
-              aria-hidden="true"
-            />
-            <h2 className="h2">Have a requirement?<br />Send the sizes.</h2>
-            <p className="body-sm" style={{ color: 'var(--on-dark-muted)', marginTop: 14, maxWidth: '52ch' }}>
-              Doors, panels and profiles are manufactured to order. Share your drawings or dimensions and receive a confirmed specification.
-            </p>
-            <div className="cta-row">
-              <Magnetic><Link to="/products" className="btn btn-light">Browse catalogue <ArrowRight className="arr arr-r" /></Link></Magnetic>
-              <Magnetic><Link to="/contact" className="btn btn-accent">Enquire now <ArrowUpRight className="arr arr-up" /></Link></Magnetic>
-            </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Enquiry ---------------- */
+function Enquiry() {
+  return (
+    <section className="section fit" id="enquiry">
+      <div className="wrap">
+        <SectionHead index="Contact" label="Start an enquiry" hint="Response: TBC" />
+        <div className="enquiry-grid">
+          <div>
+            <Materialize>
+              <h2 className="h2" style={{ marginBottom: 14 }}>Have a requirement?<br />Send the sizes.</h2>
+              <p className="lede">
+                Doors, panels and profiles are manufactured to order. Share drawings,
+                dimensions or a bill of quantities and receive a confirmed specification.
+              </p>
+            </Materialize>
+            <Reveal>
+              <div className="chips" style={{ marginTop: 22 }}>
+                <span className="chip">DR-S / DR-D</span>
+                <span className="chip">50 / 100 mm</span>
+                <span className="chip">R-70 / R-90</span>
+              </div>
+              <div style={{ marginTop: 26 }}>
+                <Link to="/products" className="link-line">Browse the catalogue instead</Link>
+              </div>
+            </Reveal>
           </div>
-        </Reveal>
+          <Reveal delay={0.08}>
+            <div className="enquiry-card">
+              <EnquiryForm defaultInterest="Multiple / full system" />
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -408,6 +427,7 @@ export default function Home() {
       <Profiles />
       <FinishLab />
       <Principles />
+      <Enquiry />
     </div>
   );
 }
