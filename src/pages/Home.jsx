@@ -5,9 +5,8 @@ import { CATEGORIES, FINISHES } from '../data/products.js';
 import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
+import Flow from '../components/Flow.jsx';
 import { IMG, V } from '../data/images.js';
-
-const CAT_CODES = { doors: 'DR', sandwich: 'SW', cleanroom: 'CR', partition: 'PT', profiles: 'PF' };
 
 /* ---------------- Hero: photographic + scroll-linked ---------------- */
 function Hero() {
@@ -458,8 +457,7 @@ export default function Home() {
     <div className="page">
       <Hero />
       <Strip />
-      <section className="section fit" id="intro">
-        <div className="wrap">
+      <section className="section fit" id="intro">        <div className="wrap">
           <div className="panel manifesto">
             <SectionHead index="Sheet A" label="Brand introduction" hint="Manufacturing first" />
             <Materialize>
@@ -477,28 +475,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="section fit" id="categories" style={{ paddingTop: 'clamp(48px,6vw,88px)' }}>
-        <div className="wrap">
-          <SectionHead index="Index" label="Product categories" hint="5 systems" />
-        <Materialize>
-          <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 34 }}>Five systems. One language.</h2>
-        </Materialize>
-          <div className="cat-list">
-            {CATEGORIES.map((c) => (
-              <Reveal key={c.id}>
-                <Link to={`/products#${c.id}`} className="cat-row" aria-label={`${c.name}, ${c.tagline}`}>
-                  <span className="cat-num">{CAT_CODES[c.id]}</span>
-                  <span>
-                    <span className="cat-name">{c.name}</span>
-                    <span className="cat-desc">{c.tagline}</span>
-                  </span>
-                  <span className="cat-code" aria-hidden="true">{c.index} / 05</span>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Flow />
       <DoorsFeature />
       <SandwichBand />
       <Cleanroom />
