@@ -1,79 +1,11 @@
-﻿import { useRef, useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CATEGORIES, FINISHES } from '../data/products.js';
 import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import Flow from '../components/Flow.jsx';
 import { IMG, V } from '../data/images.js';
-
-/* ---------------- Hero: photographic + scroll-linked ---------------- */
-function Hero() {
-  const ref = useRef(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '22%']);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1.12, 1.3]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 140]);
-  return (
-    <section className="hero hero-photo" ref={ref}>
-      <motion.div
-        className="hero-bg"
-        style={
-          reduce
-            ? { backgroundImage: `url("${IMG.heroBg.src}")` }
-            : { backgroundImage: `url("${IMG.heroBg.src}")`, y: bgY, scale: bgScale }
-        }
-        role="img"
-        aria-label={IMG.heroBg.alt}
-      />
-      <motion.div
-        className="wrap"
-        style={reduce ? undefined : { opacity: contentOpacity, y: contentY }}
-      >
-        <div className="hero-rail">
-          <span className="meta">AKALKA / Doors &amp; Panels</span>
-          <span className="scroll-cue"><i />Scroll</span>
-        </div>
-        <div className="hero-grid">
-          <div className="hero-inner">
-            <h1 className="display hero-title">
-              <span className="mask"><span>Engineered</span></span>
-              <span className="mask"><span style={{ animationDelay: '0.12s' }}>surfaces.</span></span>
-              <span className="mask"><span style={{ animationDelay: '0.24s' }}>Precise interiors.</span></span>
-            </h1>
-            <div className="hero-sub">
-              <p>
-                AKALKA manufactures doors, sandwich panels, cleanroom panels, partition
-                systems and the profiles that join them: a coordinated product system
-                for clean, partitioned, professionally finished environments.
-              </p>
-              <div className="hero-ctas">
-                <Magnetic><Link to="/products" className="btn btn-solid">Explore the system <ArrowRight className="arr arr-r" /></Link></Magnetic>
-                <Magnetic><Link to="/contact" className="btn btn-light">Start an enquiry <ArrowUpRight className="arr arr-up" /></Link></Magnetic>
-              </div>
-            </div>
-          </div>
-          <figure className="hero-card">
-            <ParallaxImg src={IMG.doorSingle.src} alt={IMG.doorSingle.alt} eager ratio="4/5" speed={0.06} onError={(e) => { e.currentTarget.closest('.hero-card').style.display = 'none'; }} />
-            <figcaption>
-              <span className="meta">DR-S / DR-D</span>
-              <span>Size as per requirement</span>
-            </figcaption>
-          </figure>
-        </div>
-        <div className="hero-ticker">
-          <div><span className="meta">DR</span><span>Single / Double doors</span></div>
-          <div><span className="meta">SW / CR</span><span>Sandwich / Cleanroom panels</span></div>
-          <div><span className="meta">PT</span><span>Partition / wall panels</span></div>
-          <div><span className="meta">PF</span><span>Profiles: R-70 / R-90</span></div>
-        </div>
-      </motion.div>
-    </section>
-  );
-}
 
 /* ---------------- Static specification strip ---------------- */
 function Strip() {
@@ -247,7 +179,7 @@ function SandwichBand() {
 function Cleanroom() {
   const cr = CATEGORIES[2];
   return (
-    <section className="section fit dark-sec on-dark" id="cleanroom">
+    <section className="section dark-sec on-dark" id="cleanroom">
       <div className="wrap">
         <SectionHead index="CR" label="Cleanroom panels" hint="CR series" />
         <Materialize>
@@ -389,7 +321,7 @@ function FinishLab() {
             </div>
           </ClipReveal>
           <div className="lab-opts">
-            <Materialize>
+            <Materialize className="lab-head">
               <h2 className="h2" style={{ marginBottom: 10 }}>Coated, controlled colour.</h2>
               <p className="lede" style={{ marginBottom: 18 }}>Pre-powder and powder-coated surfaces in White, Matt White, or matched to customer requirement.</p>
             </Materialize>
@@ -455,9 +387,10 @@ function Principles() {
 export default function Home() {
   return (
     <div className="page">
-      <Hero />
+      <Flow />
       <Strip />
-      <section className="section fit" id="intro">        <div className="wrap">
+      <section className="section fit" id="intro">
+        <div className="wrap">
           <div className="panel manifesto">
             <SectionHead index="Sheet A" label="Brand introduction" hint="Manufacturing first" />
             <Materialize>
@@ -475,7 +408,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <Flow />
       <DoorsFeature />
       <SandwichBand />
       <Cleanroom />
