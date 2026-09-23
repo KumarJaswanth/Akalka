@@ -488,29 +488,38 @@ button.chip:active { transform: scale(0.96); }
 .car-label .meta { color: var(--datum); }
 .car-hint { color: var(--muted-fg); }
 .car-nav { display: flex; align-items: center; gap: 10px; }
-.car-count { color: var(--muted-fg); margin-right: 6px; }
-.car-btn {
-  width: 56px; height: 56px; border-radius: 50%;
-  border: 1px solid var(--ctrl); background: var(--card); color: var(--ink);
-  display: grid; place-items: center;
-  transition: background 0.35s var(--ease-soft), color 0.35s, border-color 0.35s, transform 0.18s;
-  box-shadow: var(--shadow-soft);
-}
-.car-btn:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); transform: translateY(-2px); }
-.car-btn:active { transform: scale(0.94); }
-.car-btn svg { width: 18px; height: 18px; }
-.dark .car-btn { border-color: var(--on-dark-border); color: var(--on-dark); }
-.dark .car-btn:hover { background: var(--on-dark); border-color: var(--on-dark); color: var(--worksurface); }
+.car-count { color: var(--muted-fg); }
 .dark .car-count, .dark .car-hint { color: var(--on-dark-muted); }
 .gal-stage {
   position: relative;
   height: clamp(440px, 74vh, 740px);
+  margin-inline: var(--gutter);
+  border-radius: var(--radius-img);
   overflow: hidden;
+  box-shadow: var(--shadow-lift);
   cursor: grab;
   touch-action: pan-y;
+  isolation: isolate;
 }
 .gal-stage:active { cursor: grabbing; }
 .gal-stage:focus-visible { outline-offset: -3px; }
+/* Arrows resting inside the frame — glass pills on the photograph. */
+.gal-arrow {
+  position: absolute; z-index: 4; top: 50%; translate: 0 -50%;
+  width: 58px; height: 58px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(20, 22, 25, 0.38);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  color: #fff; display: grid; place-items: center;
+  opacity: 0; transition: opacity 0.4s var(--ease-soft), background 0.3s, transform 0.18s;
+}
+.gal-arrow svg { width: 19px; height: 19px; }
+.gal-arrow.left { left: 22px; }
+.gal-arrow.right { right: 22px; }
+.gal-arrow:hover { background: var(--datum); border-color: var(--datum); color: var(--worksurface); }
+.gal-arrow:active { transform: translateY(-50%) scale(0.93); }
+.car:hover .gal-arrow, .gal-arrow:focus-visible { opacity: 1; }
+@media (hover: none) { .gal-arrow { opacity: 1; width: 50px; height: 50px; } }
 .gal-slide { position: absolute; inset: 0; margin: 0; overflow: hidden; background: var(--tint); }
 .gal-slide img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
 .gal-slide::after {
@@ -717,7 +726,9 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   .pf-grid > *:nth-child(n) { grid-column: span 12; }
   .btn { width: 100%; justify-content: center; }
   .flow-ctas .btn { width: auto; flex: 1 1 auto; }
-  .car-btn { width: 46px; height: 46px; }
+  .gal-arrow { width: 50px; height: 50px; }
+  .gal-arrow.left { left: 14px; }
+  .gal-arrow.right { right: 14px; }
 }
 @media (pointer: coarse) {
   .chip { min-height: 44px; display: inline-flex; align-items: center; }

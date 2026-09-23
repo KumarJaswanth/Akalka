@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from './icons.jsx';
 
-/* Immersive gallery: one full-bleed frame at a time, directional
-   clip-wipe transitions, settling photography, staggered captions,
-   story-style progress, drag / arrows / keyboard. */
+/* Immersive gallery: a floating full-bleed stage with soft inset edges,
+   arrows resting inside the frame, directional clip-wipe transitions,
+   story-style progress — and motion that never sleeps: the show advances
+   on its own cadence, yields the moment you touch it, and resumes after
+   a short idle. */
 
 const EASE = [0.16, 1, 0.3, 1];
+const IDLE_MS = 5000;
 
 const slideV = {
   enter: (d) => ({ clipPath: d >= 0 ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0%)' }),
@@ -21,20 +24,42 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
   const n = slides.length;
   const T = reduce ? 0 : 0.9;
 
-  const paginate = useCallback(
-    (d) => setIndex(([i]) => [(i + d + n) % n, d]),
+  const indexRef = useRef(0);
+  indexRef.current = index;
+  const lastGoRef = useRef(Date.now());
+  const idleRef = useRef(0);
+  const draggedRef = useRef(false);
+  const dragStart = useRef(null);
+
+  const goTo = useCallback(
+    (i) => {
+      lastGoRef.current = Date.now();
+      idleRef.current = Date.now();
+      setIndex(([cur]) => {
+        const next = ((i % n) + n) % n;
+        return next === cur ? [cur, 1] : [next, next > cur ? 1 : -1];
+      });
+    },
     [n]
   );
-  const goTo = useCallback(
-    (i) => setIndex(([cur]) => (i === cur ? [cur, 1] : [i, i > cur ? 1 : -1])),
-    []
-  );
+  const paginate = useCallback((d) => goTo(indexRef.current + d), [goTo]);
 
+  /* Idle heartbeat: advance on cadence, never while touched. */
   useEffect(() => {
-    if (!play || reduce || paused || n < 2) return;
-    const t = setTimeout(() => paginate(1), interval);
-    return () => clearTimeout(t);
-  }, [play, reduce, paused, n, interval, index, paginate]);
+    if (!play || reduce || n < 2) return;
+    const t = setInterval(() => {
+      if (paused) return;
+      const now = Date.now();
+      if (now - idleRef.current < IDLE_MS) return;
+      if (now - lastGoRef.current < interval) return;
+      goTo(indexRef.current + 1);
+    }, 500);
+    return () => clearInterval(t);
+  }, [play, reduce, paused, n, interval, goTo]);
+
+  const touch = () => {
+    idleRef.current = Date.now();
+  };
 
   const onKey = (e) => {
     if (e.key === 'ArrowRight') paginate(1);
@@ -56,17 +81,9 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
           {label && <span className="meta">{label}</span>}
           {hint && <span className="meta car-hint">{hint}</span>}
         </div>
-        <div className="car-nav">
-          <span className="meta car-count" aria-live="polite">
-            {String(index + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
-          </span>
-          <button type="button" className="car-btn" onClick={() => paginate(-1)} aria-label="Previous slide">
-            <ArrowLeft />
-          </button>
-          <button type="button" className="car-btn" onClick={() => paginate(1)} aria-label="Next slide">
-            <ArrowRight />
-          </button>
-        </div>
+        <span className="meta car-count" aria-live="polite">
+          {String(index + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
+        </span>
       </div>
 
       <motion.div
@@ -79,9 +96,25 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
         drag={reduce ? false : 'x'}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.12}
+        onPointerDown={(e) => {
+          touch();
+          dragStart.current = { x: e.clientX };
+          draggedRef.current = false;
+        }}
+        onPointerMove={(e) => {
+          const s0 = dragStart.current;
+          if (s0 && Math.abs(e.clientX - s0.x) > 8) draggedRef.current = true;
+        }}
         onDragEnd={(e, { offset }) => {
           if (offset.x < -110) paginate(1);
           else if (offset.x > 110) paginate(-1);
+        }}
+        onClickCapture={(e) => {
+          if (draggedRef.current) {
+            e.stopPropagation();
+            e.preventDefault();
+            draggedRef.current = false;
+          }
         }}
       >
         <AnimatePresence initial={false} custom={dir}>
@@ -94,7 +127,6 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
             animate="center"
             exit="exit"
             transition={{ duration: T, ease: EASE }}
-            aria-hidden={false}
           >
             <motion.img
               src={s.src}
@@ -148,6 +180,22 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
             </motion.span>
           </motion.figure>
         </AnimatePresence>
+        <button
+          type="button"
+          className="gal-arrow left"
+          onClick={() => paginate(-1)}
+          aria-label="Previous slide"
+        >
+          <ArrowLeft />
+        </button>
+        <button
+          type="button"
+          className="gal-arrow right"
+          onClick={() => paginate(1)}
+          aria-label="Next slide"
+        >
+          <ArrowRight />
+        </button>
       </motion.div>
 
       <div className="car-foot">
