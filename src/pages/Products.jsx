@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CATEGORIES } from '../data/products.js';
 import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
@@ -6,22 +6,24 @@ import { ArrowRight, ArrowUpRight, Plus } from '../components/icons.jsx';
 import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
 import { IMG } from '../data/images.js';
 
-const SUB = CATEGORIES.map((c) => ({ id: c.id, label: `${c.index} / ${c.name}` }));
+const CARD_IMG = {
+  doors: IMG.doorSingle,
+  sandwich: IMG.sandwich,
+  cleanroom: IMG.cleanroom,
+  partition: IMG.partition,
+  profiles: IMG.profiles.track,
+};
 
-function useHash() {
+/* Jump straight to a chapter when the URL carries a hash. */
+function useHashJump() {
   const { hash } = useLocation();
-  const [h, setH] = useState(hash);
   useEffect(() => {
-    setH(hash);
-    if (hash) {
-      const t = setTimeout(() => {
-        document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 120);
-      return () => clearTimeout(t);
-    }
-    window.scrollTo({ top: 0 });
+    if (!hash) return;
+    const t = setTimeout(() => {
+      document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+    return () => clearTimeout(t);
   }, [hash]);
-  return h;
 }
 
 function Chips({ items, accent = false }) {
@@ -47,13 +49,27 @@ function DoorsBlock({ data }) {
     <section className="section prod-block" id="doors">
       <div className="wrap">
         <SectionHead index={data.index} label={data.name} hint="DR-S / DR-D" />
+        <Materialize>
+          <h2 className="h2" style={{ marginBottom: 12 }}>Doors, configured to requirement.</h2>
+          <p className="lede">{data.description}</p>
+        </Materialize>
+        <ClipReveal>
+          <div className="duo" style={{ marginTop: 32 }}>
+            <figure>
+              <ParallaxImg src={IMG.doorSingle.src} alt={IMG.doorSingle.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('figure').style.display = 'none'; }} />
+              <figcaption><span className="meta">DR-S</span><span>Single door</span></figcaption>
+            </figure>
+            <figure>
+              <ParallaxImg src={IMG.doorDouble.src} alt={IMG.doorDouble.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('figure').style.display = 'none'; }} />
+              <figcaption><span className="meta">DR-D</span><span>Double door</span></figcaption>
+            </figure>
+          </div>
+        </ClipReveal>
+        <div style={{ height: 32 }} />
         <div className="split">
           <div className="split-cell">
-            <Materialize>
-              <h2 className="h2" style={{ marginBottom: 12 }}>{data.name}: configured to requirement.</h2>
-              <p className="lede">{data.description}</p>
-            </Materialize>
-            <div style={{ display: 'grid', gap: '4px', marginTop: 28 }}>
+            <p className="meta" style={{ color: 'var(--ink)', marginBottom: 6 }}>Configurations</p>
+            <div style={{ display: 'grid', gap: '4px', marginTop: 18 }}>
               {data.variants.map((v, i) => (
                 <Reveal key={v.code} delay={i * 0.05}>
                   <div className="part-step plain" style={{ gridTemplateColumns: '90px 1fr' }}>
@@ -243,31 +259,39 @@ function ProfilesBlock({ data }) {
 }
 
 export default function Products() {
-  const hash = useHash();
+  useHashJump();
   return (
     <div className="page">
       <section className="prod-hero">
         <div className="wrap" style={{ position: 'relative', zIndex: 1 }}>
+          <p className="meta" style={{ color: 'var(--datum)', marginBottom: 18 }}>AKALKA catalogue</p>
           <h1 className="display">
-            <span className="mask"><span>The product</span></span>
-            <span className="mask"><span style={{ animationDelay: '0.12s' }}>catalogue.</span></span>
+            <span className="mask"><span>Five systems.</span></span>
+            <span className="mask"><span style={{ animationDelay: '0.12s' }}>One language.</span></span>
           </h1>
-          <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22 }}>
-            Five distinct ranges, five distinct layouts. Everything below is confirmed
-            client data. Gaps are marked, not filled.
+          <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22, maxWidth: '56ch' }}>
+            Everything AKALKA manufactures, organised so you can find your
+            range in seconds. Pick a category — each chapter below shows
+            exactly what is confirmed, and marks what is not.
           </p>
-          <div className="cta-row">
-            <Magnetic><Link to="/contact" className="btn btn-light">Enquire with drawings <ArrowUpRight className="arr arr-up" /></Link></Magnetic>
+          <div className="cat-cards">
+            {CATEGORIES.map((c, i) => {
+              const img = CARD_IMG[c.id];
+              return (
+                <a key={c.id} href={`#${c.id}`} className="cat-card" style={{ animationDelay: `${0.08 * i + 0.2}s` }}>
+                  <span className="cat-card-ph">
+                    <img src={img.src} alt="" loading={i < 2 ? 'eager' : 'lazy'} decoding="async" />
+                  </span>
+                  <span className="cat-card-body">
+                    <span className="meta">{c.index} / 05</span>
+                    <span className="cat-card-name">{c.name}</span>
+                  </span>
+                </a>
+              );
+            })}
           </div>
         </div>
       </section>
-      <div className="sticky-sub">
-        <nav aria-label="Product categories">
-          {SUB.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className={hash === `#${s.id}` ? 'active' : ''}>{s.label}</a>
-          ))}
-        </nav>
-      </div>
       <DoorsBlock data={CATEGORIES[0]} />
       <SandwichBlock data={CATEGORIES[1]} />
       <CleanroomBlock data={CATEGORIES[2]} />
