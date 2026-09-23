@@ -206,6 +206,22 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
             </motion.span>
           </motion.figure>
         </AnimatePresence>
+        <div className="gal-segs" aria-hidden="true">
+          {slides.map((sl, i) => (
+            <button
+              key={i}
+              type="button"
+              tabIndex={-1}
+              title={`Go to slide ${i + 1}`}
+              className={`gal-seg${i < index ? ' done' : ''}${i === index ? ' active' : ''}`}
+              onClick={() => goTo(i)}
+            >
+              <i>
+                <b ref={i === index ? segRef : undefined} />
+              </i>
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className="gal-arrow left"
@@ -223,23 +239,6 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
           <ArrowRight />
         </button>
       </motion.div>
-
-      <div className="car-foot">
-        <div className="gal-segs" aria-hidden="true">
-          {slides.map((sl, i) => (
-            <button
-              key={i}
-              type="button"
-              tabIndex={-1}
-              title={`Go to slide ${i + 1}`}
-              className={`gal-seg${i < index ? ' done' : ''}${i === index ? ' active' : ''}`}
-              onClick={() => goTo(i)}
-            >
-              <i ref={i === index ? segRef : undefined} />
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
