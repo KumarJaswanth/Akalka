@@ -7,14 +7,14 @@ export default function Footer() {
   return (
     <footer>
       <div className="wrap">
-        <div style={{ paddingTop: 56 }}>
+        <div className="foot-top">
           <Materialize>
-            <h2 className="h2" style={{ maxWidth: '16ch' }}>
+            <h2 className="h2">
               Specify the system. We manufacture it.
             </h2>
           </Materialize>
           <Reveal>
-            <div className="cta-row">
+            <div className="cta-row" style={{ marginTop: 0 }}>
               <Magnetic>
                 <Link to="/products" className="btn btn-light">Explore products <ArrowUpRight className="arr arr-up" /></Link>
               </Magnetic>
@@ -28,9 +28,9 @@ export default function Footer() {
         </div>
 
         <div className="foot-grid">
-          <div>
-            <Logo height={64} big />
-            <p style={{ marginTop: 22, fontWeight: 400, fontSize: '0.95rem', color: 'rgba(255,255,255,0.82)', maxWidth: '34ch', lineHeight: 1.7 }}>
+          <div className="foot-brand">
+            <Logo height={56} big />
+            <p>
               A product-focused manufacturer of doors, wall systems and the profiles that join them.
             </p>
           </div>
@@ -63,15 +63,12 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="foot-crafted" aria-hidden="true">Crafted <em>with care.</em></div>
-
         <div className="foot-giant" aria-hidden="true">akalka</div>
 
         <div className="foot-base">
           <span>© {new Date().getFullYear()} AKALKA Doors &amp; Panels</span>
-          <span>Manufacturing identity v1.2</span>
+          <span>Crafted with care</span>
           <span>Specifications on request</span>
-          <span>Photography: Unsplash</span>
         </div>
       </div>
     </footer>
