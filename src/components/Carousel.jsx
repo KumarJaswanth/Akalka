@@ -4,11 +4,12 @@ import { ArrowLeft, ArrowRight } from './icons.jsx';
 
 /* Immersive gallery: one full-bleed frame at a time, directional
    clip-wipe transitions, staggered captions, story-style progress driven
-   by the same clock as the autoplay — what the bar shows is exactly when
-   the slide turns. Any touch yields instantly and restarts a fresh beat. */
+   by the same clock as the autoplay. The clock runs always — hovering
+   changes nothing; only real input (arrows, segments, keys, drag)
+   restarts the beat. */
 
 const EASE = [0.16, 1, 0.3, 1];
-const IDLE_MS = 4000;
+const IDLE_MS = 3000;
 
 const slideV = {
   enter: (d) => ({ clipPath: d >= 0 ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0%)' }),
@@ -86,13 +87,7 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
   const s = slides[index];
 
   return (
-    <div
-      className={`car${dark ? ' dark' : ''}`}
-      onPointerEnter={() => setPaused(true)}
-      onPointerLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-    >
+    <div className={`car${dark ? ' dark' : ''}`}>
       <div className="car-top">
         <div className="car-label">
           {label && <span className="meta">{label}</span>}
