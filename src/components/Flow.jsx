@@ -5,9 +5,11 @@ import { IMG } from '../data/images.js';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
 
 /* AKALKA flow: the site opens inside a sticky full-viewport
-   (100svh × 100vw) journey — brand panel first, then all five product
-   systems. Vertical scroll drives horizontal travel; native sticky
-   positioning keeps it butter-smooth, JS writes only a translate.
+   (100svh × 100vw) stage — brand panel first, then all five product
+   systems. Scroll scrubs a choreographed sequence: every screen ARRIVES
+   from a different side (right, bottom, left, top, zoom) while the
+   previous one leaves the opposite way, and every line of text staggers
+   in on its own offset. Fully reversible — scroll back up and it rewinds.
    Mobile and reduced-motion fall back to a calm vertical stack. */
 
 const CODE = { doors: 'DR', sandwich: 'SW', cleanroom: 'CR', partition: 'PT', profiles: 'PF' };
@@ -18,6 +20,18 @@ const PHOTO = {
   partition: IMG.partition,
   profiles: IMG.profiles.track,
 };
+
+/* Entrance side per panel (panel 0 starts on stage). */
+const ENTER = [null, 'right', 'bottom', 'left', 'top', 'zoom'];
+const VEC = {
+  right: { x: 100, y: 0 },
+  left: { x: -100, y: 0 },
+  bottom: { x: 0, y: 100 },
+  top: { x: 0, y: -100 },
+};
+
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+const smooth = (t) => t * t * (3 - 2 * t);
 
 function isStaticEnv() {
   if (typeof window === 'undefined') return true;
@@ -47,40 +61,68 @@ export default function Flow() {
     const track = trackRef.current;
     if (!root || !track) return;
     const panelEls = () => track.querySelectorAll('.flow-panel');
-    const clearVars = () => {
-      panelEls().forEach((p) =>
-        ['--bx', '--cx', '--cy', '--gy', '--co'].forEach((v) => p.style.removeProperty(v))
-      );
+    const clearStage = () => {
+      track.style.transform = '';
+      panelEls().forEach((p) => {
+        p.style.transform = '';
+        p.style.opacity = '';
+        p.style.visibility = '';
+        ['--t', '--cdx', '--gdx'].forEach((v) => p.style.removeProperty(v));
+      });
     };
     if (staticMode) {
-      track.style.transform = '';
-      clearVars();
+      clearStage();
       return;
     }
     let raf = 0;
     const update = () => {
       const vh = window.innerHeight;
-      const vw = window.innerWidth;
       const top = root.getBoundingClientRect().top + window.scrollY;
       const span = root.offsetHeight - vh;
-      const p = span > 0 ? Math.min(1, Math.max(0, (window.scrollY - top) / span)) : 0;
-      const maxX = track.scrollWidth - vw;
-      track.style.transform = `translate3d(${(-p * maxX).toFixed(1)}px, 0, 0)`;
-      const idx = Math.min(total - 1, Math.round(p * (total - 1)));
+      const p = span > 0 ? clamp01((window.scrollY - top) / span) : 0;
+      const seg = p * (total - 1);
+      const idx = Math.min(total - 1, Math.round(seg));
       setActive((prev) => (prev === idx ? prev : idx));
-      /* Inner choreography: even panels drift one way, odd panels the
-         other — backgrounds counter-slide, copies rise and fade, ghosts
-         float upward. Every screen enters differently. */
       panelEls().forEach((panel, i) => {
-        const r = panel.getBoundingClientRect();
-        if (r.right < -vw || r.left > vw * 2) return;
-        const q = (r.left + r.width / 2 - vw / 2) / vw;
-        const dir = i % 2 === 0 ? 1 : -1;
-        panel.style.setProperty('--bx', `${(q * dir * 140).toFixed(1)}px`);
-        panel.style.setProperty('--cx', `${(q * dir * -90).toFixed(1)}px`);
-        panel.style.setProperty('--cy', `${(q * 70).toFixed(1)}px`);
-        panel.style.setProperty('--gy', `${(q * -120).toFixed(1)}px`);
-        panel.style.setProperty('--co', `${Math.max(0, 1 - Math.abs(q) * 1.7).toFixed(3)}`);
+        const enter = ENTER[i];
+        const ev = enter ? VEC[enter] : null;
+        const local = smooth(clamp01(seg - i + 1));
+        let x = 0;
+        let y = 0;
+        let scale = 1;
+        let op = 1;
+        let vis = true;
+        /* Entrance — panels 1..5 each arrive from their own side. */
+        if (i > 0 && seg < i) {
+          if (enter === 'zoom') {
+            scale = 1 + (1 - local) * 0.14;
+            op = local;
+          } else {
+            x = (1 - local) * ev.x;
+            y = (1 - local) * ev.y;
+          }
+          if (local <= 0) vis = false;
+        }
+        /* Exit — leaves the opposite way the next panel arrives. */
+        if (i < total - 1 && seg > i) {
+          const next = ENTER[i + 1];
+          const ex = smooth(clamp01(seg - i));
+          if (next === 'zoom') {
+            scale = 1 + ex * 0.1;
+            op = 1 - ex;
+          } else {
+            const nv = VEC[next];
+            x = -ex * nv.x;
+            y = -ex * nv.y;
+          }
+          if (ex >= 1) vis = false;
+        }
+        panel.style.transform = `translate3d(${x.toFixed(2)}%, ${y.toFixed(2)}%, 0) scale(${scale.toFixed(4)})`;
+        panel.style.opacity = op.toFixed(3);
+        panel.style.visibility = vis ? 'visible' : 'hidden';
+        panel.style.setProperty('--t', local.toFixed(3));
+        panel.style.setProperty('--cdx', i % 2 === 0 ? '-70px' : '70px');
+        panel.style.setProperty('--gdx', i % 2 === 0 ? '90px' : '-90px');
       });
     };
     const onScroll = () => {
