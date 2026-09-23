@@ -1,25 +1,39 @@
-import { useState } from 'react';
+﻿import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CATEGORIES, FINISHES } from '../data/products.js';
-import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, Parallax, ParallaxImg } from '../components/Reveal.jsx';
+import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import { IMG, V } from '../data/images.js';
 
 const CAT_CODES = { doors: 'DR', sandwich: 'SW', cleanroom: 'CR', partition: 'PT', profiles: 'PF' };
 
-/* ---------------- Hero: photographic backdrop + door portrait ---------------- */
+/* ---------------- Hero: photographic + scroll-linked ---------------- */
 function Hero() {
+  const ref = useRef(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '22%']);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.12, 1.3]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 140]);
   return (
-    <section className="hero hero-photo">
-      <Parallax
+    <section className="hero hero-photo" ref={ref}>
+      <motion.div
         className="hero-bg"
-        speed={0.16}
-        style={{ backgroundImage: `url("${IMG.heroBg.src}")` }}
+        style={
+          reduce
+            ? { backgroundImage: `url("${IMG.heroBg.src}")` }
+            : { backgroundImage: `url("${IMG.heroBg.src}")`, y: bgY, scale: bgScale }
+        }
         role="img"
         aria-label={IMG.heroBg.alt}
       />
-      <div className="wrap">
+      <motion.div
+        className="wrap"
+        style={reduce ? undefined : { opacity: contentOpacity, y: contentY }}
+      >
         <div className="hero-rail">
           <span className="meta">AKALKA / Doors &amp; Panels</span>
           <span className="scroll-cue"><i />Scroll</span>
@@ -57,7 +71,7 @@ function Hero() {
           <div><span className="meta">PT</span><span>Partition / wall panels</span></div>
           <div><span className="meta">PF</span><span>Profiles: R-70 / R-90</span></div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }
@@ -65,10 +79,16 @@ function Hero() {
 /* ---------------- Static specification strip ---------------- */
 function Strip() {
   const items = ['Single & Double Doors', 'PUF / Rockwool / Honeycomb', '50 / 100 mm', 'Cleanroom Wall & Ceiling', 'Partition Systems', 'R-70 / R-90 Profiles'];
+  const row = (hidden) => (
+    <span aria-hidden={hidden || undefined}>
+      {items.map((t, i) => <span key={i}>{t}{i < items.length - 1 && <b>Â·</b>}</span>)}
+    </span>
+  );
   return (
     <div className="marquee" aria-label="Confirmed range summary">
       <div className="marquee-track">
-        <span>{items.map((t, i) => <span key={i}>{t}{i < items.length - 1 && <b>·</b>}</span>)}</span>
+        {row(false)}
+        {row(true)}
       </div>
     </div>
   );
@@ -98,7 +118,7 @@ function DoorsFeature() {
   const [core, setCore] = useState('Honeycomb');
   const [finish, setFinish] = useState('Powder coated');
   return (
-    <section className="section" id="doors">
+    <section className="section fit" id="doors">
       <div className="wrap">
         <SectionHead index="DR" label="Featured doors" hint="DR-S / DR-D" />
         <Materialize>
@@ -114,7 +134,7 @@ function DoorsFeature() {
         <div style={{ height: 36 }} />
         <div className="split">
           <div className="split-cell">
-            <Reveal>
+            <Reveal className="dir-l">
               <p className="meta" style={{ color: 'var(--ink)', marginBottom: 18 }}>DR-S: Single door</p>
               <div className="door-ph">
                 <ParallaxImg src={IMG.doorSingle.src} alt={IMG.doorSingle.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('.door-ph').style.display = 'none'; }} />
@@ -130,7 +150,7 @@ function DoorsFeature() {
             </Reveal>
           </div>
           <div className="split-cell dark on-dark">
-            <Reveal>
+            <Reveal className="dir-r">
               <p className="meta t-bright" style={{ marginBottom: 18 }}>DR-D: Double door</p>
               <div className="door-ph">
                 <ParallaxImg src={IMG.doorDouble.src} alt={IMG.doorDouble.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('.door-ph').style.display = 'none'; }} />
@@ -168,7 +188,7 @@ function DoorsFeature() {
 function SandwichBand() {
   const sw = CATEGORIES[1];
   return (
-    <section className="section" id="sandwich">
+    <section className="section fit" id="sandwich">
       <div className="wrap">
         <div className="panel">
           <SectionHead index="SW" label="Sandwich panels" hint="SW series" />
@@ -228,7 +248,7 @@ function SandwichBand() {
 function Cleanroom() {
   const cr = CATEGORIES[2];
   return (
-    <section className="section dark-sec on-dark" id="cleanroom">
+    <section className="section fit dark-sec on-dark" id="cleanroom">
       <div className="wrap">
         <SectionHead index="CR" label="Cleanroom panels" hint="CR series" />
         <Materialize>
@@ -268,7 +288,7 @@ function Cleanroom() {
 /* ---------------- Partition composition ---------------- */
 function Partition() {
   return (
-    <section className="section" id="partition">
+    <section className="section fit" id="partition">
       <div className="wrap">
         <div className="panel">
           <SectionHead index="PT" label="Partition and wall panels" hint="PT series" />
@@ -327,10 +347,10 @@ function Profiles() {
     alt: c.alt,
     code: c.code,
     title: c.name,
-    note: c.opts.join('  ·  '),
+    note: c.opts.join('  Â·  '),
   }));
   return (
-    <section className="section" id="profiles">
+    <section className="section fit" id="profiles">
       <div className="wrap">
         <SectionHead index="PF" label="Profiles and accessories" hint="PF series" />
         <Materialize>
@@ -354,7 +374,7 @@ function FinishLab() {
   const [active, setActive] = useState(FINISHES[0]);
   const bg = `linear-gradient(160deg, ${active.swatch} 0%, ${active.swatch} 70%, rgba(43,48,54,0.14) 100%)`;
   return (
-    <section className="section" id="finishes">
+    <section className="section fit" id="finishes">
       <div className="wrap">
         <SectionHead index="Material" label="Material and finish" hint="Coated surfaces" />
         <div className="lab">
@@ -399,7 +419,7 @@ function Principles() {
     { t: 'Finish as discipline', d: 'A restrained palette of White, Matt White and matched colour keeps every project visually coherent.' },
   ];
   return (
-    <section className="section" id="why">
+    <section className="section fit" id="why">
       <div className="wrap">
         <SectionHead index="Workshop" label="Why the system matters" hint="Principles" />
         <Materialize>
@@ -438,7 +458,7 @@ export default function Home() {
     <div className="page">
       <Hero />
       <Strip />
-      <section className="section" id="intro">
+      <section className="section fit" id="intro">
         <div className="wrap">
           <div className="panel manifesto">
             <SectionHead index="Sheet A" label="Brand introduction" hint="Manufacturing first" />
@@ -457,7 +477,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="section" id="categories" style={{ paddingTop: 'clamp(48px,6vw,88px)' }}>
+      <section className="section fit" id="categories" style={{ paddingTop: 'clamp(48px,6vw,88px)' }}>
         <div className="wrap">
           <SectionHead index="Index" label="Product categories" hint="5 systems" />
         <Materialize>

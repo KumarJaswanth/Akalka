@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from './icons.jsx';
 
-/* Premium minimal carousel: native snap track (touch + wheel + keyboard),
-   Framer-Motion caption crossfade, index counter, progress hairline.
-   No autoplay — motion answers the visitor. */
+/* Full-bleed editorial carousel: tall slides, overlay captions, drag,
+   snap, arrows, keyboard, counter, progress. Motion answers the visitor. */
 
 export default function Carousel({ slides, label, hint, dark = false }) {
   const trackRef = useRef(null);
   const [active, setActive] = useState(0);
-  const reduce = useReducedMotion();
+  const drag = useRef(null);
   const n = slides.length;
 
   useEffect(() => {
@@ -34,7 +32,7 @@ export default function Carousel({ slides, label, hint, dark = false }) {
     const next = (active + dir + n) % n;
     track
       .querySelector(`.car-slide[data-i="${next}"]`)
-      ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
+      ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   };
 
   const onKey = (e) => {
@@ -42,7 +40,22 @@ export default function Carousel({ slides, label, hint, dark = false }) {
     if (e.key === 'ArrowLeft') go(-1);
   };
 
-  const s = slides[active];
+  /* Desktop drag-to-scroll (touch uses native panning). */
+  const onPointerDown = (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const track = trackRef.current;
+    drag.current = { x: e.clientX, left: track.scrollLeft };
+    track.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e) => {
+    const d = drag.current;
+    if (!d) return;
+    const track = trackRef.current;
+    track.scrollLeft = d.left - (e.clientX - d.x);
+  };
+  const endDrag = () => {
+    drag.current = null;
+  };
 
   return (
     <div className={`car${dark ? ' dark' : ''}`}>
@@ -72,6 +85,10 @@ export default function Carousel({ slides, label, hint, dark = false }) {
         aria-roledescription="carousel"
         aria-label={label || 'Gallery'}
         onKeyDown={onKey}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
       >
         {slides.map((sl, i) => (
           <figure
@@ -92,30 +109,18 @@ export default function Carousel({ slides, label, hint, dark = false }) {
                 }}
               />
             </div>
+            <figcaption className="car-cap">
+              <span className="meta car-code">{sl.code}</span>
+              <span className="car-title">{sl.title}</span>
+              {sl.note && <span className="car-note">{sl.note}</span>}
+            </figcaption>
           </figure>
         ))}
       </div>
 
       <div className="car-foot">
-        <AnimatePresence mode="wait">
-          <motion.figcaption
-            key={active}
-            className="car-cap"
-            initial={reduce ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? undefined : { opacity: 0, y: -10 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <span className="meta car-code">{s.code}</span>
-            <span className="car-title">{s.title}</span>
-            {s.note && <span className="car-note">{s.note}</span>}
-          </motion.figcaption>
-        </AnimatePresence>
         <div className="car-progress" aria-hidden="true">
-          <motion.span
-            animate={{ scaleX: (active + 1) / n }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          />
+          <span style={{ transform: `scaleX(${(active + 1) / n})` }} />
         </div>
       </div>
     </div>
