@@ -30,13 +30,17 @@ const GROUP_NOTE = {
   track: 'Floor tracks in 50 and 100 mm, coated or non-coated.',
 };
 
-/* Jump straight to a chapter when the URL carries a hash. */
+/* Jump straight to a chapter when the URL carries a hash —
+   routed through Lenis so the flight is as smooth as the site. */
 function useHashJump() {
   const { hash } = useLocation();
   useEffect(() => {
     if (!hash) return;
     const t = setTimeout(() => {
-      document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const el = document.querySelector(hash);
+      if (!el) return;
+      if (window.__lenis) window.__lenis.scrollTo(el, { offset: -90, duration: 1.4 });
+      else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 150);
     return () => clearTimeout(t);
   }, [hash]);
@@ -358,9 +362,8 @@ export default function Products() {
             <span className="mask"><span style={{ animationDelay: '0.12s' }}>One language.</span></span>
           </h1>
           <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22, maxWidth: '56ch' }}>
-            Everything AKALKA manufactures, organised so you can find your
-            range in seconds. Pick a category â€” each chapter below shows
-            exactly what is confirmed, and marks what is not.
+            Five ranges, one catalogue. Pick a category — everything listed
+            is confirmed data.
           </p>
           <div className="cat-cards">
             {CATEGORIES.map((c, i) => {

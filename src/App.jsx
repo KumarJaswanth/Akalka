@@ -10,22 +10,22 @@ import Products from './pages/Products.jsx';
 import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 
-/* Inertial smooth scrolling (Lenis): buttery wheel motion site-wide,
-   skipped under reduced-motion. Stored for instant jumps. */
+/* Inertial smooth scrolling (Lenis, Jakub lens): expo-out easing for a
+   weighted, settled stop; native rAF loop and anchor handling; skipped
+   entirely under reduced-motion. Stored for instant jumps. */
 function SmoothScroll() {
   const reduce = useReducedMotion();
   useEffect(() => {
     if (reduce) return;
-    const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
+    const lenis = new Lenis({
+      autoRaf: true,
+      duration: 1.15,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      anchors: true,
+    });
     window.__lenis = lenis;
-    let raf = 0;
-    const loop = (time) => {
-      lenis.raf(time);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
     return () => {
-      cancelAnimationFrame(raf);
       lenis.destroy();
       window.__lenis = undefined;
     };

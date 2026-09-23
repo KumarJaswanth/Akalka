@@ -52,12 +52,12 @@ function DoorsFeature() {
   return (
     <section className="section fit" id="doors">
       <div className="wrap">
-        <SectionHead index="DR" label="Featured doors" hint="DR-S / DR-D" />
+        <SectionHead index="DR" label="Doors" hint="DR-S / DR-D" />
         <Materialize>
           <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 14 }}>
             One opening, two configurations.
           </h2>
-          <p className="lede">Sizes vary according to requirement. Configure core, finish and colour around the opening you need.</p>
+          <p className="lede">Sizes vary by requirement. Pick a core, finish and colour around your opening.</p>
         </Materialize>
         <div style={{ height: 36 }} />
         <Reveal>
@@ -210,7 +210,7 @@ function Partition() {
     <section className="section fit" id="partition">
       <div className="wrap">
         <div className="panel">
-          <SectionHead index="PT" label="Partition and wall panels" hint="PT series" />
+          <SectionHead index="PT" label="Partition panels" hint="PT series" />
           <div className="part-grid">
           <ClipReveal>
             <div className="part-photo">
@@ -271,7 +271,7 @@ function Profiles() {
   return (
     <section className="section fit" id="profiles">
       <div className="wrap">
-        <SectionHead index="PF" label="Profiles and accessories" hint="PF series" />
+        <SectionHead index="PF" label="Profiles & accessories" hint="PF series" />
         <Materialize>
           <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 14 }}>The details that hold the system together.</h2>
           <p className="lede">Corners, channels, angles, tracks and aluminium-coated profiles, specified alongside panels and doors.</p>
@@ -295,7 +295,7 @@ function FinishLab() {
   return (
     <section className="section fit" id="finishes">
       <div className="wrap">
-        <SectionHead index="Material" label="Material and finish" hint="Coated surfaces" />
+        <SectionHead index="Material" label="Materials & finishes" hint="Coated surfaces" />
         <Materialize className="lab-head">
           <h2 className="h2" style={{ marginBottom: 12 }}>Coated, controlled colour.</h2>
           <p className="lede" style={{ marginBottom: 8 }}>Pre-powder and powder-coated surfaces in White, Matt White, or matched to customer requirement.</p>
@@ -333,14 +333,14 @@ function FinishLab() {
 /* ---------------- Principles + CTA ---------------- */
 function Principles() {
   const items = [
-    { t: 'One coordinated system', d: 'Doors, panels and profiles are presented as a single family. Openings, walls and junctions read as one surface.' },
-    { t: 'Variation without invention', d: 'Sizes, colours and configurations adapt to requirement. Anything unconfirmed is marked plainly.' },
-    { t: 'Finish as discipline', d: 'A restrained palette of White, Matt White and matched colour keeps every project visually coherent.' },
+    { t: 'One coordinated system', d: 'Doors, panels and profiles read as one continuous surface.' },
+    { t: 'Variation without invention', d: 'Sizes and colours adapt to requirement. The rest is marked, not invented.' },
+    { t: 'Finish as discipline', d: 'White, Matt White or matched colour — every project stays coherent.' },
   ];
   return (
     <section className="section fit" id="why">
       <div className="wrap">
-        <SectionHead index="Workshop" label="Why the system matters" hint="Principles" />
+        <SectionHead index="Workshop" label="Why AKALKA" hint="Principles" />
         <Materialize>
           <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 32 }}>Precision you can see before you measure.</h2>
         </Materialize>
@@ -387,16 +387,16 @@ export default function Home() {
       <section className="section fit" id="intro">
         <div className="wrap">
           <div className="panel manifesto">
-            <SectionHead index="Sheet A" label="Brand introduction" hint="Manufacturing first" />
+            <SectionHead index="Hello" label="Who we are" hint="Manufacturing first" />
             <Materialize>
               <p className="manifesto-big">
-                <ScrollWords text="AKALKA is a product-focused manufacturer. We make the doors, panels and profiles that shape controlled, finished interiors. That is the whole list." />
+                <ScrollWords text="AKALKA manufactures doors, panels and profiles for clean, finished interiors. That is the whole list." />
               </p>
             </Materialize>
             <div className="manifesto-cols">
-              <p className="body-sm"><b style={{ color: 'var(--ink)' }}>Doors &amp; panels.</b> Single and double doors, PUF, rockwool and honeycomb sandwich systems, cleanroom and partition ranges.</p>
-              <p className="body-sm"><b style={{ color: 'var(--ink)' }}>Profiles &amp; tracks.</b> Corners, 2D/3D forms, channels, angles, box sections and bottom tracks in 50 and 100 mm.</p>
-              <p className="body-sm"><b style={{ color: 'var(--ink)' }}>Only confirmed data.</b> Every thickness, finish and coating on this site is confirmed client data. The rest is marked as needing confirmation.</p>
+              <p className="body-sm"><b style={{ color: 'var(--ink)' }}>Doors &amp; panels.</b> Single and double doors, sandwich, cleanroom and partition ranges.</p>
+              <p className="body-sm"><b style={{ color: 'var(--ink)' }}>Profiles &amp; tracks.</b> Corners, forms, channels, angles, box sections and bottom tracks.</p>
+              <p className="body-sm"><b style={{ color: 'var(--ink)' }}>Only confirmed data.</b> Anything unconfirmed is marked plainly as needing confirmation.</p>
             </div>
           </div>
         </div>

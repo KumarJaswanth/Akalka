@@ -31,8 +31,7 @@ export default function About() {
           </h1>
           <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22 }}>
             AKALKA manufactures doors, wall panels, cleanroom panels, partition
-            panels and profiles: products for controlled, partitioned and
-            professionally finished interior environments.
+            panels and profiles for clean, finished interiors.
           </p>
         </div>
       </section>
@@ -45,17 +44,17 @@ export default function About() {
               <div>
                 <p className="meta" style={{ color: 'var(--ink)', marginBottom: 12 }}>Openings</p>
                 <h3 className="h3">Doors</h3>
-                <p className="body-sm" style={{ marginTop: 10 }}>Single and double doors in honeycomb or rockwool cores, pre-powder or powder coated, sized to requirement.</p>
+                <p className="body-sm" style={{ marginTop: 10 }}>Single and double doors, honeycomb or rockwool cores, sized to requirement.</p>
               </div>
               <div>
                 <p className="meta" style={{ color: 'var(--ink)', marginBottom: 12 }}>Surfaces</p>
                 <h3 className="h3">Panels</h3>
-                <p className="body-sm" style={{ marginTop: 10 }}>PUF, rockwool and honeycomb sandwich systems, cleanroom wall and ceiling panels, partition and flush wall panels.</p>
+                <p className="body-sm" style={{ marginTop: 10 }}>Sandwich, cleanroom, partition and flush wall panels in confirmed types.</p>
               </div>
               <div>
                 <p className="meta" style={{ color: 'var(--ink)', marginBottom: 12 }}>Junctions</p>
                 <h3 className="h3">Profiles</h3>
-                <p className="body-sm" style={{ marginTop: 10 }}>Corner, 2D, 3D, C-channel, L-angle and box-type profiles, R-70 / R-90 aluminium-coated options, 50 / 100 mm bottom tracks.</p>
+                <p className="body-sm" style={{ marginTop: 10 }}>Corners, forms, channels, angles, box sections and bottom tracks.</p>
               </div>
             </div>
           </Reveal>
@@ -73,22 +72,22 @@ export default function About() {
             <SectionHead index="Sheet" label="Position" hint="Scope, stated plainly" />
           <Materialize>
             <p className="manifesto-big">
-              AKALKA is a product company. The catalogue on this
-              site is the company profile.
+              AKALKA is a product company. The catalogue
+              on this site is the company profile.
             </p>
           </Materialize>
           <div className="manifesto-cols">
             <div>
               <p className="meta" style={{ color: 'var(--ink)', marginBottom: 10 }}>We present</p>
-              <p className="body-sm">Confirmed products, thicknesses, finishes, colours and coatings, organised so engineers and buyers can specify quickly.</p>
+              <p className="body-sm">Confirmed products and options, organised to specify quickly.</p>
             </div>
             <div>
               <p className="meta" style={{ color: 'var(--ink)', marginBottom: 10 }}>We mark</p>
-              <p className="body-sm">Anything unconfirmed (ratings, classifications, capacities, history) is labelled “needs confirmation” rather than invented.</p>
+              <p className="body-sm">Anything unconfirmed is labelled “needs confirmation” — never invented.</p>
             </div>
             <div>
               <p className="meta" style={{ color: 'var(--ink)', marginBottom: 10 }}>We leave out</p>
-              <p className="body-sm">Project galleries, client logos, testimonials, statistics. The product system carries the brand.</p>
+              <p className="body-sm">No galleries, logos or testimonials. The products carry the brand.</p>
             </div>
           </div>
         </div>
