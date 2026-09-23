@@ -506,20 +506,23 @@ button.chip:active { transform: scale(0.96); }
 /* Arrows resting inside the frame — glass pills on the photograph. */
 .gal-arrow {
   position: absolute; z-index: 4; top: 50%; translate: 0 -50%;
-  width: 58px; height: 58px; border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(20, 22, 25, 0.38);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  width: 60px; height: 60px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(20, 22, 25, 0.42);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   color: #fff; display: grid; place-items: center;
-  opacity: 0; transition: opacity 0.4s var(--ease-soft), background 0.3s, transform 0.18s;
+  opacity: 0; scale: 0.9;
+  transition: opacity 0.4s var(--ease-soft), scale 0.4s var(--ease-soft), background 0.3s, border-color 0.3s;
 }
-.gal-arrow svg { width: 19px; height: 19px; }
-.gal-arrow.left { left: 22px; }
-.gal-arrow.right { right: 22px; }
-.gal-arrow:hover { background: var(--datum); border-color: var(--datum); color: var(--worksurface); }
-.gal-arrow:active { transform: translateY(-50%) scale(0.93); }
-.car:hover .gal-arrow, .gal-arrow:focus-visible { opacity: 1; }
-@media (hover: none) { .gal-arrow { opacity: 1; width: 50px; height: 50px; } }
+.gal-arrow svg { width: 19px; height: 19px; transition: transform 0.35s var(--ease-out); }
+.gal-arrow.left { left: 24px; }
+.gal-arrow.right { right: 24px; }
+.gal-arrow:hover { background: var(--datum); border-color: var(--datum); color: var(--worksurface); scale: 1; }
+.gal-arrow.left:hover svg { transform: translateX(-3px); }
+.gal-arrow.right:hover svg { transform: translateX(3px); }
+.gal-arrow:active { scale: 0.9; }
+.car:hover .gal-arrow, .gal-arrow:focus-visible { opacity: 1; scale: 1; }
+@media (hover: none) { .gal-arrow { opacity: 1; scale: 1; width: 52px; height: 52px; } }
 .gal-slide { position: absolute; inset: 0; margin: 0; overflow: hidden; background: var(--tint); }
 .gal-slide img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
 .gal-slide::after {
@@ -540,16 +543,13 @@ button.chip:active { transform: scale(0.96); }
   color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
   user-select: none; pointer-events: none;
 }
-/* Story-style segmented progress — the autoplay timer, made visible. */
+/* Story segments — filled by the same rAF clock that advances the show. */
 .gal-segs { display: flex; gap: 8px; }
 .gal-seg { flex: 1; height: 22px; padding: 0; background: none; border: 0; cursor: pointer; display: flex; align-items: center; }
 .gal-seg i { display: block; width: 100%; height: 3px; border-radius: 3px; background: rgba(66, 71, 77, 0.16); overflow: hidden; position: relative; }
 .dark .gal-seg i { background: var(--on-dark-border); }
 .gal-seg i::after { content: ''; position: absolute; inset: 0; background: var(--datum); border-radius: inherit; transform: scaleX(0); transform-origin: left; }
 .gal-seg.done i::after { transform: scaleX(1); }
-.gal-seg.active i::after { animation: segfill var(--t, 6000ms) linear forwards; }
-.car:hover .gal-seg.active i::after { animation-play-state: paused; }
-@keyframes segfill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* ---------- finish bench ---------- */
 .lab { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 80px); align-items: stretch; }
