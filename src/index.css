@@ -393,6 +393,7 @@ button.chip:active { transform: scale(0.96); }
 .part-overlay { position: absolute; left: 0; bottom: 0; right: 0; padding: 56px 24px 20px; background: linear-gradient(transparent, rgba(20, 22, 25, 0.8)); color: var(--on-dark); }
 .part-steps { display: flex; flex-direction: column; gap: 14px; }
 .part-step { display: grid; grid-template-columns: 72px 1fr; gap: 18px; padding: 26px clamp(18px, 2vw, 28px); background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); }
+.part-step.plain { background: transparent; box-shadow: none; padding-inline: 4px; }
 .part-step b { font-weight: 600; font-size: 0.74rem; color: var(--datum); letter-spacing: 0.14em; padding-top: 6px; }
 
 /* ---------- profiles ---------- */
@@ -567,13 +568,17 @@ button.chip:active { transform: scale(0.96); }
 
 /* ---------- finish bench ---------- */
 .lab { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 80px); align-items: stretch; }
-.lab-surface { min-height: 400px; position: relative; overflow: hidden; border-radius: var(--radius-img); display: flex; align-items: flex-end; box-shadow: var(--shadow-soft); }
+/* The reveal wrapper is the grid child — make it fill so the surface
+   always matches the options column edge to edge. */
+.lab > .cp { display: grid; min-width: 0; }
+.lab-surface { height: 100%; min-height: 420px; position: relative; overflow: hidden; border-radius: var(--radius-img); display: flex; align-items: flex-end; box-shadow: var(--shadow-soft); }
 .lab-surface .sheen { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.5) 50%, transparent 58%); pointer-events: none; }
 .lab-scale { position: absolute; top: 18px; left: 18px; font-size: 0.64rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--secondary); background: rgba(255,255,255,0.9); padding: 9px 14px; border-radius: 999px; white-space: nowrap; }
 .lab-tag { position: relative; margin: 20px; background: rgba(43,48,54,0.94); color: var(--on-dark); padding: 20px 24px; border-radius: 14px; }
 .lab-tag .meta:first-child { color: var(--datum); }
 .lab-opts { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
-.lab-head { text-align: center; display: grid; justify-items: center; }
+.lab-head { text-align: center; display: grid; justify-items: center; margin-bottom: clamp(30px, 4vw, 52px); }
+.lab-head .h2 { max-width: 20ch; }
 .lab-head .lede { margin-inline: auto; }
 .lab-opt { display: grid; grid-template-columns: 52px 1fr auto; gap: 18px; align-items: center; padding: 20px 22px; background: transparent; border: 0; border-radius: 16px; text-align: left; width: 100%; color: inherit; transition: background 0.35s var(--ease-soft); }
 .lab-opt:hover { background: var(--card); }

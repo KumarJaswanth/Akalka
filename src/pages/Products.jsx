@@ -48,15 +48,15 @@ function DoorsBlock({ data }) {
       <div className="wrap">
         <SectionHead index={data.index} label={data.name} hint="DR-S / DR-D" />
         <div className="split">
-          <div style={{ padding: 'clamp(28px,4vw,56px)' }}>
+          <div className="split-cell">
             <Materialize>
               <h2 className="h2" style={{ marginBottom: 12 }}>{data.name}: configured to requirement.</h2>
               <p className="lede">{data.description}</p>
             </Materialize>
-            <div style={{ display: 'grid', gap: 0, marginTop: 28 }}>
+            <div style={{ display: 'grid', gap: '4px', marginTop: 28 }}>
               {data.variants.map((v, i) => (
                 <Reveal key={v.code} delay={i * 0.05}>
-                  <div className="part-step" style={{ gridTemplateColumns: '90px 1fr' }}>
+                  <div className="part-step plain" style={{ gridTemplateColumns: '90px 1fr' }}>
                     <b>{v.code}</b>
                     <div>
                       <h3 className="h3">{v.name}</h3>

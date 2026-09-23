@@ -296,6 +296,10 @@ function FinishLab() {
     <section className="section fit" id="finishes">
       <div className="wrap">
         <SectionHead index="Material" label="Material and finish" hint="Coated surfaces" />
+        <Materialize className="lab-head">
+          <h2 className="h2" style={{ marginBottom: 12 }}>Coated, controlled colour.</h2>
+          <p className="lede" style={{ marginBottom: 8 }}>Pre-powder and powder-coated surfaces in White, Matt White, or matched to customer requirement.</p>
+        </Materialize>
         <div className="lab">
           <ClipReveal>
             <div className="lab-surface" style={{ background: bg }}>
@@ -309,10 +313,6 @@ function FinishLab() {
             </div>
           </ClipReveal>
           <div className="lab-opts">
-            <Materialize className="lab-head">
-              <h2 className="h2" style={{ marginBottom: 10 }}>Coated, controlled colour.</h2>
-              <p className="lede" style={{ marginBottom: 18 }}>Pre-powder and powder-coated surfaces in White, Matt White, or matched to customer requirement.</p>
-            </Materialize>
             {FINISHES.map((f) => (
               <button key={f.name} className={`lab-opt${active.name === f.name ? ' active' : ''}`} onClick={() => setActive(f)} aria-pressed={active.name === f.name}>
                 <span className="sw" style={{ background: f.swatch }} aria-hidden="true" />
