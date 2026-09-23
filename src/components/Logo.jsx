@@ -18,25 +18,16 @@ export default function Logo({ height = 42, big = false }) {
   const [stage, setStage] = useState(0);
   const cls = big ? 'logo-img big' : 'logo-img';
   const alt = 'AKALKA Doors and Panels — crafted with care';
+  /* BASE_URL keeps the mark working under the /Akalka/ subpath. */
+  const svg = `${import.meta.env.BASE_URL}Akalka-logo.svg`;
   if (stage === 0) {
     return (
       <img
-        src="/Akalka-logo.svg"
+        src={svg}
         alt={alt}
         height={height}
         className={cls}
         onError={() => setStage(1)}
-      />
-    );
-  }
-  if (stage === 1) {
-    return (
-      <img
-        src="/akalka-logo.png"
-        alt={alt}
-        height={height}
-        className={cls}
-        onError={() => setStage(2)}
       />
     );
   }

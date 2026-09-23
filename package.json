@@ -1,11 +1,11 @@
 {
   "name": "akalka-doors-panels",
   "version": "1.2.0",
-  "description": "AKALKA Doors & Panels — premium manufacturing brand website",
+  "description": "AKALKA Doors & Panels \u00e2\u20ac\u201d premium manufacturing brand website",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/postbuild.mjs",
     "preview": "vite preview"
   },
   "keywords": [
