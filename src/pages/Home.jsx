@@ -5,6 +5,7 @@ import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg, Sc
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
+import DoorPortal from '../components/DoorPortal.jsx';
 import Flow from '../components/Flow.jsx';
 import { IMG, V } from '../data/images.js';
 
@@ -403,6 +404,7 @@ export default function Home() {
       </section>
       <DoorsFeature />
       <SandwichBand />
+      <DoorPortal />
       <Cleanroom />
       <Partition />
       <Profiles />

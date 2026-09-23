@@ -486,6 +486,49 @@ button.chip:active { transform: scale(0.96); }
 .fit { min-height: 100svh; display: flex; align-items: center; }
 .fit > .wrap { width: 100%; }
 
+/* ---------- the opening: scrubbed double-door portal ---------- */
+.portal { height: 280vh; position: relative; background: var(--worksurface); }
+.portal-pin {
+  position: sticky; top: 0; height: 100svh; width: 100vw; max-width: 100%;
+  overflow: hidden; perspective: 1400px; background: var(--worksurface);
+}
+.slab {
+  position: absolute; top: 0; bottom: 0; width: 50.5vw; max-width: 50.5%;
+  background-size: cover; background-repeat: no-repeat;
+  will-change: transform; backface-visibility: hidden;
+}
+.slab-l { left: 0; transform-origin: left center; }
+.slab-r { right: 0; transform-origin: right center; }
+.portal-bloom {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 34vw;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(125,178,0,0.28), rgba(125,178,0,0.07) 55%, transparent 75%);
+  opacity: 0; pointer-events: none;
+}
+.portal-copy {
+  position: absolute; z-index: 3;
+  left: var(--gutter); right: var(--gutter); bottom: 12vh;
+  max-width: 940px; color: var(--on-dark);
+  display: grid; gap: 18px; justify-items: start;
+  opacity: 0; visibility: hidden;
+}
+.portal-copy .meta { color: var(--datum); }
+.portal-copy .display { font-size: clamp(2.4rem, 6.4vw, 5.4rem); }
+.portal-ui {
+  position: absolute; z-index: 3;
+  top: calc(var(--nav-h) + 10px); left: var(--gutter); right: var(--gutter);
+  display: flex; justify-content: space-between; gap: 12px;
+  color: var(--on-dark-muted);
+}
+/* Static parted state for mobile and reduced motion. */
+.portal-static { height: auto; }
+.portal-static .portal-pin { position: relative; height: auto; min-height: 92svh; perspective: none; display: grid; }
+.portal-static .slab-l { transform: translateX(-24%) rotateY(-58deg); }
+.portal-static .slab-r { transform: translateX(24%) rotateY(58deg); }
+.portal-static .portal-bloom { opacity: 0.7; }
+.portal-static .portal-copy { position: relative; left: auto; right: auto; bottom: auto; opacity: 1; visibility: visible; padding: 0 var(--gutter) 12vh; align-self: end; margin-top: -30vh; }
+.portal-static .portal-ui { display: none; }
+
 /* ---------- product-universe flow: sticky full-viewport journey ---------- */
 .flow { height: 920vh; position: relative; background: var(--worksurface); }
 .flow-pin { position: sticky; top: 0; height: 100svh; width: 100vw; max-width: 100%; overflow: hidden; }
