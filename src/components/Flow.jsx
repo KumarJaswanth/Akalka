@@ -61,8 +61,7 @@ export default function Flow() {
     const track = trackRef.current;
     if (!root || !track) return;
     const panelEls = () => track.querySelectorAll('.flow-panel');
-    const clearStage = () => {
-      track.style.transform = '';
+    const clearStage = () => {      track.style.transform = '';
       panelEls().forEach((p) => {
         p.style.transform = '';
         p.style.opacity = '';
@@ -75,7 +74,21 @@ export default function Flow() {
       return;
     }
     let raf = 0;
+    /* The 920vh journey only computes while anywhere near the viewport —
+       everywhere else the loop sleeps instead of burning frames. */
+    let inView = false;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          inView = e.isIntersecting;
+          if (inView) update();
+        });
+      },
+      { threshold: 0, rootMargin: '600px 0px' }
+    );
+    io.observe(root);
     const update = () => {
+      if (!inView) return;
       const vh = window.innerHeight;
       const top = root.getBoundingClientRect().top + window.scrollY;
       const span = root.offsetHeight - vh;
@@ -133,6 +146,7 @@ export default function Flow() {
     window.addEventListener('resize', onScroll);
     update();
     return () => {
+      io.disconnect();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       cancelAnimationFrame(raf);
@@ -168,7 +182,7 @@ export default function Flow() {
                   <span>Engineered surfaces.</span>
                 </span>
                 <span className="mask">
-                  <span style={{ animationDelay: '0.12s' }}>Precise interiors.</span>
+                  <span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>Precise interiors.</span></span>
                 </span>
               </h1>
               <p className="flow-tag">
@@ -221,7 +235,6 @@ export default function Flow() {
           })}
         </div>
         <div className="flow-ui" aria-hidden="true">
-          <span className="meta">Product universe</span>
           <span className="meta">
             {String(active + 1).padStart(2, '0')} / {String(total).padStart(2, '0')} — {names[active]}
           </span>

@@ -3,7 +3,7 @@
    Photography carries the brand; whitespace carries the structure.
    No decorative lines, no drawing motifs — only functional hairlines
    on controls. Palette is the logo: paper, graphite, worksurface,
-   datum lime, hinge orange. Type: Comfortaa display + Montserrat text.
+   datum lime, hinge orange.    Type: Nunito ExtraBold display + DM Sans body (skill-verified rounded pairing).
    Motion lens: polish — choreographed, eased, restrained.
    ============================================================ */
 :root {
@@ -31,10 +31,10 @@
   --on-dark-muted: rgba(255, 255, 255, 0.72);
   --on-dark-border: rgba(255, 255, 255, 0.18);
   --ctrl: rgba(66, 71, 77, 0.32);
-  --display: 'Comfortaa', 'Montserrat', sans-serif;
-  --hand: 'Comfortaa', 'Montserrat', sans-serif;
-  --sans: 'Montserrat', -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'Montserrat', -apple-system, 'Segoe UI', sans-serif;
+  --display: 'Nunito', 'DM Sans', sans-serif;
+  --hand: 'Caveat', 'Nunito', cursive;
+  --sans: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
@@ -88,15 +88,15 @@ main { flex: 1; }
 /* ---------- type ---------- */
 .display {
   font-family: var(--display);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.02;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   font-size: clamp(3rem, 8vw, 7rem);
   text-wrap: balance;
 }
 .h2 {
   font-family: var(--display);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.01em;
   font-size: clamp(2rem, 4.6vw, 3.4rem);
@@ -104,7 +104,7 @@ main { flex: 1; }
 }
 .h3 {
   font-family: var(--display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: clamp(1.2rem, 2.2vw, 1.55rem);
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -254,7 +254,7 @@ button.chip:active { transform: scale(0.96); }
 .logo-img { height: 54px; width: auto; display: block; background: #fff; padding: 5px 14px; border-radius: 999px; box-shadow: 0 10px 30px -14px rgba(35, 40, 45, 0.35); }
 .logo-img.big { height: 66px; }
 .logo-fallback { display: inline-flex; align-items: center; gap: 12px; }
-.logo-word { font-family: var(--hand); font-weight: 700; font-size: 2.4rem; line-height: 1; color: var(--ink); }
+.logo-word { font-family: var(--hand); font-weight: 800; font-size: 2.2rem; line-height: 1; color: var(--ink); letter-spacing: -0.01em; }
 .logo-sub { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted-fg); }
 .nav.dark .logo-word, footer .logo-word { color: var(--datum); }
 .nav.dark .logo-sub, footer .logo-sub { color: var(--on-dark-muted); }
@@ -525,7 +525,7 @@ button.chip:active { transform: scale(0.96); }
 .flow-ui {
   position: absolute; z-index: 3;
   top: calc(var(--nav-h) + 10px); left: var(--gutter); right: var(--gutter);
-  display: flex; justify-content: space-between; gap: 12px;
+  display: flex; justify-content: flex-end; gap: 12px;
   color: var(--on-dark-muted);
 }
 .flow-hint { position: absolute; z-index: 3; right: var(--gutter); bottom: 26px; color: var(--on-dark-muted); }
@@ -688,12 +688,23 @@ footer { background: var(--worksurface); color: var(--on-dark); border-radius: c
   font-size: clamp(3.5rem, 11vw, 10rem);
   line-height: 0.95;
   letter-spacing: -0.02em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.22);
   user-select: none;
   white-space: nowrap;
   overflow: hidden;
   margin: 10px 0 0;
+  cursor: default;
+}
+.foot-giant span {
+  display: inline-block;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.22);
+  transition: color 0.55s var(--ease-soft), -webkit-text-stroke-color 0.55s var(--ease-soft), transform 0.55s var(--ease-soft);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+.foot-giant:hover span {
+  color: var(--datum);
+  -webkit-text-stroke-color: transparent;
+  transform: translateY(-0.04em);
 }
 .foot-base { padding: 20px 0 26px; display: flex; flex-wrap: wrap; gap: 10px 28px; justify-content: space-between; color: var(--on-dark-muted); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
 
@@ -767,6 +778,40 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   background: var(--card); border-radius: var(--radius-card);
   box-shadow: var(--shadow-soft); padding: clamp(32px, 4vw, 48px) clamp(24px, 3vw, 36px);
 }
+/* ---------- thank-you celebration ---------- */
+.thanks-v2 { display: grid; gap: 16px; justify-items: center; text-align: center; position: relative; overflow: hidden; }
+.thanks-burst { position: absolute; top: 64px; left: 50%; width: 0; height: 0; pointer-events: none; }
+.thanks-burst i { position: absolute; left: 0; top: 0; border-radius: 50%; background: var(--datum); }
+.thanks-burst i:nth-child(3n) { background: var(--hinge); }
+.thanks-check { width: 76px; height: 76px; color: var(--datum-ink); margin-bottom: 6px; }
+.thanks-check.big { width: 92px; height: 92px; margin: 6px 0 2px; }
+.thanks-check svg { width: 100%; height: 100%; overflow: visible; }
+.thanks-check .ring {
+  stroke-dasharray: 183; stroke-dashoffset: 183;
+  animation: drawRing 0.9s var(--ease-soft) 0.3s forwards;
+}
+.thanks-check .tick {
+  stroke-dasharray: 40; stroke-dashoffset: 40;
+  animation: drawTick 0.55s var(--ease-soft) 0.85s forwards;
+}
+@keyframes drawRing { to { stroke-dashoffset: 0; } }
+@keyframes drawTick { to { stroke-dashoffset: 0; } }
+.thanks-v2 .h2 { max-width: 22ch; }
+.thanks-recap {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  width: 100%; text-align: left; margin-top: 6px;
+}
+.thanks-recap > div { background: var(--tint); border-radius: 14px; padding: 16px 18px; display: grid; gap: 4px; align-content: start; }
+.thanks-recap > div.wide { grid-column: 1 / -1; }
+.thanks-recap .meta { color: var(--muted-fg); }
+.thanks-recap b { font-size: 0.98rem; overflow-wrap: anywhere; }
+.thanks-v2 .thanks-steps { text-align: left; width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 10px; }
+.thanks-v2 .thanks-steps > div { display: grid; gap: 6px; align-content: start; }
+.thanks-v2 .thanks-steps .meta { color: var(--datum-ink); }
+.thanks-v2 .thanks-steps b { font-size: 0.98rem; }
+@media (max-width: 640px) { .thanks-v2 .thanks-steps { grid-template-columns: 1fr; } }
+.thanks-v2 .thanks-actions { justify-content: center; }
+@media (max-width: 640px) { .thanks-recap { grid-template-columns: 1fr 1fr; } }
 .field { display: grid; gap: 8px; }
 .field label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--secondary); }
 .field input, .field select, .field textarea {
@@ -791,9 +836,9 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
 }
 .boot-sub { color: var(--on-dark-muted); }
 .boot-word {
-  display: flex; margin: 0;
-  font-family: var(--display); font-weight: 700;
-  font-size: clamp(3rem, 9vw, 4.6rem); color: var(--datum); line-height: 1;
+  font-family: var(--hand); font-weight: 700;
+  font-size: clamp(3rem, 10vw, 4.8rem); color: var(--datum); line-height: 1;
+  margin: 0; transform: rotate(-2deg);
 }
 .boot-word span { display: inline-block; }
 .boot-rule { display: block; width: min(200px, 46vw); height: 2px; border-radius: 2px; background: var(--datum); transform-origin: center; margin-top: 6px; }
@@ -801,12 +846,28 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
 .boot-bar { display: block; width: min(220px, 50vw); height: 2px; border-radius: 2px; background: rgba(255, 255, 255, 0.14); overflow: hidden; margin-top: 10px; }
 .boot-bar i { display: block; height: 100%; background: var(--datum); border-radius: inherit; transform-origin: left; animation: bootFill 1.25s var(--ease-soft) forwards; }
 @keyframes bootFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Dead-man switch: even if boot JS ever stalls, the overlay can never
+   trap visitors — CSS alone clears it after 6 seconds. */
+.boot { animation: bootKill 0.4s linear 6s forwards; }
+@keyframes bootKill { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
 /* ---------- route-change shimmer (code-split boundary) ---------- */
 .route-loading { min-height: 60svh; display: grid; place-items: center; }
 .route-loading span { display: block; width: min(220px, 50vw); height: 2px; border-radius: 2px; background: rgba(66, 71, 77, 0.14); overflow: hidden; position: relative; }
 .route-loading span::after { content: ''; position: absolute; inset: 0; background: var(--datum); border-radius: inherit; transform-origin: left; animation: routeFill 1s var(--ease-soft) infinite alternate; }
 @keyframes routeFill { from { transform: scaleX(0.15); } to { transform: scaleX(1); } }
+
+/* Handwritten logo voice — accent words inside headlines only. */
+.font-hand {
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 1.16em;
+  letter-spacing: 0;
+  line-height: 1.05;
+  display: inline-block;
+  transform: rotate(-2deg);
+  padding-right: 0.08em;
+}
 
 /* ---------- scroll reveals ---------- */
 .rv, .mz { opacity: 0; }

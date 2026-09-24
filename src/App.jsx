@@ -83,6 +83,30 @@ function PageTitle() {
   return null;
 }
 
+/* Soft auto-recovery (the safe answer to "auto refresh"): after a long
+   hidden stretch, re-sync the smoother and nudge every scroll-linked
+   system to recompute — zero state lost, unlike a real reload. */
+const FRESH_AFTER_MS = 10 * 60 * 1000;
+function Freshness() {
+  useEffect(() => {
+    let hiddenAt = 0;
+    const onVis = () => {
+      if (document.hidden) {
+        hiddenAt = Date.now();
+        return;
+      }
+      if (hiddenAt && Date.now() - hiddenAt > FRESH_AFTER_MS) {
+        if (window.__lenis) window.__lenis.resize();
+        window.dispatchEvent(new Event('resize'));
+      }
+      hiddenAt = 0;
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+  return null;
+}
+
 function ScrollProgress() {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll();
@@ -99,6 +123,7 @@ export default function App() {
       <Boot />
       <ScrollToTop />
       <PageTitle />
+      <Freshness />
       <ScrollProgress />
       <Nav />
       <main key={pathname.split('#')[0]}>

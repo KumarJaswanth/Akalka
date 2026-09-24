@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="foot-top">
           <Materialize>
             <h2 className="h2">
-              Specify the system. We manufacture it.
+              Specify the system. <span className="font-hand" style={{ color: 'var(--datum)' }}>We manufacture it.</span>
             </h2>
           </Materialize>
           <Reveal>
@@ -63,7 +63,13 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="foot-giant" aria-hidden="true">akalka</div>
+        <div className="foot-giant" aria-hidden="true">
+          {'akalka'.split('').map((ch, i) => (
+            <span key={i} style={{ '--i': i }}>
+              {ch}
+            </span>
+          ))}
+        </div>
 
         <div className="foot-base">
           <span>© {new Date().getFullYear()} AKALKA Doors &amp; Panels</span>

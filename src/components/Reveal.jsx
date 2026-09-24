@@ -130,12 +130,19 @@ export function ParallaxImg({ src, alt = '', speed = 0.1, eager = false, ratio, 
 
 /* Scroll-filled statement: each word ignites as it travels through
    the viewport — the luxury-editorial signature moment. */
-function Word({ progress, range, children }) {
+function Word({ progress, range, children, accent, accentColor }) {
   const opacity = useTransform(progress, range, [0.13, 1]);
-  return <motion.span style={{ opacity }}>{children} </motion.span>;
+  return (
+    <motion.span
+      style={accent ? { opacity, color: accentColor } : { opacity }}
+      className={accent ? 'font-hand' : undefined}
+    >
+      {children}{' '}
+    </motion.span>
+  );
 }
 
-export function ScrollWords({ text, className = '' }) {
+export function ScrollWords({ text, className = '', accents = [], accentColor = 'var(--datum-ink)' }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.85', 'end 0.45'] });
@@ -144,7 +151,13 @@ export function ScrollWords({ text, className = '' }) {
   return (
     <span ref={ref} className={className} style={{ display: 'block' }}>
       {words.map((w, i) => (
-        <Word key={i} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]}>
+        <Word
+          key={i}
+          progress={scrollYProgress}
+          range={[i / words.length, (i + 1) / words.length]}
+          accent={accents.includes(w)}
+          accentColor={accentColor}
+        >
           {w}
         </Word>
       ))}

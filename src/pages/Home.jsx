@@ -56,7 +56,7 @@ function DoorsFeature() {
         <SectionHead index="DR" label="Doors" hint="DR-S / DR-D" />
         <Materialize>
           <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 14 }}>
-            One opening, two configurations.
+            One opening, <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>two configurations.</span>
           </h2>
           <p className="lede">Sizes vary by requirement. Pick a core, finish and colour around your opening.</p>
         </Materialize>
@@ -126,7 +126,7 @@ function SandwichBand() {
         <div className="panel">
           <SectionHead index="SW" label="Sandwich panels" hint="SW series" />
         <Materialize>
-          <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 14 }}>Two thicknesses. No ambiguity.</h2>
+          <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 14 }}>Two thicknesses. <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>No ambiguity.</span></h2>
           <p className="lede">{sw.tagline} {sw.description}</p>
         </Materialize>
         <div style={{ height: 36 }} />
@@ -185,7 +185,7 @@ function Cleanroom() {
       <div className="wrap">
         <SectionHead index="CR" label="Cleanroom panels" hint="CR series" />
         <Materialize>
-          <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 14 }}>Controlled interiors, flush surfaces.</h2>
+          <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 14 }}>Controlled interiors, <span className="font-hand" style={{ color: 'var(--datum)' }}>flush surfaces.</span></h2>
           <p className="lede">{cr.description}</p>
         </Materialize>
         <div style={{ height: 36 }} />
@@ -224,7 +224,7 @@ function Partition() {
           </ClipReveal>
           <div>
             <Materialize>
-              <h2 className="h2" style={{ marginBottom: 14 }}>Divide space without visual noise.</h2>
+              <h2 className="h2" style={{ marginBottom: 14 }}>Divide space <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>without visual noise.</span></h2>
               <p className="lede">A partition range, separate from the sandwich system, for finished interior division.</p>
             </Materialize>
             <div className="part-steps" style={{ marginTop: 28 }}>
@@ -274,7 +274,7 @@ function Profiles() {
       <div className="wrap">
         <SectionHead index="PF" label="Profiles & accessories" hint="PF series" />
         <Materialize>
-          <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 14 }}>The details that hold the system together.</h2>
+          <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 14 }}>The details that <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>hold the system together.</span></h2>
           <p className="lede">Corners, channels, angles, tracks and aluminium-coated profiles, specified alongside panels and doors.</p>
         </Materialize>
         <div style={{ height: 36 }} />
@@ -297,8 +297,8 @@ function FinishLab() {
     <section className="section fit" id="finishes">
       <div className="wrap">
         <SectionHead index="Material" label="Materials & finishes" hint="Coated surfaces" />
-        <Materialize className="lab-head">
-          <h2 className="h2" style={{ marginBottom: 12 }}>Coated, controlled colour.</h2>
+            <Materialize className="lab-head">
+              <h2 className="h2" style={{ marginBottom: 12 }}>Coated, <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>controlled colour.</span></h2>
           <p className="lede" style={{ marginBottom: 8 }}>Pre-powder and powder-coated surfaces in White, Matt White, or matched to customer requirement.</p>
         </Materialize>
         <div className="lab">
@@ -343,7 +343,7 @@ function Principles() {
       <div className="wrap">
         <SectionHead index="Workshop" label="Why AKALKA" hint="Principles" />
         <Materialize>
-          <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 32 }}>Precision you can see before you measure.</h2>
+          <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 32 }}>Precision you can see <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>before you measure.</span></h2>
         </Materialize>
         <Reveal>
           <div className="prin-grid">
@@ -369,7 +369,7 @@ function Enquiry() {
         <div className="enquiry-grid">
           <div>
             <Materialize>
-              <h2 className="h2" style={{ marginBottom: 14 }}>Have a requirement?<br />Send the sizes.</h2>
+              <h2 className="h2" style={{ marginBottom: 14 }}>Have a requirement?<br /><span className="font-hand" style={{ color: 'var(--datum-ink)' }}>Send the sizes.</span></h2>
               <p className="lede">
                 Doors, panels and profiles are manufactured to order. Share drawings,
                 dimensions or a bill of quantities and receive a confirmed specification.
@@ -409,7 +409,10 @@ export default function Home() {
             <SectionHead index="Hello" label="Who we are" hint="Manufacturing first" />
             <Materialize>
               <p className="manifesto-big">
-                <ScrollWords text="AKALKA manufactures doors, panels and profiles for clean, finished interiors. That is the whole list." />
+                <ScrollWords
+                  text="AKALKA manufactures doors, panels and profiles for clean, finished interiors. That is the whole list."
+                  accents={['finished', 'interiors.']}
+                />
               </p>
             </Materialize>
             <div className="manifesto-cols">

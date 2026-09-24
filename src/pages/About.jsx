@@ -27,7 +27,7 @@ export default function About() {
         <div className="wrap">
           <h1 className="display">
             <span className="mask"><span>A manufacturer,</span></span>
-            <span className="mask"><span style={{ animationDelay: '0.12s' }}>defined by product.</span></span>
+            <span className="mask"><span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>defined by product.</span></span></span>
           </h1>
           <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22 }}>
             AKALKA manufactures doors, wall panels, cleanroom panels, partition
@@ -72,8 +72,7 @@ export default function About() {
             <SectionHead index="Sheet" label="Position" hint="Scope, stated plainly" />
           <Materialize>
             <p className="manifesto-big">
-              AKALKA is a product company. The catalogue
-              on this site is the company profile.
+              AKALKA is a product company. <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>The catalogue on this site is the company profile.</span>
             </p>
           </Materialize>
           <div className="manifesto-cols">

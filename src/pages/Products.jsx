@@ -79,7 +79,7 @@ function DoorsBlock({ data }) {
       <div className="wrap">
         <SectionHead index={data.index} label={data.name} hint="DR-S / DR-D" />
         <Materialize>
-          <h2 className="h2" style={{ marginBottom: 12 }}>Doors, configured to requirement.</h2>
+          <h2 className="h2" style={{ marginBottom: 12 }}>Doors, <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>configured to requirement.</span></h2>
           <p className="lede">{data.description}</p>
         </Materialize>
         <ClipReveal>
@@ -157,7 +157,7 @@ function SandwichBlock({ data }) {
         <div className="panel">
           <SectionHead index={data.index} label={data.name} hint="SW series" />
         <Materialize>
-          <h2 className="h2" style={{ marginBottom: 12 }}>Sandwich panels: the thickness ledger.</h2>
+          <h2 className="h2" style={{ marginBottom: 12 }}>Sandwich panels: <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>the thickness ledger.</span></h2>
           <p className="lede">{data.description} Only the thicknesses below are confirmed. No insulation, fire, thermal or acoustic values are claimed.</p>
         </Materialize>
         <Reveal>
@@ -226,7 +226,7 @@ function CleanroomBlock({ data }) {
       <div className="wrap">
         <SectionHead index={data.index} label={data.name} hint="CR series" />
         <Materialize>
-          <h2 className="h2" style={{ marginBottom: 12 }}>Cleanroom panels: stated as range.</h2>
+          <h2 className="h2" style={{ marginBottom: 12 }}>Cleanroom panels: <span className="font-hand" style={{ color: 'var(--datum)' }}>stated as range.</span></h2>
           <p className="lede">{data.description}</p>
         </Materialize>
         <div style={{ height: 36 }} />
@@ -271,7 +271,7 @@ function PartitionBlock({ data }) {
         <SectionHead index={data.index} label={data.name} hint="PT series" />
         <div className="part-grid">
           <Materialize>
-            <h2 className="h2" style={{ marginBottom: 12 }}>Partition panels: kept distinct.</h2>
+            <h2 className="h2" style={{ marginBottom: 12 }}>Partition panels: <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>kept distinct.</span></h2>
             <p className="lede">{data.description}</p>
             <div style={{ display: 'flex', gap: 16, marginTop: 30, flexWrap: 'wrap' }}>
               {data.items.map((it) => (
@@ -297,7 +297,7 @@ function PartitionBlock({ data }) {
               <ParallaxImg src={IMG.partitionAlt.src} alt={IMG.partitionAlt.alt} speed={0.08} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               <div className="part-overlay">
                 <p className="meta t-bright">Note</p>
-                <p style={{ marginTop: 6, fontWeight: 300, fontSize: '0.92rem' }}>Flush wall panels also appear in the cleanroom range. Specify per application on enquiry.</p>
+                <p style={{ marginTop: 6, fontWeight: 400, fontSize: '0.92rem' }}>Flush wall panels also appear in the cleanroom range. Specify per application on enquiry.</p>
               </div>
             </div>
           </ClipReveal>
@@ -316,7 +316,7 @@ function ProfilesBlock({ data }) {
         <div className="panel">
           <SectionHead index={data.index} label={data.name} hint="PF series" />
         <Materialize>
-          <h2 className="h2" style={{ marginBottom: 12 }}>Profiles &amp; accessories: the spec sheet.</h2>
+          <h2 className="h2" style={{ marginBottom: 12 }}>Profiles &amp; accessories: <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>the spec sheet.</span></h2>
           <p className="lede">{data.description}</p>
         </Materialize>
         <div style={{ height: 30 }} />
@@ -358,7 +358,7 @@ export default function Products() {
           <p className="meta" style={{ color: 'var(--datum)', marginBottom: 18 }}>AKALKA catalogue</p>
           <h1 className="display">
             <span className="mask"><span>Five systems.</span></span>
-            <span className="mask"><span style={{ animationDelay: '0.12s' }}>One language.</span></span>
+            <span className="mask"><span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>One language.</span></span></span>
           </h1>
           <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22, maxWidth: '56ch' }}>
             Five ranges, one catalogue. Pick a category — everything listed
@@ -391,7 +391,7 @@ export default function Products() {
         <div className="wrap">
           <SectionHead index="How" label="How specifying works" hint="3 steps" />
           <Materialize>
-            <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 34 }}>From chapter to confirmed specification.</h2>
+            <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 34 }}>From chapter to <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>confirmed specification.</span></h2>
           </Materialize>
           <div className="steps">
             {[
@@ -414,7 +414,7 @@ export default function Products() {
         <div className="wrap">
           <Reveal>
             <div className="cta-band">
-              <h2 className="h2">Found your configuration?<br />Confirm it with us.</h2>
+              <h2 className="h2">Found your configuration?<br /><span className="font-hand" style={{ color: 'var(--datum)' }}>Confirm it with us.</span></h2>
               <p className="body-sm" style={{ color: 'var(--on-dark-muted)', marginTop: 14 }}>Specifications on request.</p>
               <div className="cta-row">
                 <Magnetic><Link to="/contact" className="btn btn-light">Start an enquiry <ArrowRight className="arr arr-r" /></Link></Magnetic>

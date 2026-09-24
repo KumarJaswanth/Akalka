@@ -12,7 +12,7 @@ export default function Contact() {
         <div className="wrap">
           <h1 className="display">
             <span className="mask"><span>Send the sizes.</span></span>
-            <span className="mask"><span style={{ animationDelay: '0.12s' }}>We confirm the rest.</span></span>
+            <span className="mask"><span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>We confirm the rest.</span></span></span>
           </h1>
           <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22 }}>
             Doors, panels and profiles are manufactured to order. Share drawings,
