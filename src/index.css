@@ -279,11 +279,17 @@ button.chip:active { transform: scale(0.96); }
 
 /* ---------- shared text-mask entrance (flow brand panel) ---------- */
 .mask { overflow: hidden; display: block; }
-.mask > span { display: block; transform: translateY(108%); animation: riseIn 1s var(--ease-soft) forwards; }
+.mask > span:not(.ch-line) { display: block; transform: translateY(108%); animation: riseIn 1s var(--ease-soft) forwards; }
 @keyframes riseIn { to { transform: translateY(0); } }
+/* Per-character masked rise (brand headline). */
+.ch-line { display: block; }
+.ch {
+  display: inline-block;
+  transform: translateY(112%);
+  animation: riseIn 0.85s var(--ease-soft) forwards;
+}
 .scroll-cue { display: inline-flex; align-items: center; gap: 10px; color: var(--on-dark-muted); }
-.scroll-cue i { width: 6px; height: 6px; border-radius: 50%; background: var(--datum); animation: cueDrop 2.2s var(--ease-io) infinite; }
-@keyframes cueDrop { 0%, 100% { transform: translateY(-4px); opacity: 0.4; } 50% { transform: translateY(4px); opacity: 1; } }
+.scroll-cue i { width: 6px; height: 6px; border-radius: 50%; background: var(--datum); }
 .scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: var(--datum); transform-origin: left; z-index: 80; }
 
 /* ---------- quiet spec strip: slow infinite drift ---------- */
@@ -490,7 +496,7 @@ button.chip:active { transform: scale(0.96); }
 .flow { height: 920vh; position: relative; background: var(--worksurface); }
 .flow-pin { position: sticky; top: 0; height: 100svh; width: 100vw; max-width: 100%; overflow: hidden; }
 .flow-track { position: relative; height: 100%; }
-.flow-panel { position: absolute; inset: 0; width: 100vw; max-width: 100%; height: 100svh; overflow: hidden; will-change: transform, opacity; }
+.flow-panel { position: absolute; inset: 0; width: 100vw; max-width: 100%; height: 100svh; overflow: hidden; }
 .flow-bg {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
@@ -518,6 +524,61 @@ button.chip:active { transform: scale(0.96); }
 .flow-copy > *:nth-child(2) { transform: translate3d(calc((1 - var(--t, 1)) * var(--cdx, 0px) * 0.8), calc((1 - var(--t, 1)) * 28px), 0); }
 .flow-copy > *:nth-child(3) { transform: translate3d(calc((1 - var(--t, 1)) * var(--cdx, 0px)), calc((1 - var(--t, 1)) * 36px), 0); }
 .flow-copy > *:nth-child(4) { transform: translate3d(calc((1 - var(--t, 1)) * var(--cdx, 0px) * 1.2), calc((1 - var(--t, 1)) * 44px), 0); }
+
+/* Brand-panel cinema: scrubbed zoom + drift on the photograph, copy
+   lifting away, ghost floating off, and a slow light sweep for life. */
+.flow-brand .flow-bg {
+  transform: scale(calc(1.12 + var(--hx, 0) * 0.16)) translateY(calc(var(--hx, 0) * 70px));
+}
+.flow-brand .flow-copy {
+  opacity: calc(1 - var(--hx, 0) * 0.92);
+  transform: translateY(calc(var(--hx, 0) * -110px));
+}
+.flow-brand .flow-ghost {
+  transform: translate3d(calc((1 - var(--t, 1)) * var(--gdx, 0px) + var(--hx, 0) * 220px), calc((1 - var(--t, 1)) * -160px - var(--hx, 0) * 60px), 0);
+}
+.flow-brand .flow-shade { overflow: hidden; }
+.flow-brand .flow-shade::after {
+  content: ''; position: absolute; inset: -20%;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.09) 50%, transparent 58%);
+  animation: heroSheen 11s var(--ease-io) infinite;
+  pointer-events: none;
+}
+@keyframes heroSheen {
+  0% { transform: translateX(-38%); }
+  55%, 100% { transform: translateX(38%); }
+}
+/* Dust motes drifting through the hero light. */
+.motes { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.motes i {
+  position: absolute; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: moteFloat linear infinite;
+}
+@keyframes moteFloat {
+  0% { transform: translate3d(0, 24px, 0); opacity: 0; }
+  25% { opacity: 0.8; }
+  70% { opacity: 0.5; }
+  100% { transform: translate3d(-30px, -70px, 0); opacity: 0; }
+}
+/* Chapter dots — orientation + control for the journey. */
+.flow-dots {
+  position: absolute; z-index: 3;
+  left: var(--gutter); bottom: 26px;
+  display: flex; gap: 6px; align-items: center;
+}
+.flow-dots button {
+  width: 28px; height: 28px; padding: 0;
+  background: none; border: 0; cursor: pointer;
+  display: grid; place-items: center;
+}
+.flow-dots button i {
+  display: block; width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  transition: all 0.4s var(--ease-soft);
+}
+.flow-dots button:hover i { background: rgba(255, 255, 255, 0.8); }
+.flow-dots button.on i { width: 26px; border-radius: 4px; background: var(--datum); }
 .flow-copy .meta { color: var(--datum); }
 .flow-copy .display { font-size: clamp(2.6rem, 7vw, 6rem); }
 .flow-tag { font-size: clamp(1.05rem, 1.6vw, 1.3rem); color: var(--on-dark-muted); max-width: 46ch; line-height: 1.7; }
@@ -869,11 +930,11 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   padding-right: 0.08em;
 }
 
-/* ---------- scroll reveals ---------- */
+/* ---------- scroll reveals: opacity + rise only (filter paint removed) ---------- */
 .rv, .mz { opacity: 0; }
-.rv { transform: translateY(30px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft); will-change: opacity, transform; }
-.mz { transition: opacity 1s var(--ease-soft), filter 1s var(--ease-soft); filter: blur(6px); will-change: opacity, filter; }
-.rv.is-in, .mz.is-in { opacity: 1; transform: none; filter: blur(0); }
+.rv { transform: translateY(30px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft); }
+.mz { transform: translateY(14px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft); }
+.rv.is-in, .mz.is-in { opacity: 1; transform: none; }
 /* Directional entrances: .rv.dir-l / .dir-r slide in from the sides. */
 .rv.dir-l { transform: translateX(-56px); }
 .rv.dir-r { transform: translateX(56px); }
@@ -886,7 +947,6 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
 .px img {
   width: 100%; height: 100%; object-fit: cover; display: block; user-select: none;
   transform: translate3d(0, var(--px, 0%), 0) scale(1.16);
-  will-change: transform;
   transition: scale 1.1s var(--ease-soft);
 }
 
@@ -939,7 +999,9 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   .rv { transform: none; }
   .mz { filter: none; }
   .cp { clip-path: inset(0 0 0 0); opacity: 1; transform: none; }
-  .mask > span { transform: none; }
+  .mask > span:not(.ch-line) { transform: none; }
+  .mask .ch { transform: none; animation: none; }
+  .motes { display: none; }
   .gal-seg.active b { transform: scaleX(1); }
   .page { animation: none; }
   .scroll-cue i { animation: none; }

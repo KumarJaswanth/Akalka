@@ -64,42 +64,73 @@ export function ClipReveal({ children, className = '', delay = 0 }) {
 
 /* Generic scroll-linked wrapper: writes --px (translate %) from the
    element's position relative to the viewport centre. */
+const pxJobs = new Set();
+let pxRaf = 0;
+let pxListening = false;
+function pxFlush() {
+  pxRaf = 0;
+  /* Batched phases: every read completes before the first write, so
+     stacked parallax instances can never force layout thrash. */
+  const jobs = [...pxJobs];
+  const vals = jobs.map((j) => {
+    try {
+      return j.read();
+    } catch {
+      return null;
+    }
+  });
+  jobs.forEach((j, i) => {
+    try {
+      j.write(vals[i]);
+    } catch {
+      /* element gone mid-frame — dropped on cleanup */
+    }
+  });
+}
+function pxRequestFlush() {
+  if (!pxRaf) pxRaf = requestAnimationFrame(pxFlush);
+}
+function pxEnsureListening() {
+  if (pxListening || typeof window === 'undefined') return;
+  pxListening = true;
+  const onScroll = () => pxRequestFlush();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+}
 export function Parallax({ children, className = '', speed = 0.12, style, ...rest }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let raf = 0;
     let visible = false;
-    const update = () => {
-      const r = el.getBoundingClientRect();
-      const p = (r.top + r.height / 2 - window.innerHeight / 2) / window.innerHeight;
-      el.style.setProperty('--px', `${(-p * speed * 100).toFixed(2)}%`);
-    };
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           visible = e.isIntersecting;
-          if (visible) update();
+          if (visible) pxRequestFlush();
         });
       },
       { threshold: 0 }
     );
     io.observe(el);
-    const onScroll = () => {
-      if (!visible) return;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
+    pxEnsureListening();
+    const job = {
+      read: () => {
+        if (!visible || !ref.current) return null;
+        const r = ref.current.getBoundingClientRect();
+        return (r.top + r.height / 2 - window.innerHeight / 2) / window.innerHeight;
+      },
+      write: (p) => {
+        if (p === null || !ref.current) return;
+        ref.current.style.setProperty('--px', `${(-p * speed * 100).toFixed(2)}%`);
+      },
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    update();
+    pxJobs.add(job);
+    pxRequestFlush();
     return () => {
       io.disconnect();
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      cancelAnimationFrame(raf);
+      pxJobs.delete(job);
     };
   }, [speed]);
   return (

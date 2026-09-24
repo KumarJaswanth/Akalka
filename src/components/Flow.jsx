@@ -33,6 +33,34 @@ const VEC = {
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const smooth = (t) => t * t * (3 - 2 * t);
 
+/* Per-character masked rise for the brand headline. */
+function Chars({ text, base = 0 }) {
+  return (
+    <span className="mask" aria-label={text}>
+      <span className="ch-line" aria-hidden="true">
+        {text.split('').map((ch, i) => (
+          <span
+            key={i}
+            className="ch"
+            style={{ animationDelay: `${(base + i * 0.028).toFixed(3)}s` }}
+          >
+            {ch === ' ' ? ' ' : ch}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+/* Slow dust motes drifting through the hero light. */
+const MOTES = Array.from({ length: 14 }, (_, i) => ({
+  left: `${(i * 37 + 11) % 100}%`,
+  top: `${20 + ((i * 53 + 7) % 75)}%`,
+  size: 2 + (i % 3),
+  dur: 9 + (i % 5) * 2.4,
+  delay: (i % 7) * 1.3,
+}));
+
 function isStaticEnv() {
   if (typeof window === 'undefined') return true;
   return (
@@ -66,7 +94,7 @@ export default function Flow() {
         p.style.transform = '';
         p.style.opacity = '';
         p.style.visibility = '';
-        ['--t', '--cdx', '--gdx'].forEach((v) => p.style.removeProperty(v));
+        ['--t', '--cdx', '--gdx', '--hx'].forEach((v) => p.style.removeProperty(v));
       });
     };
     if (staticMode) {
@@ -136,6 +164,12 @@ export default function Flow() {
         panel.style.setProperty('--t', local.toFixed(3));
         panel.style.setProperty('--cdx', i % 2 === 0 ? '-70px' : '70px');
         panel.style.setProperty('--gdx', i % 2 === 0 ? '90px' : '-90px');
+        /* Brand-panel cinema: background breathes larger and drifts while
+           the copy lifts away as you scroll into the journey. */
+        if (i === 0) {
+          const hx = smooth(clamp01(seg));
+          panel.style.setProperty('--hx', hx.toFixed(3));
+        }
       });
     };
     const onScroll = () => {
@@ -155,6 +189,18 @@ export default function Flow() {
 
   const names = ['AKALKA', ...CATEGORIES.map((c) => c.name)];
 
+  const goToPanel = (i) => {
+    const root = rootRef.current;
+    if (!root) return;
+    const vh = window.innerHeight;
+    const top = root.getBoundingClientRect().top + window.scrollY;
+    const span = root.offsetHeight - vh;
+    if (span <= 0) return;
+    const y = top + (span * i) / (total - 1);
+    if (window.__lenis) window.__lenis.scrollTo(y);
+    else window.scrollTo({ top: y, behavior: 'smooth' });
+  };
+
   return (
     <section
       className={`flow${staticMode ? ' flow-static' : ''}`}
@@ -172,17 +218,30 @@ export default function Flow() {
               aria-label={IMG.heroBg.alt}
             />
             <div className="flow-shade" aria-hidden="true" />
+            <div className="motes" aria-hidden="true">
+              {MOTES.map((m, i) => (
+                <i
+                  key={i}
+                  style={{
+                    left: m.left,
+                    top: m.top,
+                    width: m.size,
+                    height: m.size,
+                    animationDuration: `${m.dur}s`,
+                    animationDelay: `${m.delay}s`,
+                  }}
+                />
+              ))}
+            </div>
             <span className="flow-ghost" aria-hidden="true">
               AK
             </span>
             <div className="flow-copy">
               <p className="meta">AKALKA — Doors &amp; Panels</p>
               <h1 className="display">
-                <span className="mask">
-                  <span>Engineered surfaces.</span>
-                </span>
-                <span className="mask">
-                  <span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>Precise interiors.</span></span>
+                <Chars text="Engineered surfaces." base={0.15} />
+                <span className="font-hand" style={{ color: 'var(--datum)' }}>
+                  <Chars text="Precise interiors." base={0.55} />
                 </span>
               </h1>
               <p className="flow-tag">
@@ -242,6 +301,21 @@ export default function Flow() {
         <p className="meta flow-hint scroll-cue" aria-hidden="true">
           <i /> Scroll to travel
         </p>
+        <div className="flow-dots" role="tablist" aria-label="Journey chapters">
+          {names.map((n, i) => (
+            <button
+              key={n}
+              type="button"
+              role="tab"
+              aria-selected={i === active}
+              aria-label={`Go to ${n}`}
+              className={i === active ? 'on' : ''}
+              onClick={() => goToPanel(i)}
+            >
+              <i />
+            </button>
+          ))}
+        </div>
         <div className="flow-bar" aria-hidden="true">
           <span style={{ transform: `scaleX(${(active + 1) / total})` }} />
         </div>
