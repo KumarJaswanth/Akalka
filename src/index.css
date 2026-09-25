@@ -280,13 +280,28 @@ button.chip:active { transform: scale(0.96); }
 /* ---------- shared text-mask entrance (flow brand panel) ---------- */
 .mask { overflow: hidden; display: block; }
 .mask > span:not(.ch-line) { display: block; transform: translateY(108%); animation: riseIn 1s var(--ease-soft) forwards; }
-@keyframes riseIn { to { transform: translateY(0); } }
-/* Per-character masked rise (brand headline). */
+@keyframes riseIn { from { transform: translateY(112%); } to { transform: translateY(0); } }
+/* Per-character masked rise (brand headline). Base state is visible;
+   the hidden start lives in the keyframe so hover Craft never fights it. */
 .ch-line { display: block; }
-.ch {
-  display: inline-block;
-  transform: translateY(112%);
-  animation: riseIn 0.85s var(--ease-soft) forwards;
+.ch.done { animation: none; }
+.ch { display: inline-block; animation: riseIn 0.85s var(--ease-soft) backwards; }
+/* Hero green line only: every hover hops the letters up, floats them
+   for a beat, then settles back to normal. Replays on every re-hover;
+   leaving fades only the glow. */
+.flow-brand .font-hand .ch {
+  transition: transform 0.3s var(--ease-soft);
+}
+.flow-brand h1:hover .font-hand .ch,
+.flow-brand .font-hand:hover .ch {
+  animation: hopSettle 0.85s var(--ease-soft);
+  animation-delay: calc(var(--ci, 0) * 38ms);
+}
+@keyframes hopSettle {
+  0% { transform: none; }
+  35% { transform: translateY(-0.3em) scale(1.08) rotate(2deg); }
+  65% { transform: translateY(0.05em) scale(0.99) rotate(0deg); }
+  100% { transform: none; }
 }
 .scroll-cue { display: inline-flex; align-items: center; gap: 10px; color: var(--on-dark-muted); }
 .scroll-cue i { width: 6px; height: 6px; border-radius: 50%; background: var(--datum); }

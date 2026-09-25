@@ -35,14 +35,28 @@ const smooth = (t) => t * t * (3 - 2 * t);
 
 /* Per-character masked rise for the brand headline. */
 function Chars({ text, base = 0 }) {
+  /* After the entrance plays, release the inline delay + entrance
+     animation so later hover Craft runs on its own timing. */
+  const [played, setPlayed] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(
+      () => setPlayed(true),
+      (base + text.length * 0.028 + 0.95) * 1000
+    );
+    return () => clearTimeout(t);
+  }, [text, base]);
   return (
     <span className="mask" aria-label={text}>
       <span className="ch-line" aria-hidden="true">
         {text.split('').map((ch, i) => (
           <span
             key={i}
-            className="ch"
-            style={{ animationDelay: `${(base + i * 0.028).toFixed(3)}s` }}
+            className={`ch${played ? ' done' : ''}`}
+            style={
+              played
+                ? { '--ci': i }
+                : { animationDelay: `${(base + i * 0.028).toFixed(3)}s`, '--ci': i }
+            }
           >
             {ch === ' ' ? ' ' : ch}
           </span>
