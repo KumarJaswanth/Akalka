@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { V } from '../data/images.js';
+import { PHOTO, srcSetFor } from '../data/images.js';
 import { Plus } from './icons.jsx';
 
 /* Cleanroom showcase: a sticky cinematic visual crossfading with the
@@ -10,10 +10,10 @@ import { Plus } from './icons.jsx';
 const EASE = [0.16, 1, 0.3, 1];
 
 const SHOTS = {
-  'CR-W': { src: V('1748000970909-845f4aa144d2', 900, 1150), alt: 'Operators working inside a production clean room' },
-  'CR-C': { src: V('1584677123573-7446380b6d69', 900, 1150), alt: 'White technical room with controlled-environment equipment' },
-  'CR-WS': { src: V('1762928289094-197055a5d5c3', 900, 1150), alt: 'Bright washable wall surfaces in a white interior' },
-  'CR-F': { src: V('1746021375306-9dec0f637732', 900, 1150), alt: 'Flush glass walls along a bright hallway' },
+  'CR-W': PHOTO.cleanroomTech,
+  'CR-C': PHOTO.cleanroomLab,
+  'CR-WS': PHOTO.cleanroomDoor,
+  'CR-F': PHOTO.cleanroomWindow,
 };
 
 export default function CleanroomShowcase({ items }) {
@@ -33,6 +33,8 @@ export default function CleanroomShowcase({ items }) {
           <motion.img
             key={current.code}
             src={shot.src}
+            srcSet={srcSetFor(shot.src)}
+            sizes="(max-width: 900px) 100vw, 45vw"
             alt=""
             loading="lazy"
             decoding="async"
@@ -48,15 +50,16 @@ export default function CleanroomShowcase({ items }) {
         </div>
       </div>
 
-      <div className="cr-rows" role="tablist" aria-label="Cleanroom range">
+      {/* Disclosure buttons, not tabs: each row expands its own detail.
+          tablist/tab roles would require tabpanels that do not exist;
+          aria-expanded already carries the state honestly. */}
+      <div className="cr-rows" role="group" aria-label="Cleanroom range">
         {items.map((it, i) => {
           const open = i === active;
           return (
             <div key={it.code} className={`cr-item${open ? ' open' : ''}`}>
               <button
                 type="button"
-                role="tab"
-                aria-selected={open}
                 aria-expanded={open}
                 className="cr-head"
                 onClick={() => setActive(open ? -1 : i)}

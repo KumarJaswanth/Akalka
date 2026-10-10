@@ -5,24 +5,26 @@ import { IMG } from '../data/images.js';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
 
 /* AKALKA flow: the site opens inside a sticky full-viewport
-   (100svh × 100vw) stage — brand panel first, then all five product
-   systems. Scroll scrubs a choreographed sequence: every screen ARRIVES
+   (100svh × 100vw) stage — brand panel first, then every product
+   system. Scroll scrubs a choreographed sequence: every screen ARRIVES
    from a different side (right, bottom, left, top, zoom) while the
    previous one leaves the opposite way, and every line of text staggers
    in on its own offset. Fully reversible — scroll back up and it rewinds.
    Mobile and reduced-motion fall back to a calm vertical stack. */
 
-const CODE = { doors: 'DR', sandwich: 'SW', cleanroom: 'CR', partition: 'PT', profiles: 'PF' };
+const CODE = { doors: 'DR', sandwich: 'SW', cleanroom: 'CR', partition: 'PT', glass: 'GL', profiles: 'PF' };
 const PHOTO = {
   doors: IMG.doorDouble,
   sandwich: IMG.sandwich,
-  cleanroom: IMG.cleanroom,
-  partition: IMG.partition,
+  cleanroom: IMG.cleanroomAlt,
+  partition: IMG.riserPanel,
+  glass: IMG.glass,
   profiles: IMG.profiles.track,
 };
 
-/* Entrance side per panel (panel 0 starts on stage). */
-const ENTER = [null, 'right', 'bottom', 'left', 'top', 'zoom'];
+/* Entrance side per panel (panel 0 starts on stage). One entry per panel,
+   so this grows with the catalogue — the last chapter eases in. */
+const ENTER = [null, 'right', 'bottom', 'left', 'top', 'zoom', 'right'];
 const VEC = {
   right: { x: 100, y: 0 },
   left: { x: -100, y: 0 },
@@ -33,7 +35,14 @@ const VEC = {
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const smooth = (t) => t * t * (3 - 2 * t);
 
-/* Per-character masked rise for the brand headline. */
+/* Per-character masked rise for the brand headline.
+   Words are wrapped in an inline-block so a line can break BETWEEN words
+   but never inside one — without this, the per-character inline-block
+   spans gave the line-breaker a soft-wrap opportunity between every
+   adjacent pair and "Engineered surfaces." rendered as
+   "Engineere" / "d surfaces." at every width up to 414px.
+   The word gap is an explicit em-width box: an inline-block strips a lone
+   space to zero width, which previously jammed the words together. */
 function Chars({ text, base = 0 }) {
   /* After the entrance plays, release the inline delay + entrance
      animation so later hover Craft runs on its own timing. */
@@ -45,20 +54,32 @@ function Chars({ text, base = 0 }) {
     );
     return () => clearTimeout(t);
   }, [text, base]);
+  /* Global character index so the rise order is identical to the original
+     single-string version — strictly left to right across the whole line. */
+  let gi = 0;
+  const words = text.split(' ');
   return (
     <span className="mask" aria-label={text}>
       <span className="ch-line" aria-hidden="true">
-        {text.split('').map((ch, i) => (
-          <span
-            key={i}
-            className={`ch${played ? ' done' : ''}`}
-            style={
-              played
-                ? { '--ci': i }
-                : { animationDelay: `${(base + i * 0.028).toFixed(3)}s`, '--ci': i }
-            }
-          >
-            {ch === ' ' ? ' ' : ch}
+        {words.map((word, w) => (
+          <span className="ch-word" key={w}>
+            {word.split('').map((ch) => {
+              const i = gi++;
+              return (
+                <span
+                  key={i}
+                  className={`ch${played ? ' done' : ''}`}
+                  style={
+                    played
+                      ? { '--ci': i }
+                      : { animationDelay: `${(base + i * 0.028).toFixed(3)}s`, '--ci': i }
+                  }
+                >
+                  {ch}
+                </span>
+              );
+            })}
+            {w < words.length - 1 && <span className="ch-space"> </span>}
           </span>
         ))}
       </span>
@@ -89,6 +110,12 @@ export default function Flow() {
   const [active, setActive] = useState(0);
   const [staticMode, setStaticMode] = useState(isStaticEnv);
   const total = CATEGORIES.length + 1;
+  /* Panels = 1 brand + one per category. The counter used CATEGORIES.length
+     in one place and this total in another, so "SW — 02 / 06" and
+     "02 / 07 — Sandwich Panels" appeared on the same screen. The position
+     readout now always speaks in chapters, never in panels. */
+  const chapterCount = CATEGORIES.length;
+  const chapterLabel = String(chapterCount).padStart(2, '0');
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 820px), (prefers-reduced-motion: reduce)');
@@ -113,11 +140,40 @@ export default function Flow() {
     };
     if (staticMode) {
       clearStage();
-      return;
+      /* Stacked fallback: the scroll-linked effect above never runs, so
+         `active` was frozen on 0 and every dot reported aria-selected=false
+         except the first — a tablist that lies. Track the real panels
+         instead, so the dots, the counter and the panel highlights all
+         agree with what is on screen. */
+      let sRaf = 0;
+      const onScroll = () => {
+        cancelAnimationFrame(sRaf);
+        sRaf = requestAnimationFrame(() => {
+          const els = Array.from(panelEls());
+          const vh = window.innerHeight;
+          let idx = 0;
+          els.forEach((el, i) => {
+            const t = el.getBoundingClientRect().top + window.scrollY;
+            if (t + el.offsetHeight / 2 <= window.scrollY + vh / 2) idx = i;
+          });
+          setActive((prev) => (prev === idx ? prev : idx));
+        });
+      };
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      return () => {
+        cancelAnimationFrame(sRaf);
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('resize', onScroll);
+      };
     }
     let raf = 0;
     /* The 920vh journey only computes while anywhere near the viewport —
-       everywhere else the loop sleeps instead of burning frames. */
+       everywhere else the loop sleeps instead of burning frames.
+       Direct 1:1 scrub: Lenis already smooths the scroll position itself,
+       so tracking it exactly keeps panels glued to the finger with zero
+       trailing disconnect. */
     let inView = false;
     const io = new IntersectionObserver(
       (entries) => {
@@ -206,11 +262,21 @@ export default function Flow() {
   const goToPanel = (i) => {
     const root = rootRef.current;
     if (!root) return;
-    const vh = window.innerHeight;
-    const top = root.getBoundingClientRect().top + window.scrollY;
-    const span = root.offsetHeight - vh;
-    if (span <= 0) return;
-    const y = top + (span * i) / (total - 1);
+    let y;
+    if (staticMode) {
+      /* Stacked layout has no scrub formula to divide — the old code
+         reused it anyway and missed every panel by up to 151px, pushing
+         the last panel's bottom CTA below the fold. Read the real offset. */
+      const panel = root.querySelectorAll('.flow-panel')[i];
+      if (!panel) return;
+      y = panel.getBoundingClientRect().top + window.scrollY;
+    } else {
+      const vh = window.innerHeight;
+      const top = root.getBoundingClientRect().top + window.scrollY;
+      const span = root.offsetHeight - vh;
+      if (span <= 0) return;
+      y = top + (span * i) / (total - 1);
+    }
     if (window.__lenis) window.__lenis.scrollTo(y);
     else window.scrollTo({ top: y, behavior: 'smooth' });
   };
@@ -259,8 +325,9 @@ export default function Flow() {
                 </span>
               </h1>
               <p className="flow-tag">
-                Doors, sandwich panels, cleanroom panels, partition systems and
-                the profiles that join them — one coordinated manufacturing system.
+                Doors, sandwich panels, cleanroom panels, partition systems, view
+                glass and the profiles that join them — one coordinated
+                manufacturing system.
               </p>
               <div className="flow-ctas">
                 <Link to="/products" className="btn btn-solid">
@@ -273,7 +340,7 @@ export default function Flow() {
             </div>
           </article>
 
-          {/* 01–05 — product panels */}
+          {/* 01…N — product panels */}
           {CATEGORIES.map((c, i) => {
             const img = PHOTO[c.id];
             const n = i + 1;
@@ -295,7 +362,7 @@ export default function Flow() {
                 </span>
                 <div className="flow-copy">
                   <p className="meta">
-                    {CODE[c.id]} — {c.index} / 05
+                    {CODE[c.id]} — {c.index} / {chapterLabel}
                   </p>
                   <h2 className="display">{c.name}</h2>
                   <p className="flow-tag">{c.tagline}</p>
@@ -309,20 +376,41 @@ export default function Flow() {
         </div>
         <div className="flow-ui" aria-hidden="true">
           <span className="meta">
-            {String(active + 1).padStart(2, '0')} / {String(total).padStart(2, '0')} — {names[active]}
+            {active === 0
+              ? `AKALKA — ${chapterLabel} chapters`
+              : `${String(active).padStart(2, '0')} / ${chapterLabel} — ${names[active]}`}
           </span>
         </div>
         <p className="meta flow-hint scroll-cue" aria-hidden="true">
           <i /> Scroll to travel
         </p>
-        <div className="flow-dots" role="tablist" aria-label="Journey chapters">
+        {/* A 920vh stage is a real commitment. Give the visitor a visible,
+            keyboard-reachable way out that does not depend on finding the
+            nav or the dots. Routed through Lenis so it matches every other
+            scroll on the site instead of fighting it. */}
+        <button
+          type="button"
+          className="flow-skip"
+          onClick={() => {
+            const el = document.getElementById('range-strip');
+            if (!el) return;
+            const y = el.getBoundingClientRect().top + window.scrollY - 40;
+            if (window.__lenis) window.__lenis.scrollTo(y, { duration: 1.2 });
+            else window.scrollTo({ top: y, behavior: 'smooth' });
+          }}
+        >
+          Skip to catalogue <ArrowRight className="arr arr-r" />
+        </button>
+        {/* Chapter navigation, not tabs: each button moves the journey.
+            tablist/tab roles would require tabpanels that do not exist. */}
+        <div className="flow-dots" role="group" aria-label="Journey chapters">
           {names.map((n, i) => (
             <button
               key={n}
               type="button"
-              role="tab"
-              aria-selected={i === active}
+              aria-current={i === active ? 'true' : undefined}
               aria-label={`Go to ${n}`}
+              tabIndex={i === active ? 0 : -1}
               className={i === active ? 'on' : ''}
               onClick={() => goToPanel(i)}
             >

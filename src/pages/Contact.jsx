@@ -1,10 +1,25 @@
 import { useSearchParams } from 'react-router-dom';
-import { Reveal, SectionHead } from '../components/Reveal.jsx';
+import { Reveal, Materialize, SectionHead } from '../components/Reveal.jsx';
+import { Plus } from '../components/icons.jsx';
+import { Process } from '../components/Scenes.jsx';
 import EnquiryForm from '../components/EnquiryForm.jsx';
+import Term from '../components/Term.jsx';
+
+/* Answers drawn only from confirmed catalogue data. Where the honest
+   answer is "not published", the FAQ says so and points at the form. */
+const FAQ = [
+  { q: 'Do you have standard door or panel sizes?', a: 'No fixed catalogue sizes — doors and panels are manufactured to requirement. Send your openings or layout and the sizes come back confirmed.' },
+  { q: 'Which panel thicknesses are available?', a: 'PUF and rockwool double-skin wall panels are confirmed in 50 mm and 100 mm. Thicknesses for the rockwool and honeycomb sandwich panel types are confirmed on enquiry.' },
+  { q: 'What finishes and colours can I choose?', a: 'Pre-powder coated or powder coated, in White, Matt White, or colour as per customer requirement — the same across doors, panels and profiles.' },
+  { q: 'What about fire ratings or cleanroom classifications?', a: 'These are not published on the site. Ask in the form — every specific question is answered and confirmed in writing, never assumed.' },
+  { q: 'What should I send with an enquiry?', a: 'Drawings, opening schedules, panel layouts, thicknesses, finishes, quantities and the site location. Anything specified beats anything described.' },
+];
 
 export default function Contact() {
   const [params] = useSearchParams();
   const requested = params.get('interest');
+  const asked = params.get('ask');
+  const meta = params.get('meta') || '';
 
   return (
     <div className="page">
@@ -14,7 +29,7 @@ export default function Contact() {
             <span className="mask"><span>Send the sizes.</span></span>
             <span className="mask"><span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>We confirm the rest.</span></span></span>
           </h1>
-          <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 22 }}>
+          <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 'var(--s6)' }}>
             Doors, panels and profiles are manufactured to order. Share drawings,
             dimensions or a bill of quantities and receive a confirmed specification.
           </p>
@@ -25,7 +40,7 @@ export default function Contact() {
         <div className="wrap contact-grid">
           <div>
             <SectionHead index="Form" label="Enquiry form" hint="Response: TBC" />
-            <EnquiryForm defaultInterest={requested} />
+            <EnquiryForm defaultInterest={requested} defaultAsk={asked} defaultMeta={meta} />
           </div>
           <div>
             <SectionHead index="Channels" label="Direct channels" hint="Details: TBC" />
@@ -39,15 +54,50 @@ export default function Contact() {
               </div>
             </Reveal>
             <Reveal delay={0.08}>
-              <div className="cta-band on-dark" style={{ marginTop: 30, padding: '36px 30px' }}>
-                <p style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: '1.5rem' }}>Specify first, then enquire.</p>
-                <div className="chips" style={{ marginTop: 16 }}>
+              <div className="cta-band on-dark" style={{ marginTop: 'var(--s8)', padding: 'var(--s9) var(--s8)' }}>
+                <h2 style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: '1.5rem' }}>Specify first, then enquire.</h2>
+                <div className="chips" style={{ marginTop: 'var(--s4)' }}>
                   <span className="chip">DR-S / DR-D</span>
                   <span className="chip">50 / 100 mm</span>
-                  <span className="chip">R-70 / R-90</span>
+                  <span className="chip"><Term def="Coating option code in this catalogue — its exact specification is confirmed on enquiry">R-70 / R-90</Term></span>
                 </div>
               </div>
             </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="wrap">
+          <SectionHead index="Next" label="What happens next" hint="Four steps" />
+          <Materialize>
+            <h2 className="h2" style={{ maxWidth: '18ch', marginBottom: 'var(--s12)' }}>From your message <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>to a made product.</span></h2>
+          </Materialize>
+          <Process />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="wrap faq-grid">
+          <div>
+            <SectionHead index="FAQ" label="Before you send" hint="Plain answers" />
+            <Materialize>
+              <h2 className="h2" style={{ maxWidth: '12ch' }}>Questions, <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>answered straight.</span></h2>
+            </Materialize>
+          </div>
+          <div className="faq">
+            {FAQ.map((f, i) => (
+              <Reveal key={f.q} delay={Math.min(i * 0.05, 0.2)}>
+                <details className="faq-item">
+                  <summary>
+                    <span className="meta">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="faq-q">{f.q}</span>
+                    <span className="plus" aria-hidden="true"><Plus /></span>
+                  </summary>
+                  <p className="body-sm">{f.a}</p>
+                </details>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
 import Lenis from 'lenis';
@@ -6,6 +6,7 @@ import Nav from './components/Nav.jsx';
 import Boot from './components/Boot.jsx';
 import Footer from './components/Footer.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import Cursor from './components/Cursor.jsx';
 
 /* Route-split: visitors download only the page they open. Shared UI
    (nav, motion, galleries) stays in one common chunk automatically. */
@@ -37,6 +38,12 @@ function SmoothScroll() {
       anchors: true,
     });
     window.__lenis = lenis;
+    /* Scroll velocity, normalised to −1…1, for velocity-reactive scenes
+       (skewing type, stretching marquees). Read inside the shared scene
+       batch, so it costs no extra listener per element. */
+    lenis.on('scroll', (e) => {
+      window.__vel = Math.max(-1, Math.min(1, (e.velocity || 0) / 40));
+    });
     return () => {
       lenis.destroy();
       window.__lenis = undefined;
@@ -107,6 +114,28 @@ function Freshness() {
   return null;
 }
 
+/* Route curtain: on every in-app navigation (never the first load —
+   Boot owns that), a worksurface sheet carrying the wordmark covers the
+   swap and lifts away. Pure CSS animation, remounted by key. */
+function RouteCurtain() {
+  const { pathname } = useLocation();
+  const first = useRef(true);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    setN((v) => v + 1);
+  }, [pathname]);
+  if (!n) return null;
+  return (
+    <div key={n} className="curtain" aria-hidden="true">
+      <span>akalka</span>
+    </div>
+  );
+}
+
 function ScrollProgress() {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll();
@@ -125,6 +154,8 @@ export default function App() {
       <PageTitle />
       <Freshness />
       <ScrollProgress />
+      <RouteCurtain />
+      <Cursor />
       <Nav />
       <main key={pathname.split('#')[0]}>
         <ErrorBoundary>

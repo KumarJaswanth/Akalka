@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { srcSetFor } from '../data/images.js';
 
 /* Motion system for v1.2: restrained, scroll-linked, GPU-only.
    - Reveal / Materialize / ClipReveal: one IntersectionObserver each,
@@ -44,8 +45,53 @@ export function Reveal({ children, className = '', delay = 0 }) {
   );
 }
 
+/* Word-mask headings. Every display heading inside a Materialize is
+   split once into masked words that rise in a staggered cascade — the
+   type itself becomes the reveal. Text nodes are wrapped in place
+   (nested accents such as .font-hand keep their element), so no heading
+   in the codebase has to change. Headings are static, so React never
+   needs to touch those text nodes again. */
+function splitWords(root) {
+  if (!root || root.dataset.split) return;
+  root.dataset.split = '1';
+  let wi = 0;
+  const walk = (node) => {
+    Array.from(node.childNodes).forEach((n) => {
+      if (n.nodeType === 3) {
+        const parts = n.textContent.split(/(\s+)/);
+        if (!parts.some((t) => t.trim())) return;
+        const frag = document.createDocumentFragment();
+        parts.forEach((t) => {
+          if (!t) return;
+          if (!t.trim()) {
+            frag.appendChild(document.createTextNode(t));
+            return;
+          }
+          const w = document.createElement('span');
+          w.className = 'w';
+          const inner = document.createElement('span');
+          inner.className = 'wi';
+          inner.style.setProperty('--wi', wi++);
+          inner.textContent = t;
+          w.appendChild(inner);
+          frag.appendChild(w);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1 && n.tagName !== 'BR' && !n.classList.contains('term')) {
+        walk(n);
+      }
+    });
+  };
+  walk(root);
+}
+
 export function Materialize({ children, className = '', delay = 0 }) {
   const [ref, inView] = useInView(delay);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    ref.current.querySelectorAll('.h2').forEach(splitWords);
+  }, [ref]);
   return (
     <div ref={ref} className={`mz${inView ? ' is-in' : ''}${className ? ` ${className}` : ''}`}>
       {children}
@@ -97,7 +143,7 @@ function pxEnsureListening() {
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
 }
-export function Parallax({ children, className = '', speed = 0.12, style, ...rest }) {
+function Parallax({ children, className = '', speed = 0.12, style, ...rest }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -140,14 +186,118 @@ export function Parallax({ children, className = '', speed = 0.12, style, ...res
   );
 }
 
+/* Scroll progress as a CSS variable — the v2 scene engine.
+   One shared rAF batch (the same scheduler as Parallax) writes `--p`
+   (0 → 1) onto the element; CSS turns that single number into every
+   effect, so scenes cost one style write per frame and zero re-renders.
+   mode 'pin'  — progress across a tall section's own scroll span (for
+                 sticky scenes: 0 when its top meets the viewport top,
+                 1 when its bottom meets the viewport bottom).
+   mode 'view' — progress while crossing the viewport (0 entering at the
+                 bottom, 1 leaving at the top).
+   onProgress(p) — optional: called inside the same batched write with
+                 the raw progress, for scenes that drive several values
+                 (camera angles, reveal amounts) without React renders.
+   onStep(i)   — optional: called only when floor(p * steps) changes, so
+                 React state updates a handful of times, not every frame.
+   Reduced motion pins every scene to its finished state. */
+export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress, vel = false } = {}) {
+  const stepRef = useRef(-1);
+  const cbRef = useRef(onStep);
+  cbRef.current = onStep;
+  const progRef = useRef(onProgress);
+  progRef.current = onProgress;
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.style.setProperty('--p', '1');
+      el.classList.add('is-static');
+      if (progRef.current) progRef.current(1);
+      return;
+    }
+    let visible = false;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          visible = e.isIntersecting;
+          if (visible) pxRequestFlush();
+        });
+      },
+      { threshold: 0, rootMargin: '200px 0px' }
+    );
+    io.observe(el);
+    pxEnsureListening();
+    const job = {
+      read: () => {
+        if (!visible || !ref.current) return null;
+        const r = ref.current.getBoundingClientRect();
+        const vh = window.innerHeight;
+        if (mode === 'pin') {
+          const span = r.height - vh;
+          return span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : r.top < 0 ? 1 : 0;
+        }
+        if (mode === 'enter') {
+          /* 0 as the element's top meets the viewport bottom, 1 once its
+             whole height plus a short run-out is on screen — for things
+             at the very end of a page, which can never cross the view. */
+          return Math.min(1, Math.max(0, (vh - r.top) / (r.height + 120)));
+        }
+        return Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
+      },
+      write: (p) => {
+        if (p === null || !ref.current) return;
+        ref.current.style.setProperty('--p', p.toFixed(4));
+        if (progRef.current) progRef.current(p);
+        if (vel) ref.current.style.setProperty('--v', (window.__vel || 0).toFixed(3));
+        if (steps > 0) {
+          const s = Math.min(steps - 1, Math.floor(p * steps));
+          if (s !== stepRef.current) {
+            stepRef.current = s;
+            if (cbRef.current) cbRef.current(s);
+          }
+        }
+      },
+    };
+    pxJobs.add(job);
+    pxRequestFlush();
+    return () => {
+      io.disconnect();
+      pxJobs.delete(job);
+    };
+  }, [ref, mode, steps, vel]);
+}
+
+/* Fit a fixed-size model (a 3D stage drawn at design size) into its
+   container: writes `prop` = min(1, width / w, height / h) on the
+   element whenever it resizes. The model is drawn once at one size and
+   scaled as a whole, so it can never spill onto neighbouring text. */
+export function useFit(ref, w, h, prop = '--fit') {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const set = () => {
+      const r = el.getBoundingClientRect();
+      const s = Math.min(1, r.width / w, h ? r.height / h : 1);
+      el.style.setProperty(prop, s.toFixed(3));
+    };
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, w, h, prop]);
+}
+
 /* Image well with scroll drift built in. Sizing comes from context:
    pass `ratio` for flow layout ("21/9") or let the parent frame the
    absolutely-positioned well (see .pf-img .px, .part-photo .px). */
-export function ParallaxImg({ src, alt = '', speed = 0.1, eager = false, ratio, onError }) {
+export function ParallaxImg({ src, alt = '', speed = 0.1, eager = false, ratio, onError, sizes = '(max-width: 820px) 100vw, 70vw' }) {
   return (
     <Parallax className="px" speed={speed} style={ratio ? { aspectRatio: ratio } : undefined}>
       <img
         src={src}
+        srcSet={srcSetFor(src)}
+        sizes={srcSetFor(src) ? sizes : undefined}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         fetchPriority={eager ? 'high' : undefined}

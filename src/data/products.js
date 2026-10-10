@@ -11,10 +11,15 @@ export const CATEGORIES = [
     name: 'Doors',
     tagline: 'Configured openings, built like the walls around them.',
     description:
-      'Single and double doors manufactured to requirement, with honeycomb or rockwool cores and coated finishes matched to the panel system.',
+      'Regular modular, fire rated and emergency doors in single and double configurations, with honeycomb or rockwool cores and coated finishes matched to the panel system.',
+    types: ['Regular / Modular', 'Fire Rated', 'Emergency'],
     variants: [
-      { name: 'Single Door', code: 'DR-S', note: 'Size as per requirement' },
-      { name: 'Double Door', code: 'DR-D', note: 'Size as per requirement' },
+      { name: 'Regular Modular — Single Door', code: 'DR-S', type: 'Regular / Modular', note: 'Size as per requirement' },
+      { name: 'Regular Modular — Double Door', code: 'DR-D', type: 'Regular / Modular', note: 'Size as per requirement' },
+      { name: 'Fire Rated — Single Door', code: 'DR-FS', type: 'Fire Rated', note: 'Fire rating duration: needs confirmation' },
+      { name: 'Fire Rated — Double Door', code: 'DR-FD', type: 'Fire Rated', note: 'Fire rating duration: needs confirmation' },
+      { name: 'Emergency — Single Door', code: 'DR-ES', type: 'Emergency', note: 'Panic bar and push hardware: needs confirmation' },
+      { name: 'Emergency — Double Door', code: 'DR-ED', type: 'Emergency', note: 'Panic bar and push hardware: needs confirmation' },
     ],
     cores: ['Honeycomb', 'Rockwool'],
     finishes: ['Pre-powder coated', 'Powder coated'],
@@ -60,13 +65,27 @@ export const CATEGORIES = [
     description:
       'A distinct partition range for dividing and finishing interior space, separate from the structural sandwich panel system.',
     items: [
-      { name: 'Partition Panels', code: 'PT-P' },
-      { name: 'Flush Wall Panels', code: 'PT-F' },
+      { name: 'Partition Panels', code: 'PT-P', note: 'Interior division with a clean architectural finish' },
+      { name: 'Flush Wall Panels', code: 'PT-F', note: 'Flat, continuous wall surfaces — also listed in the cleanroom range' },
+      { name: 'Riser Panel with Grill', code: 'PT-RP', note: 'Access panel for riser and service shafts, with grill' },
     ],
   },
   {
-    id: 'profiles',
+    id: 'glass',
     index: '05',
+    name: 'Glass Panels',
+    tagline: 'Vision openings that keep the room in view.',
+    description:
+      'View glass panels for doors and openings, letting sightlines pass through where solid leaves are specified.',
+    items: [
+      { name: 'View Glass Panel', code: 'GL-VG', note: 'Vision panel for doors and glazed openings' },
+    ],
+    options: ['Single glazing', 'Double glazing'],
+    note: 'Glazing thickness, make and fire rating: needs confirmation.',
+  },
+  {
+    id: 'profiles',
+    index: '06',
     name: 'Profiles & Accessories',
     tagline: 'The junctions, edges and tracks that complete the system.',
     description:
@@ -100,12 +119,6 @@ export const CATEGORIES = [
   },
 ];
 
-export const FINISHES = [
-  { name: 'White', swatch: '#F7F7F5', border: true, note: 'Standard coated surface' },
-  { name: 'Matt White', swatch: '#EFEDE9', border: true, note: 'Low-reflectance coated surface' },
-  { name: 'Pre-powder coated', swatch: '#E3E0D9', border: true, note: 'Coil-coated base material' },
-  { name: 'Customer requirement', swatch: '#DCD9D2', border: true, note: 'Colour matched to order' },
-];
 
 export const NAV_LINKS = [
   { to: '/', label: 'Home' },

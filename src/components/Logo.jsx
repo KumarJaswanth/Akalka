@@ -3,7 +3,7 @@ import { useState } from 'react';
 /* Official AKALKA lockup with graceful fallbacks:
    vector SVG → PNG → drawn mark. */
 
-export function DoorMark({ size = 40 }) {
+function DoorMark({ size = 40 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false">
       <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="#fff" stroke="#42474D" strokeWidth="2.5" />

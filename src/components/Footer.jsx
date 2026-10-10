@@ -1,9 +1,19 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Reveal, Materialize, Magnetic } from './Reveal.jsx';
+import { CATEGORIES } from '../data/products.js';
+import { Reveal, Materialize, Magnetic, useScrollVar } from './Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
 import Logo from './Logo.jsx';
 
 export default function Footer() {
+  /* The wordmark rises letter by letter and fills with lime as the
+     footer scrolls into view — scrubbed, so it rewinds on the way up. */
+  const giantRef = useRef(null);
+  useScrollVar(giantRef, { mode: 'enter' });
+  const toTop = () => {
+    if (window.__lenis) window.__lenis.scrollTo(0, { duration: 1.6 });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   return (
     <footer>
       <div className="wrap">
@@ -37,11 +47,11 @@ export default function Footer() {
           <div>
             <h4>Products</h4>
             <ul>
-              <li><Link to="/products#doors">Doors</Link></li>
-              <li><Link to="/products#sandwich">Sandwich Panels</Link></li>
-              <li><Link to="/products#cleanroom">Cleanroom Panels</Link></li>
-              <li><Link to="/products#partition">Partition Panels</Link></li>
-              <li><Link to="/products#profiles">Profiles &amp; Accessories</Link></li>
+              {/* Derived, never hand-listed — this list fell a category
+                  behind the catalogue the moment a 6th chapter was added. */}
+              {CATEGORIES.map((c) => (
+                <li key={c.id}><Link to={`/products#${c.id}`}>{c.name}</Link></li>
+              ))}
             </ul>
           </div>
           <div>
@@ -63,7 +73,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="foot-giant" aria-hidden="true">
+        <div className="foot-giant" aria-hidden="true" ref={giantRef}>
           {'akalka'.split('').map((ch, i) => (
             <span key={i} style={{ '--i': i }}>
               {ch}
@@ -75,6 +85,9 @@ export default function Footer() {
           <span>© {new Date().getFullYear()} AKALKA Doors &amp; Panels</span>
           <span>Crafted with care</span>
           <span>Specifications on request</span>
+          <button type="button" className="to-top" onClick={toTop}>
+            Back to top <ArrowUpRight className="arr" style={{ transform: 'rotate(-45deg)' }} />
+          </button>
         </div>
       </div>
     </footer>

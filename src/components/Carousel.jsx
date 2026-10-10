@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from './icons.jsx';
+import { srcSetFor } from '../data/images.js';
 
 /* Immersive gallery: one full-bleed frame at a time, directional
    clip-wipe transitions, staggered captions, story-style progress driven
@@ -22,6 +23,9 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
   const reduce = useReducedMotion();
   const n = slides.length;
   const T = reduce ? 0 : 0.9;
+  /* WCAG 2.2.2 — an auto-advancing gallery must be pausable. The button
+     mirrors the rAF clock's paused flag into state so it renders. */
+  const [userPaused, setUserPaused] = useState(false);
 
   const indexRef = useRef(0);
   indexRef.current = index;
@@ -50,6 +54,17 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
 
   const setPaused = (v) => {
     pausedRef.current = v;
+  };
+
+  const togglePaused = () => {
+    setUserPaused((p) => {
+      const next = !p;
+      pausedRef.current = next;
+      /* Resume exactly on beat instead of jumping — same as any input. */
+      idleRef.current = Date.now();
+      elapsedRef.current = 0;
+      return next;
+    });
   };
 
   /* One rAF clock drives both the advance and the progress bar, so the
@@ -120,9 +135,22 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
           {label && <span className="meta">{label}</span>}
           {hint && <span className="meta car-hint">{hint}</span>}
         </div>
-        <span className="meta car-count" aria-live="polite">
-          {String(index + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
-        </span>
+        <div className="car-status">
+          {play && n > 1 && !reduce && (
+            <button
+              type="button"
+              className="meta car-pause"
+              onClick={togglePaused}
+              aria-pressed={userPaused}
+              aria-label={userPaused ? 'Resume automatic slide advance' : 'Pause automatic slide advance'}
+            >
+              {userPaused ? 'Play' : 'Pause'}
+            </button>
+          )}
+          <span className="meta car-count" aria-live="polite">
+            {String(index + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
+          </span>
+        </div>
       </div>
 
       <motion.div
@@ -183,6 +211,8 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
           >
             <motion.img
               src={s.src}
+              srcSet={srcSetFor(s.src)}
+              sizes="100vw"
               alt={s.alt}
               loading={index === 0 ? 'eager' : 'lazy'}
               decoding="async"
@@ -194,19 +224,19 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
                 e.currentTarget.closest('.gal-slide').style.display = 'none';
               }}
             />
-            <figcaption className="gal-cap">
+            <figcaption className="gal-cap" aria-live="polite" aria-atomic="true">
               <motion.span
                 className="meta car-code"
-                initial={{ opacity: 0, y: 22 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 22, filter: 'blur(6px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: T, ease: EASE, delay: reduce ? 0 : 0.35 }}
               >
                 {s.code}
               </motion.span>
               <motion.span
                 className="car-title"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 30, filter: 'blur(6px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: T, ease: EASE, delay: reduce ? 0 : 0.45 }}
               >
                 {s.title}
@@ -214,8 +244,8 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
               {s.note && (
                 <motion.span
                   className="car-note"
-                  initial={{ opacity: 0, y: 26 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 26, filter: 'blur(6px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                   transition={{ duration: T, ease: EASE, delay: reduce ? 0 : 0.55 }}
                 >
                   {s.note}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { NAV_LINKS } from '../data/products.js';
+import { NAV_LINKS, CATEGORIES } from '../data/products.js';
 import { useScrolled } from './Reveal.jsx';
 import Logo from './Logo.jsx';
 
@@ -107,13 +107,27 @@ export default function Nav() {
                 </Link>
               </motion.div>
             ))}
-            <motion.p
-              className="meta"
-              style={{ marginTop: 28, color: 'var(--on-dark-muted)' }}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            {/* On a phone this drawer is the ONLY navigation. It listed five
+                products as inert text — a chapter that fell behind the
+                catalogue was simply unreachable. Derived, and now clickable. */}
+            <motion.div
+              className="mobile-chapters"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              Doors / Sandwich / Cleanroom / Partition / Profiles
-            </motion.p>
+              <p className="meta" style={{ color: 'var(--on-dark-muted)' }}>Catalogue</p>
+              {CATEGORIES.map((c) => (
+                <Link
+                  key={c.id}
+                  to={`/products#${c.id}`}
+                  onClick={() => setOpen(false)}
+                  className="mobile-chapter"
+                >
+                  {c.name}
+                </Link>
+              ))}
+            </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 26 }}
               animate={{ opacity: 1, y: 0 }}

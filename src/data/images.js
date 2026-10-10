@@ -1,84 +1,191 @@
-/* Central photography map — verified Unsplash CDN URLs (all free to use
-   under the Unsplash License). Alt text describes the photograph itself,
-   never as an AKALKA product. Every <img> hides gracefully on error. */
+/* Central photography map.
+   ------------------------------------------------------------------
+   Local AKALKA product photography (public/Images/) is used for all
+   door, fire-door and panel subjects. Remaining remote Unsplash/Pexels
+   images cover only subjects with no local equivalent (partitions,
+   glass, profiles, riser vent). Alt text describes the photograph
+   itself, never an AKALKA product. Every <img> hides gracefully
+   on error.
+   ------------------------------------------------------------------ */
 
+/* Responsive sources for the remote CDNs. Both Pexels and Unsplash
+   resize on the fly via `w=`, so one URL fans out into a width ladder
+   and the browser fetches only what the layout needs — a phone gets a
+   ~480–800px file instead of the 2000px desktop original. Fixed-crop
+   URLs (with `h=`) and local files are returned untouched. */
+const LADDER = [480, 800, 1200, 1600, 2000];
+const isCdn = (src) => /images\.(pexels|unsplash)\.com/.test(src) && !/[?&]h=/.test(src);
+export function sized(src, w) {
+  return isCdn(src) ? src.replace(/([?&]w=)\d+/, `$1${w}`) : src;
+}
+export function srcSetFor(src) {
+  if (!src || !isCdn(src)) return undefined;
+  const max = Number((src.match(/[?&]w=(\d+)/) || [])[1]) || 1600;
+  const ws = LADDER.filter((w) => w < max);
+  ws.push(max);
+  return ws.map((w) => `${sized(src, w)} ${w}w`).join(', ');
+}
+
+/* Unsplash — photo-<id>, width only. */
 const U = (id, w = 1400) =>
   `https://images.unsplash.com/photo-${id}?q=80&w=${w}&auto=format&fit=crop`;
 
-/* Reframings of the verified pool for carousel depth — same photographs,
-   new crops. Params only; no new sources to verify. */
-export const V = (id, w, h) =>
-  `https://images.unsplash.com/photo-${id}?q=80&w=${w}&h=${h}&fit=crop&crop=entropy&auto=format`;
+/* Pexels — photo-<id>, width only. */
+const P = (id, w = 1400) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}&fit=crop`;
+
+/* Pexels — reframed crop, for a second angle on the same subject. */
+const PV = (id, w, h) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}&h=${h}&fit=crop`;
+
+/* Local AKALKA product photography (public/Images/).
+   Filenames contain spaces — encoded once here so every consumer
+   gets a valid URL under both bases (/Akalka/ for Pages, / for Vercel).
+   Rejected per quality rules (never referenced):
+   - "energence door 003.png" (dreamstime watermark)
+   - "panel board 001.png" (WILLSON watermark)
+   - "simple modular single door.png" (foreign wall plaque)
+   - "simple modular single door 001.png" (large EXIT + PUSH labels) */
+const L = (file) =>
+  `${import.meta.env.BASE_URL}Images/${file.split(' ').join('%20')}`;
 
 export const IMG = {
   heroBg: {
-    src: U('1749467140438-feda1a2bbbd8', 1600),
-    alt: 'Steel roof structure with skylights in a dark industrial hall',
+    src: L('panel board 002.png'),
+    alt: 'Finished cleanroom corridor with white panels and blue doors',
   },
+
+  /* ---- Doors: coated steel leaves in insulated panel construction ---- */
   doorSingle: {
-    src: U('1652175628203-33139d1a598a', 1000),
-    alt: 'Grey coated metal door with linear panel joints',
+    src: L('simple modular single door 003.png'),
+    alt: 'Dark blue coated steel cleanroom door with vision panel in a panel wall',
+  },
+  doorSingleAlt: {
+    src: L('simple modular single door 002.png'),
+    alt: 'Blue, green and yellow coated steel doors showing colour options',
   },
   doorDouble: {
-    src: U('1572512605819-8f88baee16e5', 1200),
-    alt: 'Wide industrial metal door in a grey facade',
+    src: L('simple modular double door 001.png'),
+    alt: 'Blue double cleanroom doors open along a clean corridor',
   },
+  doorFire: {
+    src: L('energence door 001.png'),
+    alt: 'Red fire rated door with push bar in a white finished room',
+  },
+  doorEmergency: {
+    src: L('energence door 000.png'),
+    alt: 'Red emergency door with push bar and vision panel',
+  },
+  doorFireDouble: {
+    src: L('energence door 002.png'),
+    alt: 'Red double fire doors with push bars, studio view',
+  },
+
+  /* ---- Panels ---- */
   sandwich: {
-    src: U('1759310347407-b0dbfeb8745d', 1600),
-    alt: 'Corrugated metal cladding on industrial buildings',
+    src: L('panel board.png'),
+    alt: 'Sandwich panel joint detail showing double skins and core',
   },
-  cleanroom: {
-    src: U('1748000970909-845f4aa144d2', 1400),
-    alt: 'Operators working inside a production clean room',
+  panelJoint: {
+    src: L('panel board.png'),
+    alt: 'Sandwich panel joint detail showing double skins and core',
   },
   cleanroomAlt: {
-    src: U('1584677123573-7446380b6d69', 1400),
-    alt: 'White technical room with controlled-environment equipment',
+    src: L('simple modular double door 001.png'),
+    alt: 'Blue cleanroom doors along a bright controlled corridor',
   },
-  flushWalls: {
-    src: U('1762928289094-197055a5d5c3', 1400),
-    alt: 'Minimal white hallway with flush wall surfaces',
+  cleanroomFinished: {
+    src: L('panel board 002.png'),
+    alt: 'Finished cleanroom corridor with white panels and blue doors',
   },
-  partition: {
-    src: U('1765371513492-264506c3ad09', 1200),
-    alt: 'Modern office space divided by glass partitions',
+  riserPanel: {
+    src: PV(28766505, 1200, 900),
+    alt: 'Louvred ventilation panel in a metal frame, set flush into a panel wall',
   },
-  partitionAlt: {
-    src: U('1746021375306-9dec0f637732', 1200),
-    alt: 'Glass-walled offices along a bright hallway',
+
+  /* ---- Glass: view panels set into door leaves ---- */
+  glass: {
+    src: P(6446313, 1400),
+    alt: 'Glazed door leaf with a clear view panel through to a lit room',
   },
+
+  /* ---- Profiles: formed metal sections and tracks ---- */
   profiles: {
-    corner: {
-      src: U('1756758932992-3cac25c395f7', 900),
-      alt: 'Brushed metal surface with subtle texture',
-    },
-    formed3d: {
-      src: U('1773695801784-01f9ff80865b', 900),
-      alt: 'Brushed metal with fine horizontal lines',
-    },
-    formed2d: {
-      src: U('1709244596182-a7c6542be59c', 900),
-      alt: 'Steel pipes stacked in a yard',
-    },
     track: {
       src: U('1671022442106-c787685d9fed', 900),
-      alt: 'Steel beams stored in a warehouse',
+      alt: 'Steel track sections stacked in a warehouse',
     },
-    channel: {
-      src: U('1764835746713-34a671e73569', 900),
-      alt: 'Metal pipes on a factory production line',
-    },
-    angle: {
-      src: U('1709244596176-0e14b3b8a517', 900),
-      alt: 'Stacked metal sections at a construction site',
-    },
-    box: {
+    alucoat: {
       src: U('1759310347407-b0dbfeb8745d', 900),
       alt: 'Profiled metal cladding sheets, close view',
     },
-    alucoat: {
-      src: U('1749467140438-feda1a2bbbd8', 900),
-      alt: 'Steel structure under industrial skylights',
-    },
   },
 };
+
+/* ---- v2 photography: verified Pexels sources, chosen for scale and
+   light. Each describes the photograph, never claims an AKALKA project. */
+export const PHOTO = {
+  cleanroomTech: {
+    src: P(5118462, 1800),
+    alt: 'Technician in a gown walking through a bright high-tech cleanroom',
+  },
+  cleanroomLab: {
+    src: P(5953827, 1600),
+    alt: 'Bright sterile production room with flush white walls and steel benches',
+  },
+  cleanroomWindow: {
+    src: P(10514768, 1400),
+    alt: 'Cleanroom with a flush vision window set into white wall panels',
+  },
+  cleanroomDoor: {
+    src: P(33514502, 1400),
+    alt: 'Gowned technician at a teal door in a sterile laboratory',
+  },
+  laser: {
+    src: P(29988965, 2000),
+    alt: 'Laser cutter working a steel sheet on a factory floor',
+  },
+  laserClose: {
+    src: P(29988988, 1600),
+    alt: 'Close view of a laser cutting slots into a metal sheet',
+  },
+  panelWall: {
+    src: P(9685870, 1600),
+    alt: 'Vertical coated metal wall panels with crisp joints',
+  },
+  steelDoorWall: {
+    src: P(14029360, 1600),
+    alt: 'Grey steel door set flush into a ribbed white panel wall',
+  },
+  glassHall: {
+    src: P(8477485, 1600),
+    alt: 'Corridor lined with glazed walls leading to a meeting room',
+  },
+  whiteHall: {
+    src: P(19854741, 1600),
+    alt: 'Long white corridor with dark-framed glazed doors',
+  },
+  measure: {
+    src: P(9729566, 1600),
+    alt: 'Hands measuring an aluminium profile with a tape on the workbench',
+  },
+  aluStock: {
+    src: P(36397989, 1600),
+    alt: 'Racks of aluminium and steel sections in a workshop',
+  },
+  angles: {
+    src: P(36003962, 1400),
+    alt: 'Drilled steel angle sections in low workshop light',
+  },
+};
+
+/* Profile thumbnails for the catalogue spec sheet, keyed by group `fig`.
+   Separate from IMG.profiles so the hero journey, which reads IMG, is
+   untouched. */
+export const PROFILE_PHOTO = {
+  corner: PHOTO.angles,
+  formed3d: PHOTO.aluStock,
+  track: PHOTO.measure,
+  alucoat: IMG.profiles.alucoat,
+};
+
