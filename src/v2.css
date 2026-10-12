@@ -6,6 +6,13 @@
    is transform / opacity / colour derived from one number.
    ================================================================== */
 @property --t { syntax: '<length>'; inherits: true; initial-value: 72px; }
+/* Per-frame values that only their own element reads. Registered as
+   NON-inherited so writing them restyles that one element instead of its
+   whole subtree (an unregistered custom property always inherits). */
+@property --rx { syntax: '<angle>'; inherits: false; initial-value: -24deg; }
+@property --ry { syntax: '<angle>'; inherits: false; initial-value: 64deg; }
+@property --tlx { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --tly { syntax: '<number>'; inherits: false; initial-value: 0; }
 
 /* ---------- system anatomy ---------- */
 .anat { position: relative; }
@@ -35,7 +42,7 @@
 .anat-list li.on .anat-more { grid-template-rows: 1fr; opacity: 1; }
 .anat-list li.on .anat-more > div { padding-bottom: var(--s4); }
 .anat-rail { height: 2px; margin-top: var(--s5); border-radius: 2px; background: rgba(66, 71, 77, 0.12); overflow: hidden; }
-.anat-rail span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.anat-rail span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(0); will-change: transform; }
 /* ---------- the 3D room ---------- */
 /* Driven by JS-written vars on .room3d: --rx / --ry (camera), --rise
    (build-in), --k (current chapter's reveal, 0 → 1 → 0). Nothing here
@@ -73,10 +80,9 @@
   --rise: 0; --k: 0;
   position: relative; width: 0; height: 0; z-index: 1;
   transform-style: preserve-3d;
-  /* Camera = scroll path + a few degrees of pointer lean. */
-  --crx: calc(var(--rx, -24deg) + var(--tly, 0) * -3deg);
-  --cry: calc(var(--ry, 64deg) + var(--tlx, 0) * 5deg);
-  transform: translateY(calc(26px * var(--u))) rotateX(var(--crx)) rotateY(var(--cry));
+  /* Camera = scroll path + a few degrees of pointer lean, folded together
+     in JS and written as --rx / --ry (non-inherited, see top of file). */
+  transform: translateY(calc(26px * var(--u))) rotateX(var(--rx)) rotateY(var(--ry));
 }
 .rf { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
 /* Each face rises on its own slice of the build-in. */
@@ -337,11 +343,13 @@
 .xpl { position: relative; height: 240vh; }
 .xpl-pin {
   position: sticky; top: 0; height: 100svh; display: flex; align-items: center; overflow: hidden; isolation: isolate;
-  --e: clamp(0, calc((var(--p, 0) - 0.06) * 1.9), 1);
   /* Studio light falls on the model's side of the screen. */
   background: radial-gradient(70% 75% at var(--lx, 30%) 42%, #fff 0%, var(--paper) 55%, var(--tint) 100%);
 }
 .xpl-panel .xpl-pin { --lx: 72%; }
+/* The scene's beats are derived from --p on the stage (the only element
+   --p is written to), so the copy column never restyles per frame. */
+.xpl-stage { --e: clamp(0, calc((var(--p, 0) - 0.06) * 1.9), 1); }
 .xpl-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: clamp(24px, 4vw, 64px); align-items: center; }
 .xpl-kick { display: flex; gap: 12px; color: var(--ink); }
 .xpl-kick b { color: var(--datum-ink); font-weight: 600; }
@@ -379,8 +387,13 @@
 .slab { position: absolute; inset: 0; transform-style: preserve-3d; }
 .slab .f { position: absolute; display: block; outline: 1px solid rgba(66, 71, 77, 0.22); }
 .slab .f-top { inset: 0; }
-.slab .f-front { left: 0; top: 100%; width: 100%; height: var(--th); transform-origin: top; transform: rotateX(-90deg); filter: brightness(0.86); }
-.slab .f-side { top: 0; left: 0; width: var(--th); height: 100%; transform-origin: left; transform: rotateY(90deg); filter: brightness(0.78); }
+.slab .f-front { left: 0; top: 100%; width: 100%; height: var(--th); transform-origin: top; transform: rotateX(-90deg); --sh: 0.14; }
+.slab .f-side { top: 0; left: 0; width: var(--th); height: 100%; transform-origin: left; transform: rotateY(90deg); --sh: 0.22; }
+/* Edge shading is a flat dark veil over the face. It replaces
+   filter: brightness(), which put every edge face of every slab on its own
+   filtered render surface inside a 3D scene; a multiply by 0.86 and a veil of
+   14% black are the same colour. */
+.slab .f-front::after, .slab .f-side::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, var(--sh, 0)); pointer-events: none; }
 .f.skin { background: linear-gradient(135deg, #fdfdfb, var(--tint) 55%, #e4e3de); }
 .f.core-puf { background-color: color-mix(in srgb, var(--datum) 26%, #fff); background-image: radial-gradient(rgba(87, 122, 0, 0.32) 1.2px, transparent 1.7px); background-size: 9px 9px; }
 .f.core-rw { background-color: #d6d3cb; background-image: repeating-linear-gradient(28deg, rgba(66, 71, 77, 0.2) 0 1px, transparent 1px 5px), repeating-linear-gradient(-34deg, rgba(66, 71, 77, 0.12) 0 1px, transparent 1px 7px); }
@@ -394,7 +407,6 @@
 .xpl-door .xpl-lab {
   padding: 6px 12px 6px 8px; border-radius: 999px;
   background: rgba(250, 250, 248, 0.9); box-shadow: 0 8px 22px -12px rgba(35, 40, 45, 0.45);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 .xpl-door .xpl-lab i { width: 18px; }
 .xpl-lab .term { text-transform: none; letter-spacing: 0; font-size: 0.9rem; }
@@ -415,7 +427,7 @@
 /* Panel story, three beats: one panel → layer by layer → closed up and
    joined edge to edge with its neighbours into a wall. */
 .xpl-panel { height: 300vh; }
-.xpl-panel .xpl-pin {
+.xpl-panel .xpl-stage {
   --e: min(clamp(0, calc((var(--p, 0) - 0.06) * 3), 1), clamp(0, calc((0.74 - var(--p, 0)) * 7), 1));
   --jw: clamp(0, calc((var(--p, 0) - 0.7) * 4.5), 1);
 }
@@ -439,7 +451,7 @@
 /* ---------- 3b. door ---------- */
 .xpl-door { height: 340vh; }
 /* Four beats from one number: assembled → apart → together → open. */
-.xpl-door .xpl-pin {
+.xpl-door .xpl-stage {
   --e: min(clamp(0, calc((var(--p, 0) - 0.06) * 3.2), 1), clamp(0, calc((0.8 - var(--p, 0)) * 4.5), 1));
   --swn: clamp(0, calc((var(--p, 0) - 0.82) * 6), 1);
 }
@@ -481,7 +493,8 @@
   transform: translateZ(calc(var(--t) / -2));
 }
 /* A standing leaf shows its top edge and its right edge to the camera. */
-.dxl-iso .slab .f-front { top: auto; bottom: 100%; transform-origin: bottom; transform: rotateX(90deg); filter: brightness(1.03); }
+.dxl-iso .slab .f-front { top: auto; bottom: 100%; transform-origin: bottom; transform: rotateX(90deg); --sh: 0; }
+.dxl-iso .slab .f-front::after { background: rgba(255, 255, 255, 0.03); }
 .dxl-iso .slab .f-side { left: 100%; }
 .d-core { --th: var(--t); transform: translateZ(calc(var(--t) / 2)); }
 .d-front { --th: var(--s); transform: translateZ(calc(var(--t) / 2 + var(--s) + var(--e) * var(--gap))); }
@@ -494,7 +507,7 @@
 }
 /* Powder coat reads matte and faintly textured; pre-powder reads smooth. */
 .powder .f.dskin {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"), linear-gradient(155deg, rgba(255, 255, 255, 0.3), rgba(66, 71, 77, 0.08));
+  background-image: url("./powder-noise.png"), linear-gradient(155deg, rgba(255, 255, 255, 0.3), rgba(66, 71, 77, 0.08));
 }
 .d-glass {
   position: absolute; left: 23%; right: 23%; top: 12.5%; height: 29%;
@@ -536,7 +549,7 @@
 .powder .f.dpanel {
   background-image:
     repeating-linear-gradient(90deg, transparent 0 129px, rgba(66, 71, 77, 0.28) 129px 130px),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"),
+    url("./powder-noise.png"),
     linear-gradient(155deg, rgba(255, 255, 255, 0.3), rgba(66, 71, 77, 0.08));
 }
 .dphase {
@@ -758,7 +771,7 @@
 .dock.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
 .dock-in {
   display: flex; gap: 4px; padding: 6px; overflow-x: auto; scrollbar-width: none;
-  background: rgba(43, 48, 54, 0.86); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  background: rgba(43, 48, 54, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 999px;
   box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.55);
 }
@@ -852,6 +865,10 @@
 .mz.is-in .wi { transform: none; }
 .mz:has(.w) { filter: none !important; }
 
+/* Scroll-filled statement words: opacity from one inherited number. */
+.sw-words { display: block; }
+.sw-w { opacity: calc(0.13 + 0.87 * clamp(0, calc(var(--p, 0) * var(--n) - var(--i)), 1)); }
+
 /* ---------- contextual cursor ---------- */
 .cur-dot, .cur-ring { position: fixed; left: 0; top: 0; z-index: 100; pointer-events: none; display: none; }
 html.has-cur .cur-dot, html.has-cur .cur-ring { display: block; }
@@ -890,8 +907,8 @@ html.has-cur select { cursor: pointer !important; }
 /* ---------- film grain on the dark surfaces ---------- */
 .dark-sec::after, footer::after, .page-hero::after, .prod-hero::after {
   content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-  background-size: 160px; opacity: 0.07; mix-blend-mode: overlay;
+  background-image: url("./grain.png");
+  background-size: 96px; opacity: 0.05;
 }
 
 /* ---------- applications: pinned horizontal run ---------- */
@@ -900,8 +917,7 @@ html.has-cur select { cursor: pointer !important; }
 .apps-track {
   display: flex; align-items: stretch; gap: clamp(16px, 2.4vw, 32px);
   padding-inline: max(var(--gutter), calc((100vw - 1360px) / 2 + var(--gutter))) 12vw;
-  transform: translate3d(calc(var(--p, 0) * var(--dist, 0px) * -1), 0, 0);
-  will-change: transform;
+  will-change: transform; /* position is written by Applications() */
 }
 .apps-intro { flex: none; width: min(84vw, 480px); display: grid; align-content: center; gap: var(--s4); padding-right: clamp(0px, 3vw, 48px); }
 .apps-intro .sec-head { margin-bottom: var(--s2); }
@@ -911,13 +927,13 @@ html.has-cur select { cursor: pointer !important; }
 .apps-card {
   flex: none; width: min(78vw, 400px); display: flex; flex-direction: column;
   background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); overflow: hidden;
-  transform: skewX(calc(var(--v, 0) * -4deg)); transition: box-shadow 0.5s var(--ease-soft);
+  transition: box-shadow 0.5s var(--ease-soft);
 }
 .apps-card:hover { box-shadow: var(--shadow-lift); }
 .apps-ph { position: relative; display: block; overflow: hidden; aspect-ratio: 4/3.3; background: var(--tint); }
 .apps-ph img {
   width: 100%; height: 100%; object-fit: cover;
-  transform: translate3d(calc((var(--p, 0) - 0.5) * -14%), 0, 0) scale(1.22);
+  transform: translate3d(0, 0, 0) scale(1.22);
   transition: scale 1s var(--ease-soft);
 }
 .apps-ph:hover img { scale: 1.05; }
@@ -936,7 +952,7 @@ html.has-cur select { cursor: pointer !important; }
   left: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter)));
   right: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter)));
 }
-.apps-bar span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.apps-bar span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(0); will-change: transform; }
 .apps.is-static { height: auto !important; }
 .apps.is-static .apps-pin { position: relative; height: auto; overflow-x: auto; padding-block: var(--s12); }
 .apps.is-static .apps-track { transform: none; }
@@ -1001,3 +1017,19 @@ html.has-cur select { cursor: pointer !important; }
   .xpl-kick { display: none; }
   .xpl-more { margin-top: var(--s3); }
 }
+
+/* ---------- performance hygiene ---------- */
+/* Pinned scenes are self-contained boxes: containing layout and paint lets
+   the browser skip them entirely when it lays out or paints around them,
+   and stops anything inside from invalidating the page. */
+.anat-pin, .xpl-pin, .xp-pin, .apps-pin { contain: layout paint; }
+/* Values that change every scrolled frame live on their own compositor
+   layers, so updating them never repaints the layer beneath. */
+.apps-card, .anat-rail span, .xpl-lab, .dphase li, .r-tag { will-change: transform, opacity; }
+.xp-frame img, .xp-copy { will-change: transform; }
+/* The door is ~30 large 3D faces. Without a hint the browser re-picks each
+   face's raster scale every frame as the perspective shifts and
+   re-rasterises it; pinning the scale makes a scrubbed frame a pure
+   compositor move. (Not applied to the room, whose faces grow during its
+   build-in and would be pinned at their small size.) */
+.xpl-door :is(.slab, .slab .f, .dleaf, .dwall, .d-glass, .dframe, .d-hinge, .dvoid, .d-hw) { will-change: transform; }

@@ -106,13 +106,41 @@ export function SystemAnatomy() {
   const stageRef = useRef(null);
   const roomRef = useRef(null);
   const pinRef = useRef(null);
+  const railRef = useRef(null);
   const [step, setStep] = useState(0);
+  /* The camera is the scene's hottest value: it changes every frame. It is
+     written as two non-inherited registered properties on the room itself
+     (see @property --rx / --ry), so a frame restyles one element, not the
+     whole room's subtree — and the pointer lean is folded into the same
+     write rather than being a second set of inherited variables. */
+  const cam = useRef({ rx: INTRO_CAM[0], ry: INTRO_CAM[1], tx: 0, ty: 0, i: 0, tags: null });
+  const applyCam = () => {
+    const el = roomRef.current;
+    if (!el) return;
+    const c = cam.current;
+    const rx = (c.rx + c.ty * -3).toFixed(2);
+    const ry = (c.ry + c.tx * 5).toFixed(2);
+    el.style.setProperty('--rx', `${rx}deg`);
+    el.style.setProperty('--ry', `${ry}deg`);
+    /* Labels turn back against the camera; only the one on screen needs it. */
+    if (!c.tags) c.tags = Array.from(el.children).filter((n) => n.classList.contains('r-tag'));
+    const tag = c.tags[c.i];
+    if (tag) {
+      tag.style.setProperty('--crx', `${rx}deg`);
+      tag.style.setProperty('--cry', `${ry}deg`);
+    }
+  };
   useFit(stageRef, 680, 470, '--u', 1.6);
-  usePointerTilt(pinRef);
+  usePointerTilt(pinRef, (x, y) => {
+    cam.current.tx = x;
+    cam.current.ty = y;
+    applyCam();
+  });
   useScrollVar(ref, {
     mode: 'pin',
     steps: ANAT.length,
     onStep: setStep,
+    writeVar: false,
     onProgress: (p) => {
       const el = roomRef.current;
       if (!el) return;
@@ -131,10 +159,13 @@ export function SystemAnatomy() {
       ry = lerp(INTRO_CAM[1], ry, rise) + (p - 0.5) * 8;
       const start = i === 0 ? 0.1 : 0.04;
       const k = ease(clamp01((t - start) / 0.3)) * (last ? 1 : 1 - ease(clamp01((t - 0.62) / 0.2)));
-      el.style.setProperty('--rx', `${rx.toFixed(2)}deg`);
-      el.style.setProperty('--ry', `${ry.toFixed(2)}deg`);
+      cam.current.rx = rx;
+      cam.current.ry = ry;
+      cam.current.i = i;
+      applyCam();
       el.style.setProperty('--rise', rise.toFixed(3));
       el.style.setProperty('--k', k.toFixed(3));
+      if (railRef.current) railRef.current.style.transform = `scaleX(${p.toFixed(4)})`;
     },
   });
   const active = ANAT[step];
@@ -178,7 +209,7 @@ export function SystemAnatomy() {
                 </li>
               ))}
             </ol>
-            <div className="anat-rail" aria-hidden="true"><span /></div>
+            <div className="anat-rail" aria-hidden="true"><span ref={railRef} /></div>
           </div>
         </div>
       </div>
@@ -327,20 +358,24 @@ export function PanelExploded() {
   const [thick, setThick] = useState('100 mm');
   const [finish, setFinish] = useState('Powder coated');
   const pinRef = useRef(null);
+  const varRef = useRef(null);
+  const isoRef = useRef(null);
   const skin = useSkin();
-  useScrollVar(ref, { mode: 'pin' });
+  /* Scroll progress is written on the model's stage only — the copy and
+     controls beside it never restyle while the model moves. */
+  useScrollVar(ref, { mode: 'pin', varRef });
   useFit(stageRef, 560, 600, '--fit', 1.3);
-  usePointerTilt(pinRef);
+  usePointerTilt(isoRef);
   const core = CORES.find((c) => c.id === coreId);
   const t = core.thick.length ? (thick === '50 mm' ? 38 : 72) : 56;
   return (
     <section className="xpl xpl-panel" ref={ref} id="sandwich" aria-label="Inside a sandwich panel">
       <div className="xpl-pin" ref={pinRef}>
-        <div className="xpl-stage" aria-hidden="true">
+        <div className="xpl-stage" ref={varRef} aria-hidden="true">
           <span className="scene-ghost xpl-ghost">SW</span>
           <div className="xpl-model" ref={stageRef}>
             <div className="fit3d">
-              <div className={`xpl-iso${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--t': `${t}px`, '--skin': skin.hex }}>
+              <div ref={isoRef} className={`xpl-iso${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--t': `${t}px`, '--skin': skin.hex }}>
                 {/* Neighbouring panels: once the layers close up, the panel
                     is joined edge to edge into a wall. */}
                 <div className="s-mate m1">
@@ -431,10 +466,12 @@ export function DoorExploded() {
   const [finish, setFinish] = useState('Powder coated');
   const [glass, setGlass] = useState('Single glazed');
   const pinRef = useRef(null);
+  const varRef = useRef(null);
+  const isoRef = useRef(null);
   const skin = useSkin();
-  useScrollVar(ref, { mode: 'pin' });
+  useScrollVar(ref, { mode: 'pin', varRef });
   useFit(stageRef, 800, 620, '--fit', 1.25);
-  usePointerTilt(pinRef);
+  usePointerTilt(isoRef);
   const typ = DOOR_TYPES.find((d) => d.id === type);
   const coreDef = DOOR_CORES.find((c) => c.id === core);
   const n = leaves === 'Double' ? 2 : 1;
@@ -454,10 +491,10 @@ export function DoorExploded() {
       <div className="xpl-pin" ref={pinRef}>
         {/* Full-bleed stage: the panel wall runs off the edge of the screen
             and dissolves under the copy; the door sits in the open left. */}
-        <div className="xpl-stage" aria-hidden="true">
+        <div className="xpl-stage" ref={varRef} aria-hidden="true">
           <div className="xpl-model" ref={stageRef}>
             <div className="fit3d">
-              <div className={`dxl-iso n${n}${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--skin': skin.hex }}>
+              <div ref={isoRef} className={`dxl-iso n${n}${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--skin': skin.hex }}>
                 <div className="dwall l"><Slab className="d-wall" face="skin dskin dpanel" /></div>
                 <div className="dwall r"><Slab className="d-wall" face="skin dskin dpanel" /></div>
                 <div className="dwall h"><Slab className="d-wall" face="skin dskin" /></div>
@@ -564,7 +601,31 @@ export function Process() {
 export function Applications({ items, head }) {
   const ref = useRef(null);
   const trackRef = useRef(null);
-  useScrollVar(ref, { mode: 'pin', vel: true });
+  const barRef = useRef(null);
+  const distRef = useRef(0);
+  /* The run is written straight onto the nodes that move: the track, each
+     card's lean and each photo's counter-drift, plus the rule. Nothing is
+     an inherited variable, so a scrolled frame never restyles the cards'
+     text and chips. Frames with no change write nothing. */
+  useScrollVar(ref, {
+    mode: 'pin',
+    vel: true,
+    writeVar: false,
+    onProgress: (p) => {
+      const track = trackRef.current;
+      if (!track) return;
+      track.style.transform = `translate3d(${(-p * distRef.current).toFixed(2)}px, 0, 0)`;
+      const skew = `skewX(${((window.__vel || 0) * -4).toFixed(3)}deg)`;
+      const drift = `translate3d(${((p - 0.5) * -14).toFixed(3)}%, 0, 0) scale(1.22)`;
+      const cards = track.getElementsByClassName('apps-card');
+      for (let i = 0; i < cards.length; i += 1) {
+        cards[i].style.transform = skew;
+        const img = cards[i].querySelector('.apps-ph img');
+        if (img) img.style.transform = drift;
+      }
+      if (barRef.current) barRef.current.style.transform = `scaleX(${p.toFixed(4)})`;
+    },
+  });
   useEffect(() => {
     const root = ref.current;
     const track = trackRef.current;
@@ -572,6 +633,7 @@ export function Applications({ items, head }) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
     const set = () => {
       const d = Math.max(0, track.scrollWidth - window.innerWidth);
+      distRef.current = d;
       root.style.setProperty('--dist', `${d}px`);
       root.style.height = `${d + window.innerHeight}px`;
     };
@@ -638,7 +700,7 @@ export function Applications({ items, head }) {
             <Link to="/contact" className="btn btn-solid">Describe it <ArrowRight className="arr arr-r" /></Link>
           </div>
         </div>
-        <div className="apps-bar" aria-hidden="true"><span /></div>
+        <div className="apps-bar" aria-hidden="true"><span ref={barRef} /></div>
       </div>
     </section>
   );

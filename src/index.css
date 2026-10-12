@@ -392,7 +392,7 @@ button.chip, a.chip { min-height: 44px; display: inline-flex; align-items: cente
 }
 .scroll-cue { display: inline-flex; align-items: center; gap: 10px; color: var(--on-dark-muted); }
 .scroll-cue i { width: 6px; height: 6px; border-radius: 50%; background: var(--datum); }
-.scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: var(--datum); transform-origin: left; z-index: 80; }
+.scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: var(--datum); transform-origin: left; z-index: 80; will-change: transform; }
 
 /* ---------- quiet spec strip: slow infinite drift ---------- */
 .marquee { overflow: hidden; background: transparent; padding: 26px 0; }
@@ -906,11 +906,15 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   padding-right: 0.08em;
 }
 
-/* ---------- scroll reveals: opacity + rise only (filter paint removed) ---------- */
+/* ---------- scroll reveals ---------- */
+/* The resting state is `filter: none`, never blur(0): any non-none filter
+   keeps its element on its own render surface for good, and a page of
+   revealed blocks was paying for hundreds of them. none → blur(6px)
+   still interpolates, so the reveal looks exactly as before. */
 .rv, .mz { opacity: 0; filter: blur(6px); }
 .rv { transform: translateY(30px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft), filter 0.9s var(--ease-soft); }
 .mz { transform: translateY(14px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft), filter 0.9s var(--ease-soft); }
-.rv.is-in, .mz.is-in { opacity: 1; transform: none; filter: blur(0); }
+.rv.is-in, .mz.is-in { opacity: 1; transform: none; filter: none; }
 
 .cp { clip-path: inset(10% 6% 10% 6%); opacity: 0; transform: scale(0.97); transition: clip-path 1.15s var(--ease-soft), opacity 0.85s var(--ease-soft), transform 1.15s var(--ease-soft); will-change: clip-path, opacity, transform; }
 .cp.is-in { clip-path: inset(0 0 0 0); opacity: 1; transform: none; }

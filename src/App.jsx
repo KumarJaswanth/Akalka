@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
+import { addScrollJob } from './components/Reveal.jsx';
 import Lenis from 'lenis';
 import Nav from './components/Nav.jsx';
 import Boot from './components/Boot.jsx';
@@ -90,26 +91,68 @@ function PageTitle() {
   return null;
 }
 
-/* Soft auto-recovery (the safe answer to "auto refresh"): after a long
-   hidden stretch, re-sync the smoother and nudge every scroll-linked
-   system to recompute — zero state lost, unlike a real reload. */
-const FRESH_AFTER_MS = 10 * 60 * 1000;
+/* Soft auto-refresh (the safe answer to "auto refresh"): a real reload
+   throws away the visitor's place, their door configuration and any text
+   typed into the enquiry form, and it is the one thing that can make a
+   smooth page stutter. So instead the page re-syncs itself in place —
+   re-measuring the smoother and every scroll-linked scene — in three
+   situations where measurements drift:
+     · coming back to the tab after a long absence,
+     · being restored from the back/forward cache,
+     · every few minutes while the visitor is idle (late images and fonts
+       change heights, which would leave a pinned scene slightly off).
+   Nothing is reset: no state, no scroll position, no animation. */
+const FRESH_AFTER_MS = 5 * 60 * 1000;
+const IDLE_MS = 45 * 1000;
 function Freshness() {
   useEffect(() => {
+    const resync = () => {
+      if (window.__lenis) window.__lenis.resize();
+      window.dispatchEvent(new Event('resize'));
+    };
     let hiddenAt = 0;
+    let lastInput = Date.now();
+    let lastSync = Date.now();
     const onVis = () => {
       if (document.hidden) {
         hiddenAt = Date.now();
         return;
       }
       if (hiddenAt && Date.now() - hiddenAt > FRESH_AFTER_MS) {
-        if (window.__lenis) window.__lenis.resize();
-        window.dispatchEvent(new Event('resize'));
+        resync();
+        lastSync = Date.now();
       }
       hiddenAt = 0;
     };
+    const onShow = (e) => {
+      if (e.persisted) resync();
+    };
+    const touch = () => {
+      lastInput = Date.now();
+    };
+    /* Idle sweep: a cheap check once a minute; it only acts when the tab is
+       visible, nothing has moved for a while, and the last sync is old. */
+    const tick = setInterval(() => {
+      if (document.hidden) return;
+      const now = Date.now();
+      if (now - lastInput > IDLE_MS && now - lastSync > FRESH_AFTER_MS) {
+        resync();
+        lastSync = now;
+      }
+    }, 60 * 1000);
     document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
+    window.addEventListener('pageshow', onShow);
+    window.addEventListener('scroll', touch, { passive: true });
+    window.addEventListener('pointermove', touch, { passive: true });
+    window.addEventListener('keydown', touch);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('pageshow', onShow);
+      window.removeEventListener('scroll', touch);
+      window.removeEventListener('pointermove', touch);
+      window.removeEventListener('keydown', touch);
+    };
   }, []);
   return null;
 }
@@ -136,12 +179,39 @@ function RouteCurtain() {
   );
 }
 
+/* Page progress rule. Lenis already eases the scroll itself, so the bar
+   simply follows it — written as a single transform inside the shared
+   scroll frame (no spring loop, no layout read of its own). */
 function ScrollProgress() {
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 28, mass: 0.4 });
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduce) return undefined;
+    let max = 1;
+    const measure = () => {
+      max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(document.body);
+    let last = -1;
+    const off = addScrollJob({
+      read: () => window.scrollY / max,
+      write: (p) => {
+        const v = Math.min(1, Math.max(0, p));
+        if (Math.abs(v - last) < 0.0002) return;
+        last = v;
+        el.style.transform = `scaleX(${v.toFixed(4)})`;
+      },
+    });
+    return () => {
+      ro.disconnect();
+      off();
+    };
+  }, [reduce]);
   if (reduce) return null;
-  return <motion.div className="scroll-progress" style={{ scaleX }} aria-hidden="true" />;
+  return <div className="scroll-progress" ref={ref} style={{ transform: 'scaleX(0)' }} aria-hidden="true" />;
 }
 
 export default function App() {

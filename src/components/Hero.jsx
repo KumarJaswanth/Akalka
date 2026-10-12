@@ -100,13 +100,29 @@ export default function Hero() {
   const imgRef = useRef(null);
   const glowRef = useRef(null);
   const doorRef = useRef(null);
+  const shadeRef = useRef(null);
+  const dimRef = useRef(null);
+  const grainRef = useRef(null);
+  const lockRef = useRef(null);
+  const stepsRef = useRef(null);
+  const hintRef = useRef(null);
+  const barRef = useRef(null);
+  const copyRef = useRef(null);
   /* Geometry measured on resize, read every scroll frame. */
   const geo = useRef({ zmax: 4 });
   const stepRef = useRef(-1);
   const reduced = useRef(
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
-  usePointerTilt(pinRef);
+  /* The pointer pan is written straight onto the three layers that move
+     (photo, light, door) as a `translate` — no inherited variable, so a
+     moving mouse never restyles the hero's subtree. */
+  usePointerTilt(pinRef, (x, y) => {
+    const t = `${(-x * 16).toFixed(2)}px ${(-y * 10).toFixed(2)}px`;
+    if (imgRef.current) imgRef.current.style.translate = t;
+    if (glowRef.current) glowRef.current.style.translate = t;
+    if (doorRef.current) doorRef.current.style.translate = t;
+  });
 
   /* Lay the photograph out to cover the stage with the door centred
      horizontally whenever the frame is cropped at the sides, then place
@@ -148,8 +164,10 @@ export default function Hero() {
       /* Light falls from the sill to the bottom of the screen. */
       glow.style.setProperty('--beam', `${Math.max(0, vh - (T + H))}px`);
       /* The corridor dims around the door, wherever the crop puts it. */
-      pin.style.setProperty('--dcx', `${cx}px`);
-      pin.style.setProperty('--dcy', `${cy}px`);
+      if (dimRef.current) {
+        dimRef.current.style.setProperty('--dcx', `${cx}px`);
+        dimRef.current.style.setProperty('--dcy', `${cy}px`);
+      }
       /* Scale at which the opening covers the whole stage. */
       geo.current.zmax = 1.06 * Math.max((2 * Math.max(cx, vw - cx)) / W, (2 * Math.max(cy, vh - cy)) / H);
     };
@@ -159,8 +177,33 @@ export default function Hero() {
     return () => ro.disconnect();
   }, []);
 
+  /* Every per-frame value is written on the smallest element that reads
+     it — direct opacity/transform where one node moves, a scoped custom
+     property where a small group does. A custom property restyles its
+     element's whole subtree, and the headline alone is ~50 nodes, so the
+     old single set of variables on the pin restyled the entire hero on
+     every scrolled frame. Unchanged values write nothing. */
+  const put = useRef(new WeakMap());
+  const setVar = (el, k, v) => {
+    if (!el) return;
+    const s = typeof v === 'number' ? v.toFixed(4) : v;
+    let m = put.current.get(el);
+    if (!m) put.current.set(el, (m = {}));
+    if (m[k] === s) return;
+    m[k] = s;
+    el.style.setProperty(k, s);
+  };
+  const setStyle = (el, k, v) => {
+    if (!el) return;
+    let m = put.current.get(el);
+    if (!m) put.current.set(el, (m = {}));
+    if (m[k] === v) return;
+    m[k] = v;
+    el.style[k] = v;
+  };
   useScrollVar(rootRef, {
     mode: 'pin',
+    writeVar: false,
     onProgress: (p) => {
       const pin = pinRef.current;
       if (!pin || reduced.current) return;
@@ -184,20 +227,39 @@ export default function Hero() {
       const bf = Math.cos((op * SWING * Math.PI) / 180);
       const ps = ease(span(p, 0.68, 0.84));
       const lk = ease(span(p, 0.84, 0.97));
-      const set = (k, v) => pin.style.setProperty(k, typeof v === 'number' ? v.toFixed(4) : v);
-      set('--hc', hc);
-      set('--tr', tr);
-      set('--dm', dm);
-      set('--fr', fr);
-      set('--li', li);
-      set('--hl', hl);
-      set('--op', op);
-      set('--bf', bf);
-      set('--dim', ease(span(p, 0, 0.3)));
-      set('--ps', ps);
-      set('--lk', lk);
-      set('--z', z);
-      set('--zp', zp);
+      const door = doorRef.current;
+      const glow = glowRef.current;
+      const steps = stepsRef.current;
+      /* photo, shade, dim, grain, hint, bar, copy: one node each */
+      setStyle(imgRef.current, 'transform', `scale(${zp.toFixed(4)})`);
+      setStyle(shadeRef.current, 'opacity', (1 - hc * 0.5).toFixed(3));
+      setStyle(dimRef.current, 'opacity', ease(span(p, 0, 0.3)).toFixed(3));
+      setStyle(grainRef.current, 'opacity', (0.05 * (1 - ps)).toFixed(4));
+      setStyle(hintRef.current, 'opacity', Math.max(0, 1 - hc * 1.5).toFixed(3));
+      setStyle(barRef.current, 'transform', `scaleX(${p.toFixed(4)})`);
+      const kids = copyRef.current ? copyRef.current.children : [];
+      for (let i = 0; i < kids.length; i += 1) {
+        setStyle(kids[i], 'opacity', Math.max(0, 1 - hc * 1.15).toFixed(3));
+        setStyle(kids[i], 'transform', `translate3d(0, ${(hc * -(40 + i * 30)).toFixed(2)}px, 0)`);
+      }
+      /* the door, its light, the readout and the lockup: scoped variables */
+      setVar(door, '--z', z);
+      setVar(door, '--fr', fr);
+      setVar(door, '--li', li);
+      setVar(door, '--hl', hl);
+      setVar(door, '--op', op);
+      setVar(door, '--ps', ps);
+      setVar(door, '--tr', tr);
+      setVar(door, '--dm', dm);
+      setVar(glow, '--z', z);
+      setVar(glow, '--bf', bf);
+      setVar(glow, '--ps', ps);
+      setVar(steps, '--hc', hc);
+      setVar(steps, '--tr', tr);
+      setVar(steps, '--li', li);
+      setVar(steps, '--op', op);
+      setVar(steps, '--ps', ps);
+      setVar(lockRef.current, '--lk', lk);
       /* Current beat, for the step readout. */
       const step = ps > 0.02 ? 3 : op > 0.01 || hl > 0.01 ? 2 : fr > 0.01 ? 1 : 0;
       if (step !== stepRef.current) {
@@ -232,8 +294,9 @@ export default function Hero() {
           decoding="async"
           draggable={false}
         />
-        <div className="hero-shade" aria-hidden="true" />
-        <div className="hero-dim" aria-hidden="true" />
+        <div className="hero-shade" ref={shadeRef} aria-hidden="true" />
+        <div className="hero-dim" ref={dimRef} aria-hidden="true" />
+        <i className="hero-grain" ref={grainRef} aria-hidden="true" />
 
         {/* Soft light: its own layer, scaled as a bitmap (it is all blur). */}
         <div className="hero-glow" ref={glowRef} aria-hidden="true">
@@ -244,7 +307,11 @@ export default function Hero() {
 
         {/* The door itself: crisp line work, re-rastered as it grows. */}
         <div className="hero-door" ref={doorRef} aria-hidden="true">
-          <span className="hd-frame" />
+          <span className="hd-frame">
+            <i className="hf-j l" />
+            <i className="hf-j r" />
+            <i className="hf-h" />
+          </span>
           <span className="hd-set">
             <span className="hd-beyond" />
             <span className="hd-floor" />
@@ -273,13 +340,13 @@ export default function Hero() {
           </span>
         </div>
 
-        <div className="hero-lockup" aria-hidden="true">
+        <div className="hero-lockup" ref={lockRef} aria-hidden="true">
           <p className="meta">AKALKA — Doors &amp; Panels</p>
           <p className="font-hand">Step inside.</p>
           <i />
         </div>
 
-        <div className="hero-copy">
+        <div className="hero-copy" ref={copyRef}>
           <p className="meta">AKALKA — Doors &amp; Panels</p>
           <h1 className="display">
             <Chars text="Engineered surfaces." base={0.15} />
@@ -302,7 +369,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <ol className="hero-steps" aria-hidden="true">
+        <ol className="hero-steps" ref={stepsRef} aria-hidden="true">
           {STEPS.map((s, i) => (
             <li key={s} className={`hs-${i}`}>
               <b>{String(i + 1).padStart(2, '0')}</b>
@@ -311,7 +378,7 @@ export default function Hero() {
             </li>
           ))}
         </ol>
-        <p className="meta hero-hint scroll-cue" aria-hidden="true">
+        <p className="meta hero-hint scroll-cue" ref={hintRef} aria-hidden="true">
           <i /> Scroll to step inside
         </p>
         {/* A visible, keyboard-reachable way past the pinned run that does
@@ -320,7 +387,7 @@ export default function Hero() {
         <button type="button" className="hero-skip" onClick={skip}>
           Skip to catalogue <ArrowRight className="arr arr-r" />
         </button>
-        <div className="hero-bar" aria-hidden="true"><span /></div>
+        <div className="hero-bar" aria-hidden="true"><span ref={barRef} /></div>
       </div>
     </section>
   );

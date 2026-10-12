@@ -52,14 +52,14 @@ export default function Cursor() {
       read(e.target instanceof Element ? e.target : null);
     };
     /* The page moves under a resting pointer while scrolling, so the
-       state is re-read from whatever is now beneath it. */
-    let sRaf = 0;
+       state is re-read from whatever is now beneath it — once the scroll
+       settles. elementFromPoint forces style and layout, so doing it on
+       every scrolled frame doubled the cost of the frame. */
+    let sTimer = 0;
     const onScroll = () => {
-      if (sRaf || x < 0) return;
-      sRaf = requestAnimationFrame(() => {
-        sRaf = 0;
-        read(document.elementFromPoint(x, y));
-      });
+      if (x < 0) return;
+      clearTimeout(sTimer);
+      sTimer = setTimeout(() => read(document.elementFromPoint(x, y)), 120);
     };
     const read = (t) => {
       if (!t) return;
@@ -106,7 +106,7 @@ export default function Cursor() {
       document.documentElement.classList.remove('has-cur', 'cur-field');
       window.removeEventListener('pointermove', move);
       window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(sRaf);
+      clearTimeout(sTimer);
       window.removeEventListener('pointerdown', down);
       window.removeEventListener('pointerup', up);
       document.removeEventListener('pointerleave', leave);

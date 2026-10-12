@@ -1,26 +1,28 @@
 /* ==================================================================
    AKALKA — hero: "Through the door".
-   Driven by vars written on .hero-pin each scroll frame (Hero.jsx):
-     --hc copy leaving      --tr measuring line   --dm dimensions
-     --fr frame fitted      --li leaf set in      --hl lever pressed
-     --op leaf open         --bf share of the opening the leaf still
-                                 blocks (cos of its angle) — shapes light
-     --ps passing through   --lk lockup           --dim corridor dimming
-     --z  door scale        --zp photo scale
-   plus --tlx / --tly (pointer, −1 … 1) for the parallax pan.
+   Driven from Hero.jsx on every scrolled frame. Each value is written on
+   the smallest element that reads it — direct opacity / transform where
+   one node moves (photo, shade, dim, grain, copy lines, hint, bar), and a
+   scoped custom property where a small group does:
+     door  --z --fr --li --hl --op --ps --tr --dm
+     glow  --z --bf --ps          steps --hc --tr --li --op --ps
+     lockup --lk
+   (--fr frame fitted, --li leaf set in, --hl lever, --op leaf open,
+   --bf share of the opening the leaf still blocks, --ps passing through,
+   --tr measuring line, --dm dimensions, --hc copy leaving, --lk lockup,
+   --z door scale.) The pointer pan is an inline `translate` on the photo,
+   glow and door.
    Every default below is the rested state, so the first paint (before
    any scroll) is the finished hero. Palette and type tokens are the
    site's own; nothing new is introduced.
    ================================================================== */
 .hero { height: 260vh; position: relative; background: var(--worksurface); }
 .hero-pin { position: sticky; top: 0; height: 100svh; overflow: hidden; isolation: isolate; background: var(--worksurface); }
-/* One shared pan, so the photo, its light and the drawn door stay
-   registered while they drift with the pointer. */
-.hero-photo, .hero-glow, .hero-door { translate: calc(var(--tlx, 0) * -16px) calc(var(--tly, 0) * -10px); }
+/* The photo, its light and the drawn door share one pointer pan (written
+   as an inline `translate` by Hero.jsx), so they stay registered. */
 .hero-photo {
   position: absolute; left: 0; top: 0; width: 100%; height: 100%; max-width: none; object-fit: cover;
-  transform: scale(var(--zp, 1)); will-change: transform;
-  filter: contrast(1.06) saturate(0.94);
+  will-change: transform;
   animation: heroPhotoIn 2.4s var(--ease-soft) both;
   user-select: none;
 }
@@ -32,7 +34,6 @@
   background:
     linear-gradient(90deg, rgba(35, 40, 45, 0.72), rgba(35, 40, 45, 0.05) 62%),
     linear-gradient(185deg, rgba(43, 48, 54, 0) 34%, rgba(35, 40, 45, 0.84));
-  opacity: calc(1 - var(--hc, 0) * 0.5);
 }
 .hero-shade::after {
   content: ''; position: absolute; inset: -20%;
@@ -47,14 +48,14 @@
 .hero-dim {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(circle at var(--dcx, 50%) var(--dcy, 55%), rgba(35, 40, 45, 0.2) 0, rgba(35, 40, 45, 0.88) 60vmax);
-  opacity: var(--dim, 0);
+  opacity: 0;
 }
 /* Brand film grain, as on every dark surface; gone once you are in. */
-.hero-pin::after {
-  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-  background-size: 160px; mix-blend-mode: overlay;
-  opacity: calc(0.08 * (1 - var(--ps, 0)));
+.hero-grain {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none; display: block;
+  background-image: url("./grain.png");
+  background-size: 96px;
+  opacity: 0.05;
 }
 
 /* ---------- light (one GPU layer, scaled as a bitmap) ---------- */
@@ -76,10 +77,10 @@
 }
 /* Soft shafts fanning out of the opening into the corridor air. */
 .hg-rays {
-  left: 50%; top: 50%; width: 1100%; aspect-ratio: 1; translate: -50% -50%;
+  left: 50%; top: 50%; width: 800%; aspect-ratio: 1; translate: -50% -50%;
   background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 255, 255, 0) 0deg 5deg, rgba(255, 255, 255, 0.09) 6.5deg 8deg, rgba(255, 255, 255, 0) 9.5deg 13deg);
-  -webkit-mask-image: radial-gradient(closest-side, #000 6%, rgba(0, 0, 0, 0.5) 30%, transparent 62%);
-  mask-image: radial-gradient(closest-side, #000 6%, rgba(0, 0, 0, 0.5) 30%, transparent 62%);
+  -webkit-mask-image: radial-gradient(closest-side, #000 6%, rgba(0, 0, 0, 0.5) 28%, transparent 56%);
+  mask-image: radial-gradient(closest-side, #000 6%, rgba(0, 0, 0, 0.5) 28%, transparent 56%);
   opacity: calc((1 - var(--bf, 1)) * 0.42 * (1 - var(--ps, 0)));
 }
 
@@ -88,19 +89,23 @@
    scale, so frame edges, glass and lever stay sharp all the way through. */
 .hero-door { z-index: 1; transform: scale(var(--z, 1)); }
 .hero-door > span { position: absolute; display: block; }
-/* Steel frame: a ring (jambs and head only — the opening stays open),
-   fitted from the sill up once the opening is measured. Padding % is
-   of the door's width, so jambs and head share one section. */
+/* Steel frame: two jambs and a head (the opening stays open), fitted from
+   the sill up once the opening is measured. Three plain boxes under one
+   wipe — a mask-composite ring re-rasters far slower once it is scaled up
+   to fill the screen. Sections are 0.08 of the door's width. */
 .hd-frame {
   left: -8%; right: -8%; top: -3.5%; bottom: 0;
-  padding: 8% 8% 0;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  background: linear-gradient(90deg, #d5d4ce, #efeee9 22%, #e2e1db 78%, #cfcec8);
-  box-shadow: 0 0 0 1px rgba(66, 71, 77, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   clip-path: inset(calc((1 - var(--fr, 0)) * 100%) 0 0 0);
 }
+.hd-frame > i {
+  position: absolute; display: block;
+  background: linear-gradient(90deg, #d5d4ce, #efeee9 50%, #cfcec8);
+  box-shadow: 0 0 0 1px rgba(66, 71, 77, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+.hf-j { top: 0; bottom: 0; width: 6.9%; }
+.hf-j.l { left: 0; }
+.hf-j.r { right: 0; }
+.hf-h { left: 0; right: 0; top: 0; height: 3.57%; background: linear-gradient(180deg, #efeee9, #d5d4ce); }
 /* The leaf and the lit room behind it rise into the frame — a wipe,
    never a fade, so nothing ghosts through the leaf. */
 .hd-set {
@@ -236,12 +241,8 @@
   max-width: 920px; color: var(--on-dark);
   display: grid; gap: 16px; justify-items: start;
 }
-/* The copy lifts away line by line, each on its own offset. */
-.hero-copy > * { opacity: calc(1 - var(--hc, 0) * 1.15); }
-.hero-copy > :nth-child(1) { transform: translate3d(0, calc(var(--hc, 0) * -40px), 0); }
-.hero-copy > :nth-child(2) { transform: translate3d(0, calc(var(--hc, 0) * -70px), 0); }
-.hero-copy > :nth-child(3) { transform: translate3d(0, calc(var(--hc, 0) * -100px), 0); }
-.hero-copy > :nth-child(4) { transform: translate3d(0, calc(var(--hc, 0) * -130px), 0); }
+/* The copy lifts away line by line, each on its own offset — written
+   straight onto its four lines by Hero.jsx. */
 .copy-gone .hero-copy { visibility: hidden; }
 .hero-copy .meta { color: var(--datum); }
 .hero-copy .display { font-size: clamp(2.6rem, 7vw, 6rem); }
@@ -273,7 +274,7 @@
 [data-step="0"] .hs-0 b, [data-step="1"] .hs-1 b, [data-step="2"] .hs-2 b, [data-step="3"] .hs-3 b { color: var(--datum); }
 .hero-hint {
   position: absolute; z-index: 3; right: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter))); bottom: 84px;
-  color: var(--on-dark-muted); opacity: calc(1 - var(--hc, 0) * 1.5);
+  color: var(--on-dark-muted);
 }
 /* Exit from the run. Deliberately quiet: borderless, same voice as the
    hint, so it reads as part of the language rather than a bolt-on. */
@@ -292,7 +293,7 @@
 .hero-skip:hover .arr-r { transform: translateX(4px); }
 .hero-skip:focus-visible { outline: 2px solid var(--datum); outline-offset: 3px; border-radius: 6px; }
 .hero-bar { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255, 255, 255, 0.16); transition: opacity 0.4s var(--ease-soft); }
-.hero-bar span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.hero-bar span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(0); }
 .ui-gone .hero-skip { opacity: 0; visibility: hidden; transition: opacity 0.4s var(--ease-soft), visibility 0s 0.4s; }
 .ui-gone :is(.hero-bar, .hero-steps) { opacity: 0; }
 @media (max-width: 820px) {
@@ -308,3 +309,11 @@
 .hero.is-static { height: auto; }
 .hero.is-static .hero-pin { position: relative; }
 .hero.is-static :is(.hero-glow, .hero-door, .hero-dim, .hero-lockup, .hero-hint, .hero-bar, .hero-steps) { display: none; }
+
+/* ---------- performance hygiene ---------- */
+/* The hero is one self-contained box, and everything that moves with the
+   scroll is its own compositor layer — updating it repaints nothing. */
+.hero-pin { contain: layout paint; }
+.hero-shade, .hero-dim, .hero-steps, .hero-hint { will-change: opacity; }
+.hero-bar span { will-change: transform; }
+.hero-copy > *, .hero-lockup .meta, .hero-lockup i { will-change: transform, opacity; }

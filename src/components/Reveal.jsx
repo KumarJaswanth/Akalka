@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import { srcSetFor } from '../data/images.js';
 
 /* Motion system for v1.2: restrained, scroll-linked, GPU-only.
@@ -133,6 +133,15 @@ function pxFlush() {
     }
   });
 }
+/* Any scroll-linked work joins the one shared frame: every read first,
+   then every write, so nothing on the page can force a second style
+   recalculation inside a frame. Returns its own remover. */
+export function addScrollJob(job) {
+  pxJobs.add(job);
+  pxEnsureListening();
+  pxRequestFlush();
+  return () => pxJobs.delete(job);
+}
 function pxRequestFlush() {
   if (!pxRaf) pxRaf = requestAnimationFrame(pxFlush);
 }
@@ -200,8 +209,18 @@ function Parallax({ children, className = '', speed = 0.12, style, ...rest }) {
                  (camera angles, reveal amounts) without React renders.
    onStep(i)   — optional: called only when floor(p * steps) changes, so
                  React state updates a handful of times, not every frame.
+   varRef      — optional: write the vars onto a narrower element than the
+                 tall section (a custom property inherits, so every
+                 write restyles that element's whole subtree — scope it
+                 to the part that reads it). writeVar={false} skips the
+                 var entirely for scenes that drive everything in
+                 onProgress.
+   mode 'words' — progress for text that reads as it crosses the middle of
+                 the screen: 0 as its top reaches 85% of the viewport
+                 height, 1 as its bottom reaches 45%.
+   A frame whose progress has not changed writes nothing at all.
    Reduced motion pins every scene to its finished state. */
-export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress, vel = false } = {}) {
+export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress, vel = false, varRef, writeVar = true } = {}) {
   const stepRef = useRef(-1);
   const cbRef = useRef(onStep);
   cbRef.current = onStep;
@@ -211,12 +230,13 @@ export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress,
     const el = ref.current;
     if (!el) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      el.style.setProperty('--p', '1');
+      if (writeVar) (varRef?.current || el).style.setProperty('--p', '1');
       el.classList.add('is-static');
       if (progRef.current) progRef.current(1);
       return;
     }
     let visible = false;
+    let lastKey = '';
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -237,6 +257,9 @@ export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress,
           const span = r.height - vh;
           return span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : r.top < 0 ? 1 : 0;
         }
+        if (mode === 'words') {
+          return Math.min(1, Math.max(0, (0.85 * vh - r.top) / (0.4 * vh + r.height)));
+        }
         if (mode === 'enter') {
           /* 0 as the element's top meets the viewport bottom, 1 once its
              whole height plus a short run-out is on screen — for things
@@ -247,9 +270,14 @@ export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress,
       },
       write: (p) => {
         if (p === null || !ref.current) return;
-        ref.current.style.setProperty('--p', p.toFixed(4));
+        const v = vel ? (window.__vel || 0).toFixed(3) : '';
+        const key = p.toFixed(4) + v;
+        if (key === lastKey) return;
+        lastKey = key;
+        const tgt = varRef?.current || ref.current;
+        if (writeVar) tgt.style.setProperty('--p', p.toFixed(4));
         if (progRef.current) progRef.current(p);
-        if (vel) ref.current.style.setProperty('--v', (window.__vel || 0).toFixed(3));
+        if (vel) tgt.style.setProperty('--v', v);
         if (steps > 0) {
           const s = Math.min(steps - 1, Math.floor(p * steps));
           if (s !== stepRef.current) {
@@ -261,11 +289,16 @@ export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress,
     };
     pxJobs.add(job);
     pxRequestFlush();
+    /* A resize can change what a scene derives from the same progress
+       (its geometry), so the next frame must write even if p is equal. */
+    const onResize = () => { lastKey = ''; };
+    window.addEventListener('resize', onResize);
     return () => {
       io.disconnect();
       pxJobs.delete(job);
+      window.removeEventListener('resize', onResize);
     };
-  }, [ref, mode, steps, vel]);
+  }, [ref, mode, steps, vel, varRef, writeVar]);
 }
 
 /* Fit a fixed-size model (a 3D stage drawn at design size) into its
@@ -290,11 +323,17 @@ export function useFit(ref, w, h, prop = '--fit', max = 1) {
   }, [ref, w, h, prop, max]);
 }
 
-/* Pointer parallax for the 3D stages: writes --tlx / --tly (−1 … 1,
-   eased toward the pointer) on the element while it is on screen, so
-   a model can lean a few degrees toward the cursor on top of whatever
-   the scroll is doing. Fine pointers only; still under reduced motion. */
-export function usePointerTilt(ref) {
+/* Pointer parallax for the 3D stages: eases (x, y) in −1 … 1 toward the
+   pointer while the element is on screen, so a model can lean a few
+   degrees toward the cursor on top of whatever the scroll is doing.
+   By default it writes --tlx / --tly onto the element; pass apply(x, y)
+   to write straight to the few nodes that move instead — a custom
+   property restyles its whole subtree on every pointer frame, a direct
+   transform touches only its own node. The loop sleeps once settled.
+   Fine pointers only; never under reduced motion. */
+export function usePointerTilt(ref, apply) {
+  const applyRef = useRef(apply);
+  applyRef.current = apply;
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
@@ -309,8 +348,11 @@ export function usePointerTilt(ref) {
     const tick = () => {
       x += (tx - x) * 0.08;
       y += (ty - y) * 0.08;
-      el.style.setProperty('--tlx', x.toFixed(4));
-      el.style.setProperty('--tly', y.toFixed(4));
+      if (applyRef.current) applyRef.current(x, y);
+      else {
+        el.style.setProperty('--tlx', x.toFixed(4));
+        el.style.setProperty('--tly', y.toFixed(4));
+      }
       raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.001 ? requestAnimationFrame(tick) : 0;
     };
     const move = (e) => {
@@ -359,37 +401,23 @@ export function ParallaxImg({ src, alt = '', speed = 0.1, eager = false, ratio, 
 }
 
 /* Scroll-filled statement: each word ignites as it travels through
-   the viewport — the luxury-editorial signature moment. */
-function Word({ progress, range, children, accent, accentColor }) {
-  const opacity = useTransform(progress, range, [0.13, 1]);
-  return (
-    <motion.span
-      style={accent ? { opacity, color: accentColor } : { opacity }}
-      className={accent ? 'font-hand' : undefined}
-    >
-      {children}{' '}
-    </motion.span>
-  );
-}
-
+   the viewport — the luxury-editorial signature moment. One number
+   (--p, from the shared scroll frame) drives every word through CSS:
+   no per-word motion values, no layout reads of its own. */
 export function ScrollWords({ text, className = '', accents = [], accentColor = 'var(--datum-ink)' }) {
   const ref = useRef(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.85', 'end 0.45'] });
+  useScrollVar(ref, { mode: 'words' });
   const words = text.split(' ');
-  if (reduce) return <span className={className}>{text}</span>;
   return (
-    <span ref={ref} className={className} style={{ display: 'block' }}>
+    <span ref={ref} className={`sw-words${className ? ` ${className}` : ''}`} style={{ '--n': words.length }}>
       {words.map((w, i) => (
-        <Word
+        <span
           key={i}
-          progress={scrollYProgress}
-          range={[i / words.length, (i + 1) / words.length]}
-          accent={accents.includes(w)}
-          accentColor={accentColor}
+          className={accents.includes(w) ? 'sw-w font-hand' : 'sw-w'}
+          style={accents.includes(w) ? { '--i': i, color: accentColor } : { '--i': i }}
         >
-          {w}
-        </Word>
+          {w}{' '}
+        </span>
       ))}
     </span>
   );
