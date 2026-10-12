@@ -9,8 +9,10 @@
 
 /* ---------- system anatomy ---------- */
 .anat { position: relative; }
-.anat-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; overflow: hidden; }
-.anat-grid { display: grid; grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr); gap: clamp(28px, 4vw, 72px); align-items: center; }
+.anat-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; overflow: hidden; isolation: isolate; }
+/* The list floats over the full-bleed stage; only it takes the pointer. */
+.anat-grid { position: relative; z-index: 2; width: 100%; display: grid; grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr); gap: clamp(28px, 4vw, 72px); align-items: center; pointer-events: none; }
+.anat-side { pointer-events: auto; }
 .anat-count { color: var(--muted-fg); margin-bottom: var(--s5); }
 .anat-count b { color: var(--datum-ink); font-weight: 700; }
 .anat-list { list-style: none; display: grid; gap: 0; }
@@ -39,23 +41,42 @@
    (build-in), --k (current chapter's reveal, 0 → 1 → 0). Nothing here
    is timed — every value follows the scroll, so it rewinds exactly. */
 .anat { height: 520vh; }
+/* Full-bleed studio: the whole screen is the stage, lit from above the
+   room and settling into a soft floor tone. */
 .anat-fig {
-  position: relative; margin: 0; overflow: hidden;
-  border-radius: var(--radius-card); box-shadow: var(--shadow-lift);
-  background: radial-gradient(120% 90% at 50% 28%, #fff 0%, var(--paper) 55%, var(--tint) 100%);
+  position: absolute; inset: 0; margin: 0; overflow: hidden; z-index: 0;
+  background:
+    linear-gradient(180deg, transparent 58%, rgba(66, 71, 77, 0.06)),
+    radial-gradient(80% 70% at 66% 38%, #fff 0%, var(--paper) 52%, var(--tint) 100%);
 }
-.room-stage { --u: 1; position: relative; height: min(66svh, 600px); perspective: 1500px; perspective-origin: 50% 36%; display: grid; place-items: center; overflow: clip; }
+/* The room takes everything right of the list column. */
+.room-stage {
+  --u: 1; position: absolute; top: var(--nav-h); bottom: 0; right: 0; left: 36%;
+  perspective: calc(1500px * var(--u)); perspective-origin: 50% 36%; display: grid; place-items: center; overflow: clip;
+}
 .room-stage::after {
-  content: ''; position: absolute; left: 50%; bottom: 9%; width: 74%; height: 16%; transform: translateX(-50%);
-  background: radial-gradient(closest-side, rgba(35, 40, 45, 0.18), transparent); pointer-events: none;
+  content: ''; position: absolute; left: 50%; bottom: 8%; width: 70%; height: 18%; transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(35, 40, 45, 0.2), transparent); pointer-events: none;
 }
+/* A huge, faint chapter code behind the model — the scene names itself. */
+.scene-ghost {
+  position: absolute; z-index: 0; pointer-events: none; user-select: none;
+  font-family: var(--display); font-weight: 800; line-height: 0.8; letter-spacing: -0.04em;
+  color: rgba(66, 71, 77, 0.05);
+  animation: ghostIn 1s var(--ease-soft) both;
+}
+@keyframes ghostIn { from { opacity: 0; transform: translate3d(0, 6%, 0); } to { opacity: 1; transform: none; } }
+
 .room3d {
   --W: calc(500px * var(--u)); --D: calc(320px * var(--u)); --H: calc(270px * var(--u));
   --line: rgba(66, 71, 77, 0.17);
   --rise: 0; --k: 0;
   position: relative; width: 0; height: 0; z-index: 1;
   transform-style: preserve-3d;
-  transform: translateY(calc(26px * var(--u))) rotateX(var(--rx, -24deg)) rotateY(var(--ry, 64deg));
+  /* Camera = scroll path + a few degrees of pointer lean. */
+  --crx: calc(var(--rx, -24deg) + var(--tly, 0) * -3deg);
+  --cry: calc(var(--ry, 64deg) + var(--tlx, 0) * 5deg);
+  transform: translateY(calc(26px * var(--u))) rotateX(var(--crx)) rotateY(var(--cry));
 }
 .rf { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
 /* Each face rises on its own slice of the build-in. */
@@ -102,6 +123,15 @@
     #e9e8e3;
   box-shadow: inset 0 0 0 1px var(--line);
 }
+/* Wall thickness: every wall is a panel, so its top edge shows skin,
+   core and skin — the room reads as a cutaway model, not paper. */
+.r-cap {
+  position: absolute; left: 0; right: 0; top: 0; height: calc(10px * var(--u)); z-index: 1;
+  transform-origin: 50% 0; transform: rotateX(-90deg);
+  background: linear-gradient(180deg, #cfcec8 0 16%, #ebe9e3 16% 84%, #cfcec8 84%);
+  box-shadow: inset 0 0 0 1px rgba(66, 71, 77, 0.18);
+}
+.room3d[data-step="sandwich"] .r-left .r-cap { background: linear-gradient(180deg, #cfcec8 0 16%, color-mix(in srgb, var(--datum) calc(var(--k) * 34%), #ebe9e3) 16% 84%, #cfcec8 84%); }
 /* Lime wash used by every highlighted surface; its strength is --w. */
 .r-back::after, .r-right::after, .r-ceil::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -216,7 +246,7 @@
   opacity: 0;
   transform:
     translate3d(var(--tx), var(--ty), var(--tz))
-    rotateY(calc(var(--ry, 0deg) * -1)) rotateX(calc(var(--rx, 0deg) * -1))
+    rotateY(calc(var(--cry, 0deg) * -1)) rotateX(calc(var(--crx, 0deg) * -1))
     translateZ(calc(160px * var(--u)))
     translate(-50%, calc(-100% - 12px)) scale(calc(0.85 + var(--k) * 0.15));
 }
@@ -240,17 +270,18 @@
 .anat-ticks li { width: 4px; height: 18px; border-radius: 4px; background: rgba(66, 71, 77, 0.16); transition: background 0.4s, height 0.5s var(--ease-soft); }
 .anat-ticks li.past { background: rgba(125, 178, 0, 0.45); }
 .anat-ticks li.on { background: var(--datum); height: 34px; }
-.anat-cap { position: absolute; left: clamp(16px, 2vw, 26px); bottom: clamp(14px, 2vw, 22px); z-index: 2; display: flex; gap: 12px; align-items: baseline; pointer-events: none; }
+.anat-cap { position: absolute; left: calc(36% + clamp(16px, 2vw, 26px)); bottom: clamp(20px, 4svh, 40px); z-index: 2; display: flex; gap: 12px; align-items: baseline; pointer-events: none; }
 .anat-cap-code { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em; color: var(--datum-ink); animation: capIn 0.6s var(--ease-soft) both; }
 .anat-cap-name { font-family: var(--display); font-weight: 700; font-size: clamp(1.1rem, 1.8vw, 1.45rem); color: var(--ink); animation: capIn 0.7s var(--ease-soft) 0.05s both; }
 @keyframes capIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 900px) {
   .anat { height: 460vh; }
-  .anat-pin { padding-top: 64px; }
+  /* Phone: the room fills the top of the screen, the active chapter
+     sits under it. */
+  .anat-pin { align-items: flex-end; padding-bottom: max(20px, 4svh); }
   .anat-grid { grid-template-columns: 1fr; gap: var(--s5); }
-  .anat-fig { order: -1; }
-  .room-stage { height: 42svh; }
+  .room-stage { left: 0; top: 60px; bottom: auto; height: 54svh; }
   .r-tag { font-size: 0.62rem; padding: 5px 10px 5px 7px; gap: 6px; }
   .anat-cap { display: none; }
   .anat-list li:not(.on) { display: none; }
@@ -304,8 +335,14 @@
 /* ---------- exploded builds: shared stage ---------- */
 @property --lw { syntax: '<length>'; inherits: true; initial-value: 200px; }
 .xpl { position: relative; height: 240vh; }
-.xpl-pin { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; overflow: hidden; --e: clamp(0, calc((var(--p, 0) - 0.06) * 1.9), 1); }
-.xpl-grid { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: clamp(24px, 4vw, 64px); align-items: center; }
+.xpl-pin {
+  position: sticky; top: 0; height: 100svh; display: flex; align-items: center; overflow: hidden; isolation: isolate;
+  --e: clamp(0, calc((var(--p, 0) - 0.06) * 1.9), 1);
+  /* Studio light falls on the model's side of the screen. */
+  background: radial-gradient(70% 75% at var(--lx, 30%) 42%, #fff 0%, var(--paper) 55%, var(--tint) 100%);
+}
+.xpl-panel .xpl-pin { --lx: 72%; }
+.xpl-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: clamp(24px, 4vw, 64px); align-items: center; }
 .xpl-kick { display: flex; gap: 12px; color: var(--ink); }
 .xpl-kick b { color: var(--datum-ink); font-weight: 600; }
 .xpl-copy .h2 { margin-top: var(--s4); }
@@ -328,11 +365,13 @@
 .sw-dot { display: inline-block; width: 12px; height: 12px; margin-right: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(66, 71, 77, 0.35); }
 .sw-dot.any { background: conic-gradient(var(--datum), var(--hinge), var(--ink), var(--datum)); }
 .chip.is-on .sw-dot { box-shadow: 0 0 0 2px var(--paper); }
-.xpl-stage { position: relative; height: min(72svh, 600px); display: grid; place-items: center; overflow: clip; --fit: 1; }
+.xpl-stage { position: relative; height: min(72svh, 600px); overflow: clip; }
+/* The region the model is fitted to; labels are placed inside it. */
+.xpl-model { position: absolute; inset: 0; --fit: 1; }
 /* The model is drawn at one design size and scaled to its stage
    (useFit), so at any width it stays inside its own column. */
 .fit3d { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; transform: translate(-50%, -50%) scale(var(--fit)); }
-.xpl-stage::after {
+.xpl-model::after {
   content: ''; position: absolute; left: 50%; top: 58%; width: 70%; height: 30%; z-index: -1;
   transform: translate(-50%, 0); border-radius: 50%;
   background: radial-gradient(closest-side, rgba(35, 40, 45, 0.16), transparent);
@@ -370,15 +409,32 @@
   --w: 300px; --h: 360px; --s: 7px; --gap: 120px;
   position: relative; width: var(--w); height: var(--h);
   transform-style: preserve-3d;
-  transform: rotateX(57deg) rotateZ(calc(-42deg + var(--p, 0) * 18deg));
+  transform: rotateX(calc(57deg + var(--tly, 0) * 3deg)) rotateZ(calc(-42deg + var(--p, 0) * 18deg + var(--tlx, 0) * 6deg));
   transition: --t 0.7s var(--ease-soft);
 }
+/* Panel story, three beats: one panel → layer by layer → closed up and
+   joined edge to edge with its neighbours into a wall. */
+.xpl-panel { height: 300vh; }
+.xpl-panel .xpl-pin {
+  --e: min(clamp(0, calc((var(--p, 0) - 0.06) * 3), 1), clamp(0, calc((0.74 - var(--p, 0)) * 7), 1));
+  --jw: clamp(0, calc((var(--p, 0) - 0.7) * 4.5), 1);
+}
+.s-mate { position: absolute; inset: 0; transform-style: preserve-3d; }
+.s-mate.m1 { transform: translateX(calc(-100% - 3px - (1 - var(--jw, 0)) * 180px)); }
+.s-mate.m2 { transform: translateX(calc(100% + 3px + (1 - var(--jw, 0)) * 180px)); }
+.s-mate .f { opacity: var(--jw, 0); }
+.s-mate .s-top { transform: translateZ(var(--s)); }
+.s-mate .s-bot { transform: translateZ(calc(-1 * var(--t))); }
 .s-core { --th: var(--t); }
 .s-top { --th: var(--s); transform: translateZ(calc(var(--s) + var(--e) * var(--gap))); }
 .s-bot { --th: var(--s); transform: translateZ(calc(-1 * var(--t) - var(--e) * var(--gap))); }
 .xpl-lab.l1 { left: 0; top: 12%; }
 .xpl-lab.l2 { right: 0; top: 47%; }
 .xpl-lab.l3 { left: 0; bottom: 14%; }
+.xpl-lab.l4 { left: 0; top: 12%; opacity: var(--jw, 0); transform: translate3d(0, calc((1 - var(--jw, 0)) * 18px), 0); }
+.dphase.sphase .ph1 { --on: calc((1 - var(--e)) * (1 - var(--jw))); }
+.dphase.sphase .ph3 { --on: var(--jw); }
+.xpl-ghost { right: 1vw; bottom: -6vh; font-size: clamp(14rem, 32vw, 32rem); }
 
 /* ---------- 3b. door ---------- */
 .xpl-door { height: 340vh; }
@@ -388,13 +444,13 @@
   --swn: clamp(0, calc((var(--p, 0) - 0.82) * 6), 1);
 }
 .xpl-door .xpl-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-.xpl-door .xpl-stage::after { top: 74%; height: 22%; }
+.xpl-door .xpl-model::after { top: 76%; height: 20%; }
 .dxl-iso {
   --dh: 460px; --s: 5px; --t: 44px; --gap: 120px;
   position: relative; height: var(--dh); width: var(--lw);
   transform-style: preserve-3d;
-  --ww: 130px;
-  transform: rotateX(-7deg) rotateY(calc(-22deg - var(--p, 0) * 20deg));
+  --ww: 520px;
+  transform: rotateX(calc(-7deg + var(--tly, 0) * -2.5deg)) rotateY(calc(-22deg - var(--p, 0) * 20deg + var(--tlx, 0) * 7deg));
   transition: --lw 0.7s var(--ease-soft), width 0.7s var(--ease-soft);
 }
 .dxl-iso.n1 { --lw: 230px; }
@@ -413,7 +469,9 @@
 .d-hinge.h3 { top: 84%; }
 /* The panel wall the door is set into: same skin, same finish. It
    parts sideways while the leaf comes apart. */
-.dwall { position: absolute; top: -16px; height: calc(100% + 16px); width: var(--ww); transform-style: preserve-3d; }
+.dwall { position: absolute; top: -136px; height: calc(100% + 136px); width: var(--ww); transform-style: preserve-3d; }
+/* Head panel over the opening, so the door sits in a full-height wall. */
+.dwall.h { left: -16px; width: calc(100% + 32px); top: -136px; height: 120px; transform: translateZ(calc(var(--t) / 2)) translateY(calc(var(--e) * -70px)); }
 .dwall.l { left: calc(-16px - var(--ww)); transform: translateZ(calc(var(--t) / 2)) translateX(calc(var(--e) * -90px)); }
 .dwall.r { left: calc(100% + 16px); transform: translateZ(calc(var(--t) / 2)) translateX(calc(var(--e) * 90px)); }
 .d-wall { --th: var(--t); }
@@ -469,14 +527,15 @@
 .xpl-lab.dl5 { left: 0; bottom: 12%; opacity: calc((1 - var(--e)) * (1 - var(--swn))); transform: none; }
 .d-glass.g1 { --gz: 0.33; }
 .d-glass.g2 { --gz: 0.66; }
+/* Wall faces carry a panel joint every 130px — four panels a side. */
 .f.dpanel {
   background-image:
-    linear-gradient(90deg, transparent calc(50% - 1px), rgba(66, 71, 77, 0.28) calc(50% - 1px) 50%, transparent 50%),
+    repeating-linear-gradient(90deg, transparent 0 129px, rgba(66, 71, 77, 0.28) 129px 130px),
     linear-gradient(155deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 45%, rgba(66, 71, 77, 0.1));
 }
 .powder .f.dpanel {
   background-image:
-    linear-gradient(90deg, transparent calc(50% - 1px), rgba(66, 71, 77, 0.28) calc(50% - 1px) 50%, transparent 50%),
+    repeating-linear-gradient(90deg, transparent 0 129px, rgba(66, 71, 77, 0.28) 129px 130px),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"),
     linear-gradient(155deg, rgba(255, 255, 255, 0.3), rgba(66, 71, 77, 0.08));
 }
@@ -518,10 +577,31 @@
   .xpl-door .door-sum { margin-top: var(--s4); }
 }
 
+/* Desktop: the stage is the whole screen. The model owns one side, the
+   copy floats on the other, and anything that runs toward the copy
+   (the door's wall, the panel's neighbours) dissolves before it. */
+@media (min-width: 901px) {
+  .xpl-stage { position: absolute; inset: 0; height: auto; z-index: 0; }
+  .xpl-model { inset: auto; top: var(--nav-h); bottom: 0; }
+  .xpl-door .xpl-model { left: var(--gutter); width: calc(47% - var(--gutter)); }
+  .xpl-panel .xpl-model { right: var(--gutter); width: calc(54% - var(--gutter)); }
+  .xpl-model .dphase { bottom: max(18px, 3svh); }
+  .xpl-door .xpl-stage { -webkit-mask-image: linear-gradient(90deg, #000 44%, transparent 58%); mask-image: linear-gradient(90deg, #000 44%, transparent 58%); }
+  .xpl-panel .xpl-stage { -webkit-mask-image: linear-gradient(90deg, transparent 40%, #000 56%); mask-image: linear-gradient(90deg, transparent 40%, #000 56%); }
+  .xpl-grid { pointer-events: none; }
+  .xpl-copy { pointer-events: auto; }
+}
 @media (max-width: 900px) {
+  .xpl-ghost, .xpl-hold { display: none; }
+  .xpl-pin { flex-direction: column; align-items: stretch; }
+  .xpl-model { inset: 0 var(--gutter); }
+  /* The wall is cropped by the stage on phones: let it fade in from
+     the top instead of ending on a hard line. */
+  .xpl-door .xpl-stage { -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%); mask-image: linear-gradient(180deg, transparent, #000 16%); }
   .xpl { height: 210vh; }
+  .xpl-panel { height: 260vh; }
   .xpl-door { height: 230vh; }
-  .xpl-pin { padding-top: 60px; align-items: flex-start; }
+  .xpl-pin { padding-top: 60px; justify-content: flex-start; }
   .xpl-grid, .xpl-door .xpl-grid { grid-template-columns: 1fr; gap: 0; }
   .xpl-stage { order: -1; height: 40svh; }
   .xpl-door .xpl-pin { padding-top: 78px; }
@@ -554,6 +634,8 @@
 }
 .xpl.is-static, .anat.is-static { height: auto; }
 .xpl.is-static .xpl-pin, .anat.is-static .anat-pin { position: relative; height: auto; padding-block: var(--s12); }
+/* The room is a full-bleed stage: even static, it needs a full screen. */
+.anat.is-static .anat-pin { height: 100svh; min-height: 640px; padding-block: 0; }
 
 /* ---------- process ---------- */
 .proc { position: relative; --f: clamp(0, calc((var(--p, 0) - 0.18) * 2.4), 1); }

@@ -5,7 +5,7 @@ import { ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
 import EnquiryForm from '../components/EnquiryForm.jsx';
-import Flow from '../components/Flow.jsx';
+import Hero from '../components/Hero.jsx';
 import NeedsChip from '../components/NeedsChip.jsx';
 import { SystemAnatomy, ImageExpand, PanelExploded, DoorExploded, Applications } from '../components/Scenes.jsx';
 import { IMG, PHOTO } from '../data/images.js';
@@ -258,7 +258,7 @@ function Enquiry() {
 export default function Home() {
   return (
     <div className="page">
-      <Flow />
+      <Hero />
       <Strip />
       <Intro />
       <SystemIntro />

@@ -357,7 +357,7 @@ button.chip, a.chip { min-height: 44px; display: inline-flex; align-items: cente
 }
 .mobile-chapter:hover, .mobile-chapter:focus-visible { color: var(--on-dark); }
 
-/* ---------- shared text-mask entrance (flow brand panel) ---------- */
+/* ---------- shared text-mask entrance (hero headline) ---------- */
 .mask { overflow: hidden; display: block; }
 .mask > span:not(.ch-line) { display: block; transform: translateY(108%); animation: riseIn 1s var(--ease-soft) forwards; }
 @keyframes riseIn { from { transform: translateY(112%); } to { transform: translateY(0); } }
@@ -376,11 +376,11 @@ button.chip, a.chip { min-height: 44px; display: inline-flex; align-items: cente
 /* Hero green line only: every hover hops the letters up, floats them
    for a beat, then settles back to normal. Replays on every re-hover;
    leaving fades only the glow. */
-.flow-brand .font-hand .ch {
+.hero-copy .font-hand .ch {
   transition: transform 0.3s var(--ease-soft);
 }
-.flow-brand h1:hover .font-hand .ch,
-.flow-brand .font-hand:hover .ch {
+.hero-copy h1:hover .font-hand .ch,
+.hero-copy .font-hand:hover .ch {
   animation: hopSettle 0.85s var(--ease-soft);
   animation-delay: calc(var(--ci, 0) * 38ms);
 }
@@ -590,143 +590,6 @@ button.chip, a.chip { min-height: 44px; display: inline-flex; align-items: cente
 .fit { min-height: 100svh; display: flex; align-items: center; }
 .fit > .wrap { width: 100%; }
 
-/* ---------- product-universe flow: sticky full-viewport journey ---------- */
-.flow { height: 920vh; position: relative; background: var(--worksurface); }
-.flow-pin { position: sticky; top: 0; height: 100svh; width: 100vw; max-width: 100%; overflow: hidden; }
-.flow-track { position: relative; height: 100%; }
-.flow-panel { position: absolute; inset: 0; width: 100vw; max-width: 100%; height: 100svh; overflow: hidden; }
-.flow-bg {
-  position: absolute; inset: 0;
-  background-size: cover; background-position: center;
-  transform: scale(1.12);
-}
-.flow-shade { position: absolute; inset: 0; background: linear-gradient(195deg, rgba(43,48,54,0.18) 20%, rgba(43,48,54,0.82)); }
-.flow-ghost {
-  position: absolute; right: clamp(8px, 3vw, 48px); bottom: 2vh;
-  font-family: var(--display); font-weight: 700;
-  font-size: clamp(8rem, 24vw, 22rem); line-height: 1;
-  color: rgba(255, 255, 255, 0.13);
-  user-select: none; pointer-events: none;
-  transform: translate3d(calc((1 - var(--t, 1)) * var(--gdx, 0px)), calc((1 - var(--t, 1)) * -160px), 0);
-  opacity: var(--t, 1);
-}
-.flow-copy {
-  position: absolute; z-index: 2;
-  left: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter)));
-  right: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter)));
-  bottom: 11vh;
-  max-width: 920px; color: var(--on-dark);
-  display: grid; gap: 16px; justify-items: start;
-}
-/* Staggered text: every line rides its own offset of the same progress. */
-.flow-copy > * { opacity: var(--t, 1); }
-.flow-copy > *:nth-child(1) { transform: translate3d(calc((1 - var(--t, 1)) * var(--cdx, 0px) * 0.5), calc((1 - var(--t, 1)) * 18px), 0); }
-.flow-copy > *:nth-child(2) { transform: translate3d(calc((1 - var(--t, 1)) * var(--cdx, 0px) * 0.8), calc((1 - var(--t, 1)) * 28px), 0); }
-.flow-copy > *:nth-child(3) { transform: translate3d(calc((1 - var(--t, 1)) * var(--cdx, 0px)), calc((1 - var(--t, 1)) * 36px), 0); }
-.flow-copy > *:nth-child(4) { transform: translate3d(calc((1 - var(--t, 1)) * var(--cdx, 0px) * 1.2), calc((1 - var(--t, 1)) * 44px), 0); }
-
-/* Brand-panel cinema: scrubbed zoom + drift on the photograph, copy
-   lifting away, ghost floating off, and a slow light sweep for life.
-   The copy lifts but stays readable — an earlier version faded it to 8%
-   opacity mid-scroll, dissolving the best-written sentence on the site at
-   the exact moment the visitor was reading it. */
-.flow-brand .flow-bg {
-  transform: scale(calc(1.12 + var(--hx, 0) * 0.16)) translateY(calc(var(--hx, 0) * 70px));
-}
-.flow-brand .flow-copy {
-  opacity: calc(1 - var(--hx, 0) * 0.35);
-  transform: translateY(calc(var(--hx, 0) * -110px));
-}
-.flow-brand .flow-ghost {
-  transform: translate3d(calc((1 - var(--t, 1)) * var(--gdx, 0px) + var(--hx, 0) * 220px), calc((1 - var(--t, 1)) * -160px - var(--hx, 0) * 60px), 0);
-}
-.flow-brand .flow-shade { overflow: hidden; }
-.flow-brand .flow-shade::after {
-  content: ''; position: absolute; inset: -20%;
-  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.09) 50%, transparent 58%);
-  animation: heroSheen 11s var(--ease-io) infinite;
-  pointer-events: none;
-}
-@keyframes heroSheen {
-  0% { transform: translateX(-38%); }
-  55%, 100% { transform: translateX(38%); }
-}
-/* Dust motes drifting through the hero light. */
-.motes { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.motes i {
-  position: absolute; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  animation: moteFloat linear infinite;
-}
-@keyframes moteFloat {
-  0% { transform: translate3d(0, 24px, 0); opacity: 0; }
-  25% { opacity: 0.8; }
-  70% { opacity: 0.5; }
-  100% { transform: translate3d(-30px, -70px, 0); opacity: 0; }
-}
-/* Chapter dots — orientation + control for the journey.
-   28px was under the 44px touch minimum; the visual dot stays 6px, the
-   hit area grows to 44px so the mark can stay small and the target usable. */
-.flow-dots {
-  position: absolute; z-index: 3;
-  left: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter))); bottom: 14px;
-  display: flex; gap: 0; align-items: center;
-}
-.flow-dots button {
-  width: 44px; height: 44px; padding: 0;
-  background: none; border: 0; cursor: pointer;
-  display: grid; place-items: center;
-}
-.flow-dots button i {
-  display: block; width: 6px; height: 6px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  transition: all 0.4s var(--ease-soft);
-}
-.flow-dots button:hover i { background: rgba(255, 255, 255, 0.8); }
-.flow-dots button.on i { width: 26px; border-radius: 4px; background: var(--datum); }
-.flow-copy .meta { color: var(--datum); }
-/* Exit from the journey. Deliberately quiet: same borderless treatment as
-   the controls already on the flow, so it reads as part of the language
-   rather than an escape hatch bolted on. */
-.flow-skip {
-  position: absolute; z-index: 4;
-  right: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter))); bottom: 26px;
-  display: inline-flex; align-items: center; gap: 10px;
-  min-height: 44px; padding: 8px 4px;
-  background: none; border: 0; cursor: pointer;
-  font-size: 0.74rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--on-dark-muted);
-  transition: color 0.35s var(--ease-out);
-}
-.flow-skip .arr { width: 14px; height: 14px; flex: none; transition: transform 0.35s var(--ease-out); }
-.flow-skip:hover { color: var(--on-dark); }
-.flow-skip:hover .arr-r { transform: translateX(4px); }
-.flow-skip:focus-visible { outline: 2px solid var(--datum); outline-offset: 3px; border-radius: 6px; }
-.flow-copy .display { font-size: clamp(2.6rem, 7vw, 6rem); }
-/* Below 360px the 2.6rem floor binds while the viewport keeps shrinking, so
-   even a whole word overflows. Extend the fluid range down for those widths
-   only — every supported size above renders exactly as before. */
-@media (max-width: 360px) { .flow-copy .display { font-size: 11vw; } }
-.flow-tag { font-size: clamp(1.05rem, 1.6vw, 1.3rem); color: var(--on-dark-muted); max-width: 46ch; line-height: 1.7; }
-.flow-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; }
-.flow-ui {
-  position: absolute; z-index: 3;
-  top: calc(var(--nav-h) + 10px);
-  left: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter)));
-  right: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter)));
-  display: flex; justify-content: flex-end; gap: 12px;
-  color: var(--on-dark-muted);
-}
-.flow-hint { position: absolute; z-index: 3; right: max(var(--gutter), calc((100% - 1360px) / 2 + var(--gutter))); bottom: 84px; color: var(--on-dark-muted); }
-.flow-bar { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255, 255, 255, 0.16); }
-.flow-bar span { display: block; height: 100%; background: var(--datum); transform-origin: left; transform: scaleX(0); transition: transform 0.5s var(--ease-soft); }
-/* Calm vertical stack for mobile and reduced motion. */
-.flow-static { height: auto; }
-.flow-static .flow-pin { position: static; height: auto; width: auto; }
-.flow-static .flow-track { height: auto; }
-.flow-static .flow-panel { position: relative; width: auto; min-height: 82svh; height: auto; transform: none !important; opacity: 1 !important; visibility: visible !important; }
-.flow-static .flow-copy { bottom: 8vh; }
-.flow-static .flow-ui, .flow-static .flow-hint, .flow-static .flow-bar { display: none; }
 
 /* ---------- immersive gallery stage ---------- */
 .car { display: grid; gap: 22px; margin-inline: calc(var(--gutter) * -1); }
@@ -1086,7 +949,6 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   .foot-grid { grid-template-columns: 1fr; gap: 28px; }
   
   .btn { width: 100%; justify-content: center; }
-  .flow-ctas .btn { width: auto; flex: 1 1 auto; }
   .gal-arrow { width: 50px; height: 50px; }
   .gal-arrow.left { left: 14px; }
   .gal-arrow.right { right: 14px; }
@@ -1107,7 +969,6 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
   .cp { clip-path: inset(0 0 0 0); opacity: 1; transform: none; }
   .mask > span:not(.ch-line) { transform: none; }
   .mask .ch { transform: none; animation: none; }
-  .motes { display: none; }
   .gal-seg.active b { transform: scaleX(1); }
   .page { animation: none; }
   .scroll-cue i { animation: none; }

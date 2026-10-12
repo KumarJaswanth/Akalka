@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useScrollVar, useFit, Materialize } from './Reveal.jsx';
+import { useScrollVar, useFit, usePointerTilt, Materialize } from './Reveal.jsx';
 import { ArrowRight } from './icons.jsx';
 import NeedsChip from './NeedsChip.jsx';
 import Term from './Term.jsx';
@@ -67,6 +67,7 @@ function Room({ step, roomRef }) {
       </div>
       <div className="rf r-ceil" />
       <div className="rf r-back">
+        <span className="r-cap" />
         <span className="r-cove" />
         <span className="r-post pl" />
         <span className="r-post pr" />
@@ -76,6 +77,7 @@ function Room({ step, roomRef }) {
         </span>
       </div>
       <div className="rf r-left">
+        <span className="r-cap" />
         <span className="sw-layer outer" />
         <span className="sw-layer core" />
         <span className="sw-layer inner" />
@@ -84,6 +86,7 @@ function Room({ step, roomRef }) {
         </span>
       </div>
       <div className="rf r-right">
+        <span className="r-cap" />
         <span className="r-pwin" />
         <span className="r-riser" />
       </div>
@@ -102,8 +105,10 @@ export function SystemAnatomy() {
   const ref = useRef(null);
   const stageRef = useRef(null);
   const roomRef = useRef(null);
+  const pinRef = useRef(null);
   const [step, setStep] = useState(0);
-  useFit(stageRef, 680, 470, '--u');
+  useFit(stageRef, 680, 470, '--u', 1.6);
+  usePointerTilt(pinRef);
   useScrollVar(ref, {
     mode: 'pin',
     steps: ANAT.length,
@@ -135,7 +140,21 @@ export function SystemAnatomy() {
   const active = ANAT[step];
   return (
     <section className="anat" ref={ref} aria-label="The AKALKA system, shown as one room">
-      <div className="anat-pin">
+      <div className="anat-pin" ref={pinRef}>
+        {/* Full-bleed stage: the room owns the whole screen, the chapter
+            list floats over its left side. */}
+        <figure className="anat-fig" role="img" aria-label={`A cutaway room built from AKALKA products. Showing: ${active.name}.`}>
+          <div className="room-stage" ref={stageRef} aria-hidden="true">
+            <Room step={active.id} roomRef={roomRef} />
+          </div>
+          <ol className="anat-ticks" aria-hidden="true">
+            {ANAT.map((a, i) => <li key={a.id} className={i === step ? 'on' : i < step ? 'past' : ''} />)}
+          </ol>
+          <figcaption className="anat-cap" aria-hidden="true">
+            <span className="anat-cap-code" key={active.code}>{active.code}</span>
+            <span className="anat-cap-name" key={active.name}>{active.name}</span>
+          </figcaption>
+        </figure>
         <div className="wrap anat-grid">
           <div className="anat-side">
             <p className="meta anat-count">
@@ -161,19 +180,6 @@ export function SystemAnatomy() {
             </ol>
             <div className="anat-rail" aria-hidden="true"><span /></div>
           </div>
-
-          <figure className="anat-fig" role="img" aria-label={`A cutaway room built from AKALKA products. Showing: ${active.name}.`}>
-            <div className="room-stage" ref={stageRef} aria-hidden="true">
-              <Room step={active.id} roomRef={roomRef} />
-            </div>
-            <ol className="anat-ticks" aria-hidden="true">
-              {ANAT.map((a, i) => <li key={a.id} className={i === step ? 'on' : i < step ? 'past' : ''} />)}
-            </ol>
-            <figcaption className="anat-cap" aria-hidden="true">
-              <span className="anat-cap-code" key={active.code}>{active.code}</span>
-              <span className="anat-cap-name" key={active.name}>{active.name}</span>
-            </figcaption>
-          </figure>
         </div>
       </div>
     </section>
@@ -320,14 +326,50 @@ export function PanelExploded() {
   const [coreId, setCoreId] = useState('puf');
   const [thick, setThick] = useState('100 mm');
   const [finish, setFinish] = useState('Powder coated');
+  const pinRef = useRef(null);
   const skin = useSkin();
   useScrollVar(ref, { mode: 'pin' });
-  useFit(stageRef, 540, 580);
+  useFit(stageRef, 560, 600, '--fit', 1.3);
+  usePointerTilt(pinRef);
   const core = CORES.find((c) => c.id === coreId);
   const t = core.thick.length ? (thick === '50 mm' ? 38 : 72) : 56;
   return (
-    <section className="xpl" ref={ref} id="sandwich" aria-label="Inside a sandwich panel">
-      <div className="xpl-pin">
+    <section className="xpl xpl-panel" ref={ref} id="sandwich" aria-label="Inside a sandwich panel">
+      <div className="xpl-pin" ref={pinRef}>
+        <div className="xpl-stage" aria-hidden="true">
+          <span className="scene-ghost xpl-ghost">SW</span>
+          <div className="xpl-model" ref={stageRef}>
+            <div className="fit3d">
+              <div className={`xpl-iso${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--t': `${t}px`, '--skin': skin.hex }}>
+                {/* Neighbouring panels: once the layers close up, the panel
+                    is joined edge to edge into a wall. */}
+                <div className="s-mate m1">
+                  <Slab className="s-bot" face="skin dskin" />
+                  <Slab className="s-core" face={`core core-${core.id}`} />
+                  <Slab className="s-top" face="skin dskin" />
+                </div>
+                <div className="s-mate m2">
+                  <Slab className="s-bot" face="skin dskin" />
+                  <Slab className="s-core" face={`core core-${core.id}`} />
+                  <Slab className="s-top" face="skin dskin" />
+                </div>
+                <Slab className="s-bot" face="skin dskin" />
+                <Slab className="s-core" face={`core core-${core.id}`} />
+                <Slab className="s-top" face="skin dskin" />
+              </div>
+            </div>
+            <span className="xpl-lab l1"><i />Coated skin</span>
+            <span className="xpl-lab l2"><i /><Term def={core.def}>{core.name}</Term></span>
+            <span className="xpl-lab l3"><i />Coated skin</span>
+            <span className="xpl-lab l4"><i />Joined into a wall</span>
+            {core.thick.length > 0 && <span className="xpl-dim">{thick}</span>}
+            <ol className="dphase sphase">
+              <li className="ph1">One panel</li>
+              <li className="ph2">Layer by layer</li>
+              <li className="ph3">The wall</li>
+            </ol>
+          </div>
+        </div>
         <div className="wrap xpl-grid">
           <div className="xpl-copy">
             <p className="meta xpl-kick"><b>SW</b> Sandwich panels</p>
@@ -357,20 +399,7 @@ export function PanelExploded() {
             </div>
             <Link to="/products#sandwich" className="link-line xpl-more">Full sandwich range <ArrowRight style={{ width: 14, height: 14 }} /></Link>
           </div>
-
-          <div className="xpl-stage" ref={stageRef} aria-hidden="true">
-            <div className="fit3d">
-              <div className={`xpl-iso${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--t': `${t}px`, '--skin': skin.hex }}>
-                <Slab className="s-bot" face="skin dskin" />
-                <Slab className="s-core" face={`core core-${core.id}`} />
-                <Slab className="s-top" face="skin dskin" />
-              </div>
-            </div>
-            <span className="xpl-lab l1"><i />Coated skin</span>
-            <span className="xpl-lab l2"><i /><Term def={core.def}>{core.name}</Term></span>
-            <span className="xpl-lab l3"><i />Coated skin</span>
-            {core.thick.length > 0 && <span className="xpl-dim">{thick}</span>}
-          </div>
+          <div className="xpl-hold" aria-hidden="true" />
         </div>
       </div>
     </section>
@@ -401,9 +430,11 @@ export function DoorExploded() {
   const [core, setCore] = useState('Honeycomb');
   const [finish, setFinish] = useState('Powder coated');
   const [glass, setGlass] = useState('Single glazed');
+  const pinRef = useRef(null);
   const skin = useSkin();
   useScrollVar(ref, { mode: 'pin' });
-  useFit(stageRef, 800, 620);
+  useFit(stageRef, 800, 620, '--fit', 1.25);
+  usePointerTilt(pinRef);
   const typ = DOOR_TYPES.find((d) => d.id === type);
   const coreDef = DOOR_CORES.find((c) => c.id === core);
   const n = leaves === 'Double' ? 2 : 1;
@@ -420,13 +451,16 @@ export function DoorExploded() {
   }, [typ, leaves, core, finish, skin.label, glass]);
   return (
     <section className="xpl xpl-door" ref={ref} id="doors" aria-label="Inside an AKALKA door">
-      <div className="xpl-pin">
-        <div className="wrap xpl-grid">
-          <div className="xpl-stage" ref={stageRef} aria-hidden="true">
+      <div className="xpl-pin" ref={pinRef}>
+        {/* Full-bleed stage: the panel wall runs off the edge of the screen
+            and dissolves under the copy; the door sits in the open left. */}
+        <div className="xpl-stage" aria-hidden="true">
+          <div className="xpl-model" ref={stageRef}>
             <div className="fit3d">
               <div className={`dxl-iso n${n}${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--skin': skin.hex }}>
                 <div className="dwall l"><Slab className="d-wall" face="skin dskin dpanel" /></div>
                 <div className="dwall r"><Slab className="d-wall" face="skin dskin dpanel" /></div>
+                <div className="dwall h"><Slab className="d-wall" face="skin dskin" /></div>
                 <span className="dframe" />
                 <span className="dvoid" />
                 {Array.from({ length: n }, (_, i) => (
@@ -453,7 +487,9 @@ export function DoorExploded() {
               <li className="ph3">In use</li>
             </ol>
           </div>
-
+        </div>
+        <div className="wrap xpl-grid">
+          <div className="xpl-hold" aria-hidden="true" />
           <div className="xpl-copy">
             <p className="meta xpl-kick"><b>DR</b> Doors</p>
             <Materialize>

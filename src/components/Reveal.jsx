@@ -269,23 +269,72 @@ export function useScrollVar(ref, { mode = 'pin', steps = 0, onStep, onProgress,
 }
 
 /* Fit a fixed-size model (a 3D stage drawn at design size) into its
-   container: writes `prop` = min(1, width / w, height / h) on the
+   container: writes `prop` = min(max, width / w, height / h) on the
    element whenever it resizes. The model is drawn once at one size and
-   scaled as a whole, so it can never spill onto neighbouring text. */
-export function useFit(ref, w, h, prop = '--fit') {
+   scaled as a whole, so it can never spill onto neighbouring text.
+   `max` above 1 lets a full-bleed stage grow the model on big screens. */
+export function useFit(ref, w, h, prop = '--fit', max = 1) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
     const set = () => {
       const r = el.getBoundingClientRect();
-      const s = Math.min(1, r.width / w, h ? r.height / h : 1);
+      if (!r.width) return;
+      const s = Math.min(max, r.width / w, h ? r.height / h : max);
       el.style.setProperty(prop, s.toFixed(3));
     };
     set();
     const ro = new ResizeObserver(set);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [ref, w, h, prop]);
+  }, [ref, w, h, prop, max]);
+}
+
+/* Pointer parallax for the 3D stages: writes --tlx / --tly (−1 … 1,
+   eased toward the pointer) on the element while it is on screen, so
+   a model can lean a few degrees toward the cursor on top of whatever
+   the scroll is doing. Fine pointers only; still under reduced motion. */
+export function usePointerTilt(ref) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return undefined;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    let tx = 0;
+    let ty = 0;
+    let x = 0;
+    let y = 0;
+    let raf = 0;
+    let on = false;
+    const tick = () => {
+      x += (tx - x) * 0.08;
+      y += (ty - y) * 0.08;
+      el.style.setProperty('--tlx', x.toFixed(4));
+      el.style.setProperty('--tly', y.toFixed(4));
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.001 ? requestAnimationFrame(tick) : 0;
+    };
+    const move = (e) => {
+      if (!on) return;
+      tx = (e.clientX / window.innerWidth) * 2 - 1;
+      ty = (e.clientY / window.innerHeight) * 2 - 1;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      on = e.isIntersecting;
+      if (!on) {
+        tx = 0;
+        ty = 0;
+        if (!raf) raf = requestAnimationFrame(tick);
+      }
+    });
+    io.observe(el);
+    window.addEventListener('pointermove', move, { passive: true });
+    return () => {
+      io.disconnect();
+      window.removeEventListener('pointermove', move);
+      cancelAnimationFrame(raf);
+    };
+  }, [ref]);
 }
 
 /* Image well with scroll drift built in. Sizing comes from context:
