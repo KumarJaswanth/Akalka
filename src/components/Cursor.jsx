@@ -11,10 +11,10 @@ import { useLocation } from 'react-router-dom';
 
 const LABELS = [
   ['.gal-stage', 'Drag'],
-  ['.ed-ph, .cat-card, .pillar-ph, .apps-ph', 'View'],
+  ['.ab-panel, .pr-door, .apps-ph', 'View'],
   ['.anat-fig, .xpl-stage', 'Scroll'],
 ];
-const SPOT = '.intro-col, .pillar, .step-card, .pt-card, .enquiry-card, .door-cfg-body, .spec-table, .apps-card, .faq-item';
+const SPOT = '.intro-col, .pt-card, .enquiry-card, .door-cfg-body, .spec-table, .apps-card, .faq-item';
 const HOT = 'a, button, summary, label, select, [role="button"], .chip';
 
 export default function Cursor() {

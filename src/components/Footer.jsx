@@ -4,6 +4,7 @@ import { CATEGORIES } from '../data/products.js';
 import { Reveal, Materialize, Magnetic, useScrollVar } from './Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
 import Logo from './Logo.jsx';
+import { CONTACT, telHref } from '../data/company.js';
 
 export default function Footer() {
   /* The wordmark rises letter by letter and fills with lime as the
@@ -66,8 +67,9 @@ export default function Footer() {
           <div>
             <h4>Enquiries</h4>
             <ul>
-              <li>Contact details: to be confirmed</li>
-              <li>Location: to be confirmed</li>
+              {CONTACT.phone && <li><a href={telHref(CONTACT.phone)}>{CONTACT.phone}</a></li>}
+              {CONTACT.email && <li><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></li>}
+              {CONTACT.address && <li>{CONTACT.address}</li>}
               <li><Link to="/contact">Request specifications</Link></li>
             </ul>
           </div>

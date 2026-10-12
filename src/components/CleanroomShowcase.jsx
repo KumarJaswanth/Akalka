@@ -10,17 +10,17 @@ import { Plus } from './icons.jsx';
 const EASE = [0.16, 1, 0.3, 1];
 
 const SHOTS = {
-  'CR-W': PHOTO.cleanroomTech,
-  'CR-C': PHOTO.cleanroomLab,
-  'CR-WS': PHOTO.cleanroomDoor,
-  'CR-F': PHOTO.cleanroomWindow,
+  'cleanroom-wall': PHOTO.cleanroomTech,
+  'cleanroom-ceiling': PHOTO.cleanroomLab,
+  washable: PHOTO.cleanroomDoor,
+  'flush-wall': PHOTO.cleanroomWindow,
 };
 
 export default function CleanroomShowcase({ items }) {
   const [active, setActive] = useState(0);
   const reduce = useReducedMotion();
   const current = items[Math.max(0, active)] || items[0];
-  const shot = SHOTS[current.code] || SHOTS['CR-W'];
+  const shot = SHOTS[current.id] || SHOTS['cleanroom-wall'];
   /* Hover previews on precise pointers only — touch uses taps, where a
      synthesized mouseenter would otherwise open-then-instantly-close. */
   const canHover = () =>
@@ -31,7 +31,7 @@ export default function CleanroomShowcase({ items }) {
       <div className="cr-visual" aria-hidden="true">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.img
-            key={current.code}
+            key={current.id}
             src={shot.src}
             srcSet={srcSetFor(shot.src)}
             sizes="(max-width: 900px) 100vw, 45vw"
@@ -45,7 +45,7 @@ export default function CleanroomShowcase({ items }) {
           />
         </AnimatePresence>
         <div className="cr-vtag">
-          <span className="meta">{current.code}</span>
+          <span className="meta">{current.no}</span>
           <span>{current.name}</span>
         </div>
       </div>
@@ -57,7 +57,7 @@ export default function CleanroomShowcase({ items }) {
         {items.map((it, i) => {
           const open = i === active;
           return (
-            <div key={it.code} className={`cr-item${open ? ' open' : ''}`}>
+            <div key={it.id} className={`cr-item${open ? ' open' : ''}`}>
               <button
                 type="button"
                 aria-expanded={open}
@@ -85,7 +85,7 @@ export default function CleanroomShowcase({ items }) {
                   >
                     <div className="cr-more-in">
                       <div className="chips">
-                        <span className="chip">{it.code}</span>
+                        <span className="chip">{it.no}</span>
                         <span className="chip">Confirmed range</span>
                       </div>
                       <p className="body-sm">

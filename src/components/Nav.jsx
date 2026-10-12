@@ -89,6 +89,7 @@ export default function Nav() {
         {open && (
           <motion.nav
             className="mobile-menu"
+            data-lenis-prevent
             aria-label="Mobile"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

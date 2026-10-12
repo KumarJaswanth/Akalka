@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useScrollVar, usePointerTilt } from './Reveal.jsx';
 import { HERO } from '../data/images.js';
+import { doorNo } from '../data/products.js';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
 
 /* Hero — "Through the door".
@@ -55,10 +56,20 @@ function Chars({ text, base = 0 }) {
      animation so later hover Craft runs on its own timing. */
   const [played, setPlayed] = useState(false);
   useEffect(() => {
-    const t = setTimeout(
-      () => setPlayed(true),
-      (base + text.length * 0.028 + 0.95) * 1000
-    );
+    /* While the boot overture is up the headline holds (CSS pauses its
+       entrance); the release clock starts when the doors part. */
+    let t = 0;
+    const begin = () => {
+      t = setTimeout(() => setPlayed(true), (base + text.length * 0.028 + 0.95) * 1000);
+    };
+    if (document.documentElement.classList.contains('booting')) {
+      window.addEventListener('akalka:booted', begin, { once: true });
+      return () => {
+        window.removeEventListener('akalka:booted', begin);
+        clearTimeout(t);
+      };
+    }
+    begin();
     return () => clearTimeout(t);
   }, [text, base]);
   /* Global character index so the rise order is strictly left to right
@@ -336,7 +347,7 @@ export default function Hero() {
           <span className="hd-dimw"><b>Size as per requirement</b></span>
           <span className="hd-dimh" />
           <span className="hd-tag">
-            <b>DR-S</b> Single door · view glass
+            <b>{doorNo('regular', 'Single')}</b> Single door · view glass
           </span>
         </div>
 

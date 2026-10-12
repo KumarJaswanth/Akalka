@@ -2,24 +2,18 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Magnetic } from './Reveal.jsx';
+import { CATEGORIES } from '../data/products.js';
 import { ArrowRight } from './icons.jsx';
 
 /* Shared enquiry form.
    Behaviour: validates inline, then queues the enquiry on this device
    (localStorage) with a reference number and — when a backend endpoint
    is configured via VITE_ENQUIRY_ENDPOINT — forwards it there too.
-   No contact details are invented: direct channels stay "to be confirmed"
-   until the client supplies them. Styling classes are unchanged. */
+   No contact details are invented: direct channels stay out of the site
+   until the client supplies them (data/company.js). */
 
-const PRODUCT_OPTIONS = [
-  'Doors',
-  'Sandwich Panels',
-  'Cleanroom Panels',
-  'Partition / Wall Panels',
-  'Glass Panels',
-  'Profiles & Accessories',
-  'Multiple / full system',
-];
+/* Derived from the catalogue, so a category can never be missing from the form. */
+const PRODUCT_OPTIONS = [...CATEGORIES.map((c) => c.name), 'Multiple / full system'];
 
 const MAX_FILES_MB = 25;
 const ACCEPT = '.pdf,.dwg,.dxf,.zip,.jpg,.jpeg,.png';

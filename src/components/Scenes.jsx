@@ -5,6 +5,7 @@ import { ArrowRight } from './icons.jsx';
 import NeedsChip from './NeedsChip.jsx';
 import Term from './Term.jsx';
 import { srcSetFor } from '../data/images.js';
+import { CAT, doorNo } from '../data/products.js';
 
 /* v2 scroll scenes. Every scene is one tall section whose sticky stage
    reads a single `--p` (0 → 1) written by useScrollVar. All motion is
@@ -33,16 +34,19 @@ function jumpTo(el, frac) {
    Values are written straight to CSS custom properties in the shared
    scroll batch; React only re-renders on the six chapter changes.
    ================================================================= */
+/* The tour follows the catalogue order, so the number beside each chapter
+   is its catalogue number (01 Doors … 06 Profiles) — the same number the
+   Products page, the dock and every caption use. */
 const ANAT = [
-  { id: 'sandwich', code: 'SW', name: 'Sandwich panels', d: 'The walls themselves. Double-skin panels with a PUF or rockwool core, in 50 or 100 mm.' },
-  { id: 'cleanroom', code: 'CR', name: 'Cleanroom panels', d: 'Flush, washable wall and ceiling surfaces for clean, controlled rooms.' },
-  { id: 'doors', code: 'DR', name: 'Doors', d: 'Single and double leaves — regular modular, fire rated and emergency — sized to the opening.' },
-  { id: 'glass', code: 'GL', name: 'View glass', d: 'Vision panels in doors and walls, single or double glazed, so the room stays in sight.' },
-  { id: 'partition', code: 'PT', name: 'Partition & riser panels', d: 'Interior division, flush wall surfaces and riser panels with grill for service shafts.' },
-  { id: 'profiles', code: 'PF', name: 'Profiles & tracks', d: 'Corners, channels, angles and C-type bottom tracks — the junctions that join it all.' },
-];
-/* Camera per chapter: [tilt, turn] in degrees. */
-const CAM = [[-12, -54], [-26, -4], [-11, -16], [-14, 30], [-17, 42], [-28, -12]];
+  { id: 'doors', name: 'Doors', d: 'Single and double leaves — regular modular, fire rated and emergency — sized to the opening.' },
+  { id: 'sandwich', name: 'Sandwich panels', d: 'The walls themselves. Double-skin panels with a PUF or rockwool core, in 50 or 100 mm.' },
+  { id: 'cleanroom', name: 'Cleanroom panels', d: 'Flush, washable wall and ceiling surfaces for clean, controlled rooms.' },
+  { id: 'partition', name: 'Partition & riser panels', d: 'Interior division, flush wall surfaces and riser panels with grill for service shafts.' },
+  { id: 'glass', name: 'View glass', d: 'Vision panels in doors and walls, single or double glazed, so the room stays in sight.' },
+  { id: 'profiles', name: 'Profiles & tracks', d: 'Corners, channels, angles and C-type bottom tracks — the junctions that join it all.' },
+].map((a) => ({ ...a, no: CAT[a.id].index }));
+/* Camera per chapter, in the same order: [tilt, turn] in degrees. */
+const CAM = [[-11, -16], [-12, -54], [-26, -4], [-17, 42], [-14, 30], [-28, -12]];
 const INTRO_CAM = [-24, 64];
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const ease = (t) => t * t * (3 - 2 * t);
@@ -93,7 +97,7 @@ function Room({ step, roomRef }) {
       {ANAT.map((a) => (
         <span className={`r-tag t-${a.id}`} key={a.id}>
           <i />
-          <b>{a.code}</b>
+          <b>{a.no}</b>
           {a.name}
         </span>
       ))}
@@ -182,7 +186,7 @@ export function SystemAnatomy() {
             {ANAT.map((a, i) => <li key={a.id} className={i === step ? 'on' : i < step ? 'past' : ''} />)}
           </ol>
           <figcaption className="anat-cap" aria-hidden="true">
-            <span className="anat-cap-code" key={active.code}>{active.code}</span>
+            <span className="anat-cap-code" key={active.no}>{active.no}</span>
             <span className="anat-cap-name" key={active.name}>{active.name}</span>
           </figcaption>
         </figure>
@@ -195,7 +199,7 @@ export function SystemAnatomy() {
               {ANAT.map((a, i) => (
                 <li key={a.id} className={i === step ? 'on' : i < step ? 'past' : ''}>
                   <button type="button" onClick={() => jumpTo(ref.current, (i + 0.4) / ANAT.length)} aria-current={i === step ? 'step' : undefined}>
-                    <span className="meta anat-code">{a.code}</span>
+                    <span className="meta anat-code">{a.no}</span>
                     <span className="anat-name">{a.name}</span>
                   </button>
                   <div className="anat-more">
@@ -211,34 +215,6 @@ export function SystemAnatomy() {
             </ol>
             <div className="anat-rail" aria-hidden="true"><span ref={railRef} /></div>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* =================================================================
-   2. Image expand — a framed photograph grows to full bleed while the
-   headline parts around it, then the statement lands on the image.
-   Transform-only (composited); the frame never re-lays out.
-   ================================================================= */
-export function ImageExpand({ img, left, right, kicker, children }) {
-  const ref = useRef(null);
-  useScrollVar(ref, { mode: 'pin' });
-  return (
-    <section className="xp" ref={ref} aria-label={`${left} ${right}`}>
-      <div className="xp-pin">
-        <div className="xp-frame">
-          <img src={img.src} srcSet={srcSetFor(img.src)} sizes="100vw" alt={img.alt} loading="lazy" decoding="async" />
-          <div className="xp-shade" aria-hidden="true" />
-        </div>
-        <h2 className="xp-words" aria-hidden="true">
-          <span className="xp-l">{left}</span>
-          <span className="xp-r font-hand">{right}</span>
-        </h2>
-        <div className="xp-copy wrap on-dark">
-          <p className="meta">{kicker}</p>
-          {children}
         </div>
       </div>
     </section>
@@ -372,7 +348,7 @@ export function PanelExploded() {
     <section className="xpl xpl-panel" ref={ref} id="sandwich" aria-label="Inside a sandwich panel">
       <div className="xpl-pin" ref={pinRef}>
         <div className="xpl-stage" ref={varRef} aria-hidden="true">
-          <span className="scene-ghost xpl-ghost">SW</span>
+          <span className="scene-ghost xpl-ghost">{CAT.sandwich.index}</span>
           <div className="xpl-model" ref={stageRef}>
             <div className="fit3d">
               <div ref={isoRef} className={`xpl-iso${finish === 'Powder coated' ? ' powder' : ''}`} style={{ '--t': `${t}px`, '--skin': skin.hex }}>
@@ -407,7 +383,7 @@ export function PanelExploded() {
         </div>
         <div className="wrap xpl-grid">
           <div className="xpl-copy">
-            <p className="meta xpl-kick"><b>SW</b> Sandwich panels</p>
+            <p className="meta xpl-kick"><b>{CAT.sandwich.index}</b> Sandwich panels</p>
             <Materialize>
               <h2 className="h2">Two coated skins. <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>One insulating core.</span></h2>
             </Materialize>
@@ -445,11 +421,12 @@ export function PanelExploded() {
 /* The door tells a four-beat story on scroll: assembled in its panel
    wall → taken apart layer by layer → put back together → swung open.
    All four beats come from `--p` alone (see .xpl-door in v2.css). */
-/* `code` matches the catalogue: DR-S / DR-D, DR-FS / DR-FD, DR-ES / DR-ED. */
+/* Each type + number of leaves is one numbered catalogue variant (01.1 …
+   01.6); doorNo() looks the number up, so it can never drift from the data. */
 const DOOR_TYPES = [
-  { id: 'regular', label: 'Regular modular', code: 'DR-' },
-  { id: 'fire', label: 'Fire rated', code: 'DR-F' },
-  { id: 'emergency', label: 'Emergency', code: 'DR-E' },
+  { id: 'regular', label: 'Regular modular' },
+  { id: 'fire', label: 'Fire rated' },
+  { id: 'emergency', label: 'Emergency' },
 ];
 const DOOR_CORES = [
   { id: 'Honeycomb', cls: 'hc', def: 'Cellular honeycomb core' },
@@ -528,7 +505,7 @@ export function DoorExploded() {
         <div className="wrap xpl-grid">
           <div className="xpl-hold" aria-hidden="true" />
           <div className="xpl-copy">
-            <p className="meta xpl-kick"><b>DR</b> Doors</p>
+            <p className="meta xpl-kick"><b>{CAT.doors.index}</b> Doors</p>
             <Materialize>
               <h2 className="h2">Built like the walls <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>around them.</span></h2>
             </Materialize>
@@ -543,7 +520,7 @@ export function DoorExploded() {
             </div>
             <div className="door-sum">
               <p>
-                <span className="meta">{typ.code}{n === 2 ? 'D' : 'S'}</span>
+                <span className="meta">{doorNo(type, leaves)}</span>
                 <span className="sum-text">
                   {typ.label} · {leaves} · {core} core · {glass} · {finish} · {skin.any ? 'colour matched to order' : skin.colour} · size as per requirement
                 </span>
@@ -557,37 +534,6 @@ export function DoorExploded() {
         </div>
       </div>
     </section>
-  );
-}
-
-/* =================================================================
-   4. Process — how an order moves, with a rule that fills as the
-   section crosses the viewport and lights each step in turn.
-   ================================================================= */
-const PROCESS = [
-  { n: '01', t: 'Choose the range', d: 'Doors, sandwich, cleanroom, partition, glass or profiles — start from the catalogue.' },
-  { n: '02', t: 'Send the sizes', d: 'Drawings, opening schedules, panel layouts or a bill of quantities.' },
-  { n: '03', t: 'Confirm the specification', d: 'Variant, core, thickness, finish and colour confirmed back to you. Nothing assumed.' },
-  { n: '04', t: 'Manufactured to order', d: 'Produced to the confirmed specification, as one coordinated system.' },
-];
-
-export function Process() {
-  const ref = useRef(null);
-  useScrollVar(ref, { mode: 'view' });
-  return (
-    <div className="proc" ref={ref}>
-      <div className="proc-rule" aria-hidden="true"><span /></div>
-      <ol className="proc-steps">
-        {PROCESS.map((s, i) => (
-          <li key={s.n} style={{ '--i': i }}>
-            <span className="proc-dot" aria-hidden="true" />
-            <span className="meta proc-n">{s.n}</span>
-            <h3 className="h3">{s.t}</h3>
-            <p className="body-sm">{s.d}</p>
-          </li>
-        ))}
-      </ol>
-    </div>
   );
 }
 

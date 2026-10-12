@@ -113,8 +113,19 @@ export function ClipReveal({ children, className = '', delay = 0 }) {
 const pxJobs = new Set();
 let pxRaf = 0;
 let pxListening = false;
+/* A flush is skipped when the scroll position has not moved since the last
+   one — unless something asked for it explicitly (a scene appeared, a job
+   was added, the window resized). That is what lets the smoother flush in
+   its own frame AND the browser's scroll event flush, without doing the
+   work twice. */
+let pxLastY = -1;
+let pxForce = true;
 function pxFlush() {
   pxRaf = 0;
+  const y = window.scrollY;
+  if (!pxForce && y === pxLastY) return;
+  pxForce = false;
+  pxLastY = y;
   /* Batched phases: every read completes before the first write, so
      stacked parallax instances can never force layout thrash. */
   const jobs = [...pxJobs];
@@ -142,15 +153,27 @@ export function addScrollJob(job) {
   pxRequestFlush();
   return () => pxJobs.delete(job);
 }
-function pxRequestFlush() {
+function pxRequestFlush(force = true) {
+  if (force) pxForce = true;
   if (!pxRaf) pxRaf = requestAnimationFrame(pxFlush);
+}
+/* Run the shared frame right now, in the caller's frame. The smoother calls
+   this from its own scroll event, which fires inside the frame that moved
+   the page — so scroll-driven scenes update in the SAME frame as the
+   content they are pinned against, instead of one frame behind it (the
+   browser's own scroll event is dispatched a frame later). */
+export function flushScrollJobs() {
+  if (pxRaf) {
+    cancelAnimationFrame(pxRaf);
+    pxRaf = 0;
+  }
+  pxFlush();
 }
 function pxEnsureListening() {
   if (pxListening || typeof window === 'undefined') return;
   pxListening = true;
-  const onScroll = () => pxRequestFlush();
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
+  window.addEventListener('scroll', () => pxRequestFlush(false), { passive: true });
+  window.addEventListener('resize', () => pxRequestFlush(true));
 }
 function Parallax({ children, className = '', speed = 0.12, style, ...rest }) {
   const ref = useRef(null);
@@ -381,7 +404,7 @@ export function usePointerTilt(ref, apply) {
 
 /* Image well with scroll drift built in. Sizing comes from context:
    pass `ratio` for flow layout ("21/9") or let the parent frame the
-   absolutely-positioned well (see .pf-img .px, .part-photo .px). */
+   absolutely-positioned well (see .pf-img .px). */
 export function ParallaxImg({ src, alt = '', speed = 0.1, eager = false, ratio, onError, sizes = '(max-width: 820px) 100vw, 70vw' }) {
   return (
     <Parallax className="px" speed={speed} style={ratio ? { aspectRatio: ratio } : undefined}>
@@ -424,7 +447,7 @@ export function ScrollWords({ text, className = '', accents = [], accentColor = 
 }
 
 /* Count-up numeral: eases from zero when scrolled into view. */
-export function CountUp({ to, duration = 1.6 }) {
+export function CountUp({ to, duration = 1.6, pad = false }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
   const [val, setVal] = useState(0);
@@ -461,7 +484,7 @@ export function CountUp({ to, duration = 1.6 }) {
       cancelAnimationFrame(raf);
     };
   }, [to, duration, reduce]);
-  return <span ref={ref}>{val}</span>;
+  return <span ref={ref}>{pad ? String(val).padStart(2, '0') : val}</span>;
 }
 
 export function SectionHead({ index, label, hint }) {

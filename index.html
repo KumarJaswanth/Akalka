@@ -17,6 +17,22 @@
     <link rel="preconnect" href="https://images.unsplash.com" />
     <link rel="preconnect" href="https://images.pexels.com" />
     <script>
+      /* First visit of a session: the boot overture runs, and the page holds
+         its entrance animations until the doors part (see Boot.jsx / index.css).
+         The class is cleared by Boot; this timer is the failsafe. */
+      (function () {
+        try {
+          if (matchMedia("(prefers-reduced-motion: reduce)").matches || sessionStorage.getItem("akalka-booted")) return;
+          var h = document.documentElement;
+          h.classList.add("booting");
+          setTimeout(function () {
+            h.classList.remove("booting");
+            window.dispatchEvent(new Event("akalka:booted"));
+          }, 7000);
+        } catch (e) {}
+      })();
+    </script>
+    <script>
       /* Home opens on the hero photograph: start it at the same time as the
          app bundle, on the home route only. */
       (function () {
@@ -36,26 +52,19 @@
     <noscript><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=DM+Sans:opsz,wght@9..40,100..1000&family=Nunito:wght@200..1000&display=swap" rel="stylesheet" /></noscript>
     <link rel="icon" type="image/svg+xml" href="%FAVICON_BASE%Akalka-logo.svg" />
     <style>
-      /* Instant branded loader: wordmark, rule, sweeping bar. No JS needed. */
-      #boot-shell { min-height: 100svh; display: grid; place-items: center; background: #2B3036; color: #fff; text-align: center; padding: 32px; }
-      #boot-shell .w { font-family: 'Caveat','Nunito',cursive; font-weight: 700; font-size: clamp(2.8rem, 8vw, 4rem); color: #7DB200; letter-spacing: 0; margin: 0 0 8px; transform: rotate(-2deg); }
-      #boot-shell .m { font-family: 'DM Sans',sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin: 0 0 28px; }
-      #boot-shell .rule { width: min(180px, 44vw); height: 2px; margin: 0 auto 28px; border-radius: 2px; background: rgba(125,178,0,0.9); }
-      #boot-shell .bar { width: min(220px, 50vw); height: 2px; margin: 0 auto; border-radius: 2px; background: rgba(255,255,255,0.14); overflow: hidden; }
-      #boot-shell .bar i { display: block; height: 100%; width: 40%; border-radius: inherit; background: #7DB200; animation: scan 1.2s ease-in-out infinite; }
-      @keyframes scan { 0% { transform: translateX(-110%); } 100% { transform: translateX(280%); } }
+      /* Instant branded loader: the worksurface and a quiet track with a sweeping
+         lime segment, painted before any script runs. Boot.jsx takes over from it. */
+      #boot-shell { position: fixed; inset: 0; background: #2B3036; }
+      #boot-shell .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,0.14); overflow: hidden; }
+      #boot-shell .bar i { display: block; height: 100%; width: 36%; background: #7DB200; animation: scan 1.3s ease-in-out infinite; }
+      @keyframes scan { 0% { transform: translateX(-110%); } 100% { transform: translateX(300%); } }
     </style>
   </head>
   <body>
     <div id="root">
       <div id="boot-shell">
-        <div>
-          <p class="w">akalka</p>
-          <p class="m">Doors · Panels</p>
-          <div class="rule" aria-hidden="true"></div>
-          <div class="bar" aria-hidden="true"><i></i></div>
-          <noscript><p style="font-family:monospace;font-size:12px;opacity:0.7">This site needs JavaScript enabled.</p></noscript>
-        </div>
+        <div class="bar" aria-hidden="true"><i></i></div>
+        <noscript><p style="position:absolute;inset:0;display:grid;place-items:center;margin:0;color:#fff;font-family:monospace;font-size:12px;opacity:0.7">This site needs JavaScript enabled.</p></noscript>
       </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>

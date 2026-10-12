@@ -68,45 +68,37 @@ export const IMG = {
 
   /* ---- Doors: coated steel leaves in insulated panel construction ---- */
   doorSingle: {
-    src: L('simple modular single door 003.png'),
+    src: L('simple modular single door 003.webp'),
     alt: 'Dark blue coated steel cleanroom door with vision panel in a panel wall',
   },
   doorSingleAlt: {
-    src: L('simple modular single door 002.png'),
+    src: L('simple modular single door 002.webp'),
     alt: 'Blue, green and yellow coated steel doors showing colour options',
   },
   doorDouble: {
-    src: L('simple modular double door 001.png'),
+    src: L('simple modular double door 001.webp'),
     alt: 'Blue double cleanroom doors open along a clean corridor',
   },
   doorFire: {
-    src: L('energence door 001.png'),
+    src: L('energence door 001.webp'),
     alt: 'Red fire rated door with push bar in a white finished room',
   },
   doorEmergency: {
-    src: L('energence door 000.png'),
+    src: L('energence door 000.webp'),
     alt: 'Red emergency door with push bar and vision panel',
   },
   doorFireDouble: {
-    src: L('energence door 002.png'),
+    src: L('energence door 002.webp'),
     alt: 'Red double fire doors with push bars, studio view',
   },
 
   /* ---- Panels ---- */
-  sandwich: {
-    src: L('panel board.png'),
-    alt: 'Sandwich panel joint detail showing double skins and core',
-  },
   panelJoint: {
-    src: L('panel board.png'),
+    src: L('panel board.webp'),
     alt: 'Sandwich panel joint detail showing double skins and core',
-  },
-  cleanroomAlt: {
-    src: L('simple modular double door 001.png'),
-    alt: 'Blue cleanroom doors along a bright controlled corridor',
   },
   cleanroomFinished: {
-    src: L('panel board 002.png'),
+    src: L('panel board 002.webp'),
     alt: 'Finished cleanroom corridor with white panels and blue doors',
   },
   riserPanel: {
@@ -122,10 +114,6 @@ export const IMG = {
 
   /* ---- Profiles: formed metal sections and tracks ---- */
   profiles: {
-    track: {
-      src: U('1671022442106-c787685d9fed', 900),
-      alt: 'Steel track sections stacked in a warehouse',
-    },
     alucoat: {
       src: U('1759310347407-b0dbfeb8745d', 900),
       alt: 'Profiled metal cladding sheets, close view',

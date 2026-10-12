@@ -231,7 +231,7 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: T, ease: EASE, delay: reduce ? 0 : 0.35 }}
               >
-                {s.code}
+                {s.tag}
               </motion.span>
               <motion.span
                 className="car-title"

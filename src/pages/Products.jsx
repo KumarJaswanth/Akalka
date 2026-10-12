@@ -1,13 +1,13 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { CATEGORIES } from '../data/products.js';
-import { Reveal, Materialize, ClipReveal, SectionHead, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
-import { ArrowRight, ArrowUpRight, Plus } from '../components/icons.jsx';
+import { CATEGORIES, CAT, TOTAL, TOTAL_LABEL, word } from '../data/products.js';
+import { Reveal, Materialize, ClipReveal, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
+import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import { IMG, PHOTO, PROFILE_PHOTO, srcSetFor } from '../data/images.js';
-import { Process } from '../components/Scenes.jsx';
 import NeedsChip from '../components/NeedsChip.jsx';
 import Term from '../components/Term.jsx';
 
+/* One photograph per category for the opening index. */
 const CARD_IMG = {
   doors: IMG.doorSingle,
   sandwich: PHOTO.panelWall,
@@ -16,7 +16,15 @@ const CARD_IMG = {
   glass: PHOTO.cleanroomWindow,
   profiles: PHOTO.measure,
 };
-const CODE = { doors: 'DR', sandwich: 'SW', cleanroom: 'CR', partition: 'PT', glass: 'GL', profiles: 'PF' };
+
+/* The door variant for a type and number of leaves, with its number. */
+const doorV = (typeId, leaves) => CAT.doors.variants.find((v) => v.typeId === typeId && v.leaves === leaves);
+
+/* Hide a figure whose photograph failed to load, rather than show a hole. */
+const hideFigure = (sel) => (e) => {
+  const el = sel ? e.currentTarget.closest(sel) : e.currentTarget;
+  if (el) el.style.display = 'none';
+};
 
 /* Floating chapter dock. Six long chapters are easy to get lost in, so a
    quiet pill bar follows the visitor through the catalogue, names where
@@ -77,7 +85,7 @@ function ChapterDock() {
             tabIndex={show ? 0 : -1}
             onClick={(e) => jump(e, c.id)}
           >
-            <b>{CODE[c.id]}</b>
+            <b>{c.index}</b>
             <span>{c.name}</span>
           </a>
         ))}
@@ -86,25 +94,7 @@ function ChapterDock() {
   );
 }
 
-/* The category index is the first categorical impression of the catalogue,
-   so its grid may never strand a card. auto-fit alone is not enough — at
-   1232px it fits five 210px columns and left the 6th alone. Pick the column
-   count from the item count instead, preferring a divisor so the last row
-   is always full. 3 columns for 6, 2 for 4 or 8, 4 for 5, and so on. */
-const CAT_COLS = (() => {
-  const n = CATEGORIES.length;
-  return [4, 3, 2].find((c) => n % c === 0) ?? Math.min(3, n);
-})();
-const TOTAL = CATEGORIES.length;
-const TOTAL_LABEL = String(TOTAL).padStart(2, '0');
-const WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-const TOTAL_WORD = WORDS[TOTAL] ?? String(TOTAL);
-
-/* The card meta carries position only — "01 / 06". An earlier version read
-   "01 / 06 · 6 types": three numerals, two separators and a noun that
-   changed per category (types/products/groups/product), which asked the
-   visitor to decode the index instead of using it. The contents are one
-   click away; the card's job is orientation, not inventory. */
+const TOTAL_WORD = word(TOTAL);
 
 /* Coating option codes. Their exact specification is confirmed on enquiry —
    the catalogue states the choice, never the value. */
@@ -144,378 +134,314 @@ function Chips({ items, accent = false }) {
   );
 }
 
-/* Per-chapter enquiry strip — carries the range into the contact form. */
-function ChapterCTA({ interest, blurb, checklist }) {
+/* Per-chapter enquiry strip — what to include, and the way into the form. */
+function ChapterCTA({ interest, checklist }) {
   return (
-    <Reveal>
-      <div className="chap-cta">
-        <p className="body-sm" style={{ margin: 0 }}>{blurb}</p>
-        <Link
-          to={`/contact?interest=${encodeURIComponent(interest)}`}
-          className="link-line"
-          style={{ whiteSpace: 'nowrap' }}
-        >
-          Enquire <ArrowRight style={{ width: 14, height: 14 }} />
-        </Link>
+    <div className="chap-cta">
+      <div>
+        <p className="meta" style={{ color: 'var(--muted-fg)', marginBottom: 'var(--s2)' }}>Include in your enquiry</p>
+        <p className="body-sm" style={{ margin: 0 }}>{checklist.join('  ·  ')}</p>
       </div>
-      {checklist && checklist.length > 0 && (
-        <details className="spec">
-          <summary>
-            What to include in your enquiry
-            <span className="plus" aria-hidden="true"><Plus /></span>
-          </summary>
-          <div className="spec-body">
-            <ul style={{ margin: 0, paddingLeft: 'var(--s5)', display: 'grid', gap: 'var(--s2)' }}>
-              {checklist.map((c) => <li key={c}>{c}</li>)}
-            </ul>
-          </div>
-        </details>
-      )}
-    </Reveal>
+      <Link
+        to={`/contact?interest=${encodeURIComponent(interest)}`}
+        className="link-line"
+        style={{ whiteSpace: 'nowrap' }}
+      >
+        Enquire <ArrowRight style={{ width: 14, height: 14 }} />
+      </Link>
+    </div>
   );
 }
 
-/* ---- 01 Doors: configurator table ---- */
-function DoorsBlock({ data }) {
+/* One chapter of the catalogue. Every chapter has the same frame: a column
+   that stays put on the left — the catalogue number, the name, the heading,
+   the description and the way to enquire — beside the evidence on the right
+   (photographs, tables, options) as it scrolls past. The visitor always knows
+   which chapter they are in and can always act on it. */
+function Chapter({ data, hint, title, hand, interest, checklist, dark = false, children }) {
   return (
-    <section className="section prod-block" id="doors">
-      <div className="wrap">
-        <SectionHead index={data.index} label={data.name} hint="DR series" />
-        <Materialize>
-          <h2 className="h2" style={{ marginBottom: 'var(--s3)' }}>Doors, <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>configured to requirement.</span></h2>
-          <p className="lede">{data.description}</p>
-        </Materialize>
-        <ClipReveal>
-          <div className="duo" style={{ marginTop: 'var(--s8)' }}>
-            <figure>
-              <ParallaxImg src={IMG.doorSingle.src} alt={IMG.doorSingle.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('figure').style.display = 'none'; }} />
-              <figcaption><span className="meta">DR-S</span><span>Regular modular — single door</span></figcaption>
-            </figure>
-            <figure>
-              <ParallaxImg src={IMG.doorDouble.src} alt={IMG.doorDouble.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('figure').style.display = 'none'; }} />
-              <figcaption><span className="meta">DR-D</span><span>Regular modular — double door</span></figcaption>
-            </figure>
-          </div>
-        </ClipReveal>
-        <div aria-hidden="true" style={{ height: 'var(--s9)' }} />
-        <Reveal>
-          <p className="meta" style={{ color: 'var(--muted-fg)', marginBottom: 'var(--s5)' }}>Fire rated &amp; emergency types</p>
-          <div className="duo">
-            <figure>
-              <ParallaxImg src={IMG.doorFireDouble.src} alt={IMG.doorFireDouble.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('figure').style.display = 'none'; }} />
-              <figcaption><span className="meta">DR-FS / DR-FD</span><span>Fire rated — single and double</span></figcaption>
-            </figure>
-            <figure>
-              <ParallaxImg src={IMG.doorEmergency.src} alt={IMG.doorEmergency.alt} ratio="4/3" onError={(e) => { e.currentTarget.closest('figure').style.display = 'none'; }} />
-              <figcaption><span className="meta">DR-ES / DR-ED</span><span>Emergency — single and double</span></figcaption>
-            </figure>
-          </div>
-        </Reveal>
-        <div aria-hidden="true" style={{ height: 'var(--s9)' }} />
-        <Reveal>
-          <p className="meta" style={{ color: 'var(--muted-fg)', marginBottom: 'var(--s5)' }}>Specify a door in four steps</p>
-          <div className="steps">
-            {[
-              { n: '01', t: 'Type', d: data.types.join('  ·  ') },
-              { n: '02', t: 'Configuration', d: 'Single  ·  Double' },
-              { n: '03', t: 'Core & finish', d: `${data.cores.join('  ·  ')} — ${data.finishes.join('  ·  ')}` },
-              { n: '04', t: 'Colour & size', d: `${data.colours.join('  ·  ')} — sizes vary` },
-            ].map((s) => (
-              <div className="step-card" key={s.n}>
-                <span className="meta">{s.n}</span>
-                <h3 className="h3">{s.t}</h3>
-                <p className="body-sm">{s.d}</p>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-        <div aria-hidden="true" style={{ height: 'var(--s8)' }} />
-        <div className="spec-tables">
-          <div className="spec-table">
-            <p className="meta">Variants — {data.variants.length}</p>
-            {data.variants.map((v) => (
-              <div className="spec-tr" key={v.code}>
-                <span className="meta">{v.code}</span>
-                <span><b>{v.name}</b><small>{v.note}</small></span>
-              </div>
-            ))}
-          </div>
-          <div className="spec-table">
-            <p className="meta">Options</p>
-            <div className="spec-tr">
-              <span className="meta">Type</span>
-              <span>{data.types.join('  ·  ')}</span>
-            </div>
-            <div className="spec-tr">
-              <span className="meta">Core</span>
-              <span>{data.cores.join('  ·  ')}</span>
-            </div>
-            <div className="spec-tr">
-              <span className="meta">Finish</span>
-              <span>{data.finishes.join('  ·  ')}</span>
-            </div>
-            <div className="spec-tr">
-              <span className="meta">Colour</span>
-              <span>{data.colours.join('  ·  ')}</span>
-            </div>
-            <div className="spec-tr">
-              <span className="meta">Size</span>
-              <span>Sizes vary according to requirement — no fixed dimensions published</span>
-            </div>
-          </div>
-        </div>
-        <Reveal>
-          <div className="chips" style={{ marginTop: 'var(--s5)' }}>
-            <NeedsChip term="fire rating duration for DR-FS and DR-FD" interest="Doors">Fire rating duration: needs confirmation</NeedsChip>
-            <NeedsChip term="panic bar and push hardware for DR-ES and DR-ED" interest="Doors">Emergency exit hardware: needs confirmation</NeedsChip>
-          </div>
-        </Reveal>
-        <ChapterCTA interest="Doors" blurb="Openings scheduled? Send type, sizes, cores and finishes for a confirmed door specification." checklist={['Opening sizes or a door schedule', 'Single or double, and which type', 'Core and finish', 'Quantities and site location']} />
+    <section className={`pc${dark ? ' dark-sec on-dark' : ''}`} id={data.id}>
+      <div className="wrap pc-grid">
+        <aside className="pc-side">
+          <p className="pc-no" aria-hidden="true">{data.index}</p>
+          <p className="meta pc-label"><span>{data.name}</span><span>{hint}</span></p>
+          <Materialize>
+            <h2 className="h2">
+              {title} <span className="font-hand" style={{ color: dark ? 'var(--datum)' : 'var(--datum-ink)' }}>{hand}</span>
+            </h2>
+            <p className="lede">{data.description}</p>
+          </Materialize>
+          <Reveal>
+            <ChapterCTA interest={interest} checklist={checklist} />
+          </Reveal>
+        </aside>
+        <div className="pc-main">{children}</div>
       </div>
     </section>
+  );
+}
+
+/* ---- 01 Doors ---- */
+function DoorsBlock({ data }) {
+  const fig = (img, no, text, delay) => (
+    <figure>
+      <ParallaxImg src={img.src} alt={img.alt} ratio="4/3" onError={hideFigure('figure')} />
+      <figcaption><span className="meta">{no}</span><span>{text}</span></figcaption>
+    </figure>
+  );
+  return (
+    <Chapter
+      data={data}
+      hint={`${data.variants.length} variants`}
+      title="Doors,"
+      hand="configured to requirement."
+      interest="Doors"
+      checklist={['Opening sizes or a door schedule', 'Single or double, and which type', 'Core and finish', 'Quantities and site location']}
+    >
+      <ClipReveal>
+        <div className="duo">
+          {fig(IMG.doorSingle, doorV('regular', 'Single').no, 'Regular modular — single door')}
+          {fig(IMG.doorDouble, doorV('regular', 'Double').no, 'Regular modular — double door')}
+        </div>
+      </ClipReveal>
+      <Reveal>
+        <p className="meta pc-cap">Fire rated &amp; emergency types</p>
+        <div className="duo">
+          {fig(IMG.doorFireDouble, `${doorV('fire', 'Single').no} / ${doorV('fire', 'Double').no}`, 'Fire rated — single and double')}
+          {fig(IMG.doorEmergency, `${doorV('emergency', 'Single').no} / ${doorV('emergency', 'Double').no}`, 'Emergency — single and double')}
+        </div>
+      </Reveal>
+      <div className="spec-tables">
+        <div className="spec-table">
+          <p className="meta">Variants — {data.variants.length}</p>
+          {data.variants.map((v) => (
+            <div className="spec-tr" key={v.id}>
+              <span className="meta">{v.no}</span>
+              <span><b>{v.name}</b></span>
+            </div>
+          ))}
+        </div>
+        <div className="spec-table">
+          <p className="meta">Options</p>
+          <div className="spec-tr">
+            <span className="meta">Type</span>
+            <span>{data.types.join('  ·  ')}</span>
+          </div>
+          <div className="spec-tr">
+            <span className="meta">Core</span>
+            <span>{data.cores.join('  ·  ')}</span>
+          </div>
+          <div className="spec-tr">
+            <span className="meta">Finish</span>
+            <span>{data.finishes.join('  ·  ')}</span>
+          </div>
+          <div className="spec-tr">
+            <span className="meta">Colour</span>
+            <span>{data.colours.join('  ·  ')}</span>
+          </div>
+          <div className="spec-tr">
+            <span className="meta">Size</span>
+            <span>Made to your opening size</span>
+          </div>
+        </div>
+      </div>
+      <Reveal>
+        <div className="chips">
+          <NeedsChip term={`fire rating duration for fire rated doors ${doorV('fire', 'Single').no} and ${doorV('fire', 'Double').no}`} interest="Doors">Fire rating duration: needs confirmation</NeedsChip>
+          <NeedsChip term={`panic bar and push hardware for emergency doors ${doorV('emergency', 'Single').no} and ${doorV('emergency', 'Double').no}`} interest="Doors">Emergency exit hardware: needs confirmation</NeedsChip>
+        </div>
+      </Reveal>
+    </Chapter>
   );
 }
 
 /* ---- 02 Sandwich: thickness ledger ---- */
 function SandwichBlock({ data }) {
   return (
-    <section className="section prod-block" id="sandwich">
-      <div className="wrap">
-        <div className="panel">
-          <SectionHead index={data.index} label={data.name} hint="SW series" />
-        <Materialize>
-          <h2 className="h2" style={{ marginBottom: 'var(--s3)' }}>Sandwich panels: <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>the thickness ledger.</span></h2>
-          <p className="lede">{data.description} Only the thicknesses below are confirmed. No insulation, fire, thermal or acoustic values are claimed.</p>
-        </Materialize>
-        <Reveal>
-                      <p className="meta" style={{ color: 'var(--muted-fg)', margin: 'var(--s8) 0 var(--s5)' }}>Three core families in the range</p>
-          <div className="steps">
-            {[
-              { n: 'PUF', t: (<><Term def="Polyurethane foam — a rigid insulation core">PUF</Term> panels</>), d: 'Double-skin wall panels in 50 and 100 mm.' },
-              { n: 'RW', t: 'Rockwool panels', d: 'Double-skin wall panels in 50 and 100 mm, plus sandwich types.' },
-              { n: 'HC', t: 'Honeycomb panels', d: 'Honeycomb sandwich panels and honeycomb door cores.' },
-            ].map((s) => (
-              <div className="step-card" key={s.n}>
-                <span className="meta">{s.n}</span>
-                <h3 className="h3">{s.t}</h3>
-                <p className="body-sm">{s.d}</p>
-              </div>
+    <Chapter
+      data={data}
+      hint={`${data.panels.length} panel types`}
+      title="Sandwich panels:"
+      hand="the thickness ledger."
+      interest="Sandwich Panels"
+      checklist={['Areas and thicknesses (50 / 100 mm)', 'Panel types in the schedule', 'Finishes and colours', 'Quantities and site location']}
+    >
+      <ClipReveal>
+        <figure className="band-ph">
+          <ParallaxImg src={PHOTO.panelWall.src} alt={PHOTO.panelWall.alt} ratio="16/9" speed={0.12} onError={hideFigure('.band-ph')} />
+          <figcaption><span className="meta">{data.index}</span><span>50 / 100 mm wall systems</span></figcaption>
+        </figure>
+      </ClipReveal>
+      <div className="spec-matrix">
+        <div className="spec-mrow head" aria-hidden="true">
+          <span className="meta">Product</span>
+          <span className="meta">50 mm</span>
+          <span className="meta">100 mm</span>
+        </div>
+        {data.panels.map((p) => (
+          <div className="spec-mrow" key={p.id}>
+            <span><b>{p.name}</b><small>{p.no}</small></span>
+            {['50 mm', '100 mm'].map((t) => (
+              <span key={t}>
+                {p.thicknesses.includes(t) ? (
+                  <span className="chip chip-accent">{t}</span>
+                ) : (
+                  <span className="meta" style={{ color: 'var(--muted-fg)' }} title="Not confirmed">—</span>
+                )}
+              </span>
             ))}
           </div>
-        </Reveal>
-        <ClipReveal>
-          <figure className="band-ph" style={{ marginTop: 'var(--s8)' }}>
-            <ParallaxImg src={PHOTO.panelWall.src} alt={PHOTO.panelWall.alt} ratio="21/9" speed={0.12} onError={(e) => { e.currentTarget.closest('.band-ph').style.display = 'none'; }} />
-            <figcaption><span className="meta">SW series</span><span>50 / 100 mm wall systems</span></figcaption>
-          </figure>
-        </ClipReveal>
-        <div className="spec-matrix" style={{ marginTop: 'var(--s8)' }}>
-          <div className="spec-mrow head" aria-hidden="true">
-            <span className="meta">Product</span>
-            <span className="meta">50 mm</span>
-            <span className="meta">100 mm</span>
-          </div>
-          {data.panels.map((p) => (
-            <div className="spec-mrow" key={p.code}>
-              <span><b>{p.name}</b><small>{p.code}</small></span>
-              {['50 mm', '100 mm'].map((t) => (
-                <span key={t}>
-                  {p.thicknesses.includes(t) ? (
-                    <span className="chip chip-accent">{t}</span>
-                  ) : (
-                    <span className="meta" style={{ color: 'var(--muted-fg)' }} title="Not confirmed">—</span>
-                  )}
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
-        <Reveal>
-          <p className="meta" style={{ marginTop: 'var(--s5)', color: 'var(--muted-fg)' }}>
-            — means not confirmed. Only the thicknesses above are confirmed client data.
-          </p>
-          <div style={{ marginTop: 'var(--s5)' }}>
-            <p className="meta" style={{ marginBottom: 'var(--s3)', color: 'var(--muted-fg)' }}>Panel finishes &amp; colours</p>
-            <Chips items={[...data.finishes, ...data.colours]} />
-          </div>
-        </Reveal>
-        <ChapterCTA interest="Sandwich Panels" blurb="Panel layouts ready? Send areas, thicknesses and finishes for a confirmed panel schedule." checklist={['Areas and thicknesses (50 / 100 mm)', 'Panel types in the schedule', 'Finishes and colours', 'Quantities and site location']} />
-        </div>
+        ))}
       </div>
-    </section>
+      <Reveal>
+        <p className="meta" style={{ color: 'var(--muted-fg)' }}>
+          — thickness confirmed on enquiry.
+        </p>
+        <div style={{ marginTop: 'var(--s5)' }}>
+          <p className="meta" style={{ marginBottom: 'var(--s3)', color: 'var(--muted-fg)' }}>Panel finishes &amp; colours</p>
+          <Chips items={[...data.finishes, ...data.colours]} />
+        </div>
+      </Reveal>
+    </Chapter>
   );
 }
 
-/* ---- 03 Cleanroom: interactive showcase ---- */
+/* ---- 03 Cleanroom ---- */
 function CleanroomBlock({ data }) {
   return (
-    <section className="section prod-block dark-sec on-dark" id="cleanroom">
-      <div className="wrap">
-        <SectionHead index={data.index} label={data.name} hint="CR series" />
-        <Materialize>
-          <h2 className="h2" style={{ marginBottom: 'var(--s3)' }}>Cleanroom panels: <span className="font-hand" style={{ color: 'var(--datum)' }}>stated as range.</span></h2>
-          <p className="lede">{data.description}</p>
-        </Materialize>
-        <ClipReveal>
-          <figure className="band-ph" style={{ marginTop: 'var(--s8)' }}>
-            <ParallaxImg src={PHOTO.cleanroomLab.src} alt={PHOTO.cleanroomLab.alt} ratio="21/9" speed={0.12} onError={(e) => { e.currentTarget.closest('.band-ph').style.display = 'none'; }} />
-            <figcaption><span className="meta">CR series</span><span>Flush, washable surfaces for controlled rooms</span></figcaption>
-          </figure>
-        </ClipReveal>
-        <div aria-hidden="true" style={{ height: 'var(--s9)' }} />
-        <div className="spec-list">
-          {data.items.map((it, i) => (
-            <Reveal key={it.code} delay={Math.min(i * 0.05, 0.15)}>
-              <div className="spec-li">
-                <span className="meta">{it.code}</span>
-                <span className="h3">{it.name}</span>
-                <span className="chip">Range item</span>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-        <Reveal>
-          <div className="chips" style={{ marginTop: 'var(--s8)' }}>
-            <NeedsChip term="cleanroom ISO classification" interest="Cleanroom Panels">ISO class: needs confirmation</NeedsChip>
-            <NeedsChip term="GMP compliance for cleanroom panels" interest="Cleanroom Panels">GMP: needs confirmation</NeedsChip>
-            <NeedsChip term="pressure differential and hygiene ratings" interest="Cleanroom Panels">Pressure / hygiene ratings: needs confirmation</NeedsChip>
-          </div>
-          <p className="meta" style={{ marginTop: 'var(--s4)', color: 'var(--muted-fg)' }}>
-            <Term def="ISO 14644 cleanroom classification — the airborne-particle standard your room must meet">ISO class</Term>
-            {' · '}
-            <Term def="Good Manufacturing Practice — the pharmaceutical production standard">GMP</Term>
-          </p>
-        </Reveal>
-        <Reveal>
-          <div className="note-card">
-            <p className="meta" style={{ color: 'var(--datum-ink)', marginBottom: 'var(--s2)' }}>Shared product</p>
-            <p className="body-sm" style={{ margin: 0 }}>
-              Flush Wall Panels appear here and under Partition / Wall Panels — the same
-              confirmed product, specified per application on enquiry.
-            </p>
-          </div>
-        </Reveal>
-        <ChapterCTA interest="Cleanroom Panels" blurb="Controlled environment to fit out? Describe the rooms for a confirmed cleanroom range." checklist={['Room layouts and dimensions', 'Which surfaces: wall, ceiling, flush', 'Target classification, if known', 'Quantities and site location']} />
+    <Chapter
+      data={data}
+      hint={`${data.items.length} range items`}
+      title="Cleanroom panels:"
+      hand="stated as range."
+      interest="Cleanroom Panels"
+      checklist={['Room layouts and dimensions', 'Which surfaces: wall, ceiling, flush', 'Target classification, if known', 'Quantities and site location']}
+      dark
+    >
+      <ClipReveal>
+        <figure className="band-ph">
+          <ParallaxImg src={PHOTO.cleanroomLab.src} alt={PHOTO.cleanroomLab.alt} ratio="16/9" speed={0.12} onError={hideFigure('.band-ph')} />
+          <figcaption><span className="meta">{data.index}</span><span>Flush, washable surfaces for controlled rooms</span></figcaption>
+        </figure>
+      </ClipReveal>
+      <div className="spec-list">
+        {data.items.map((it, i) => (
+          <Reveal key={it.id} delay={Math.min(i * 0.05, 0.15)}>
+            <div className="spec-li">
+              <span className="meta">{it.no}</span>
+              <span className="h3">{it.name}</span>
+            </div>
+          </Reveal>
+        ))}
       </div>
-    </section>
+      <Reveal>
+        <div className="chips">
+          <NeedsChip term="cleanroom ISO classification" interest="Cleanroom Panels">ISO class: needs confirmation</NeedsChip>
+          <NeedsChip term="GMP compliance for cleanroom panels" interest="Cleanroom Panels">GMP: needs confirmation</NeedsChip>
+          <NeedsChip term="pressure differential and hygiene ratings" interest="Cleanroom Panels">Pressure / hygiene ratings: needs confirmation</NeedsChip>
+        </div>
+      </Reveal>
+    </Chapter>
   );
 }
 
-/* ---- 04 Partition: asymmetric editorial ---- */
+/* ---- 04 Partition ---- */
 function PartitionBlock({ data }) {
   return (
-    <section className="section prod-block" id="partition">
-      <div className="wrap">
-        <SectionHead index={data.index} label={data.name} hint="PT series" />
-        <div className="part-grid">
-          <Materialize>
-            <h2 className="h2" style={{ marginBottom: 'var(--s3)' }}>Partition panels: <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>kept distinct.</span></h2>
-            <p className="lede">{data.description}</p>
-            <div style={{ display: 'flex', gap: 'var(--s4)', marginTop: 'var(--s8)', flexWrap: 'wrap' }}>
-              {data.items.map((it) => (
-                <div key={it.code} className="pt-card">
-                  <p className="meta" style={{ color: 'var(--datum-ink)', marginBottom: 'var(--s3)' }}>{it.code}</p>
-                  <h3 className="h3">{it.name}</h3>
-                  <p className="body-sm" style={{ marginTop: 'var(--s2)' }}>{it.note}</p>
-                  {it.code === 'PT-RP' && (
-                    <p className="meta" style={{ marginTop: 'var(--s3)', color: 'var(--muted-fg)' }}>
-                      <Term def="Angled slats that ventilate a shaft while screening the opening">Grill</Term>
-                    </p>
-                  )}
-                  {it.code === 'PT-F' && (
-                    <div className="chips" style={{ marginTop: 'var(--s3)' }}>
-                      <span className="chip">Also in cleanroom range</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Materialize>
-          <ClipReveal delay={0.08}>
-            <div className="part-photo" style={{ aspectRatio: '1/1' }}>
-              <ParallaxImg src={PHOTO.whiteHall.src} alt={PHOTO.whiteHall.alt} speed={0.08} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              <div className="part-overlay">
-                <p className="meta t-bright">Note</p>
-                <p style={{ marginTop: 'var(--s2)', fontWeight: 400, fontSize: '0.92rem' }}>Flush wall panels also appear in the cleanroom range. Specify per application on enquiry.</p>
-              </div>
-            </div>
-          </ClipReveal>
-        </div>
-        <div aria-hidden="true" style={{ height: 'var(--s8)' }} />
-        <ClipReveal delay={0.04}>
-          <figure className="band-ph">
-            <ParallaxImg src={IMG.riserPanel.src} alt={IMG.riserPanel.alt} ratio="16/9" speed={0.12} onError={(e) => { e.currentTarget.closest('.band-ph').style.display = 'none'; }} />
-            <figcaption><span className="meta">PT-RP</span><span>Riser panel with grill for service shafts</span></figcaption>
-          </figure>
-        </ClipReveal>
-        <ChapterCTA interest="Partition / Wall Panels" blurb="Interior division to plan? Send layouts for a confirmed partition specification." checklist={['Layouts to divide', 'Partition, flush or riser panels', 'Quantities and site location']} />
+    <Chapter
+      data={data}
+      hint={`${data.items.length} items`}
+      title="Partition panels:"
+      hand="kept distinct."
+      interest="Partition / Wall Panels"
+      checklist={['Layouts to divide', 'Partition, flush or riser panels', 'Quantities and site location']}
+    >
+      <div className="pc-cards">
+        {data.items.map((it) => (
+          <div key={it.id} className="pt-card">
+            <p className="meta" style={{ color: 'var(--datum-ink)', marginBottom: 'var(--s3)' }}>{it.no}</p>
+            <h3 className="h3">{it.name}</h3>
+            <p className="body-sm" style={{ marginTop: 'var(--s2)' }}>{it.note}</p>
+            {it.id === 'riser-panel' && (
+              <p className="meta" style={{ marginTop: 'var(--s3)', color: 'var(--muted-fg)' }}>
+                <Term def="Angled slats that ventilate a shaft while screening the opening">Grill</Term>
+              </p>
+            )}
+          </div>
+        ))}
       </div>
-    </section>
+      <ClipReveal>
+        <figure className="band-ph">
+          <ParallaxImg src={PHOTO.whiteHall.src} alt={PHOTO.whiteHall.alt} ratio="16/9" speed={0.08} onError={hideFigure('.band-ph')} />
+        </figure>
+      </ClipReveal>
+      <ClipReveal delay={0.04}>
+        <figure className="band-ph">
+          <ParallaxImg src={IMG.riserPanel.src} alt={IMG.riserPanel.alt} ratio="16/9" speed={0.12} onError={hideFigure('.band-ph')} />
+          <figcaption><span className="meta">{data.items.find((i) => i.id === 'riser-panel').no}</span><span>Riser panel with grill for service shafts</span></figcaption>
+        </figure>
+      </ClipReveal>
+    </Chapter>
   );
 }
 
-/* ---- 05 Glass: view panel ---- */
+/* ---- 05 Glass ---- */
 function GlassBlock({ data }) {
   return (
-    <section className="section prod-block" id="glass">
-      <div className="wrap">
-        <SectionHead index={data.index} label={data.name} hint="GL series" />
-        <div className="part-grid">
-          <Materialize>
-            <h2 className="h2" style={{ marginBottom: 'var(--s3)' }}>View glass: <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>sightline, framed.</span></h2>
-            <p className="lede">{data.description}</p>
-            <div style={{ marginTop: 'var(--s8)' }}>
-              {data.items.map((it) => (
-                <div key={it.code} className="pt-card" style={{ maxWidth: 420 }}>
-                  <p className="meta" style={{ color: 'var(--datum-ink)', marginBottom: 'var(--s3)' }}>{it.code}</p>
-                  <h3 className="h3">{it.name}</h3>
-                  <p className="body-sm" style={{ marginTop: 'var(--s2)' }}>{it.note}</p>
-                </div>
-              ))}
-              <div className="chips" style={{ marginTop: 'var(--s6)' }}>
-                {data.options.map((o) => <span key={o} className="chip chip-accent">{o}</span>)}
-                <NeedsChip term="view glass panel glazing thickness, make and fire rating" interest="Glass Panels">{data.note}</NeedsChip>
-              </div>
-            </div>
-          </Materialize>
-          <ClipReveal delay={0.08}>
-            <div className="part-photo" style={{ aspectRatio: '1/1' }}>
-              <ParallaxImg src={PHOTO.cleanroomWindow.src} alt={PHOTO.cleanroomWindow.alt} speed={0.08} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              <div className="part-overlay">
-                <p className="meta t-bright">GL-VG</p>
-                <p style={{ marginTop: 'var(--s2)', fontWeight: 400, fontSize: '0.92rem' }}>View glass panels suit doors and glazed openings where a solid leaf would close the sightline.</p>
-              </div>
-            </div>
-          </ClipReveal>
-        </div>
-        <ChapterCTA interest="Glass Panels" blurb="Vision openings to plan? Confirm opening sizes for a view glass specification." checklist={['Opening sizes', 'Single or double glazing', 'Quantities and site location']} />
+    <Chapter
+      data={data}
+      hint={`${data.items.length} ${data.items.length === 1 ? 'item' : 'items'}`}
+      title="View glass:"
+      hand="sightline, framed."
+      interest="Glass Panels"
+      checklist={['Opening sizes', 'Single or double glazing', 'Quantities and site location']}
+    >
+      <ClipReveal>
+        <figure className="band-ph">
+          <ParallaxImg src={PHOTO.cleanroomWindow.src} alt={PHOTO.cleanroomWindow.alt} ratio="16/10" speed={0.08} onError={hideFigure('.band-ph')} />
+        </figure>
+      </ClipReveal>
+      <div className="pc-cards">
+        {data.items.map((it) => (
+          <div key={it.id} className="pt-card">
+            <p className="meta" style={{ color: 'var(--datum-ink)', marginBottom: 'var(--s3)' }}>{it.no}</p>
+            <h3 className="h3">{it.name}</h3>
+            <p className="body-sm" style={{ marginTop: 'var(--s2)' }}>{it.note}</p>
+          </div>
+        ))}
       </div>
-    </section>
+      <Reveal>
+        <div className="chips">
+          {data.options.map((o) => <span key={o} className="chip chip-accent">{o}</span>)}
+          <NeedsChip term="view glass panel glazing thickness, make and fire rating" interest="Glass Panels">{data.note}</NeedsChip>
+        </div>
+      </Reveal>
+    </Chapter>
   );
 }
 
-/* ---- 06 Profiles: spec sheet ---- */
+/* ---- 06 Profiles ---- */
 function ProfilesBlock({ data }) {
   return (
-    <section className="section prod-block" id="profiles">
-      <div className="wrap">
-        <div className="panel">
-          <SectionHead index={data.index} label={data.name} hint="PF series" />
-        <Materialize>
-          <h2 className="h2" style={{ marginBottom: 'var(--s3)' }}>Profiles &amp; accessories: <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>the spec sheet.</span></h2>
-          <p className="lede">{data.description}</p>
-        </Materialize>
-        <div aria-hidden="true" style={{ height: 'var(--s8)' }} />
+    <Chapter
+      data={data}
+      hint={`${data.groups.length} groups`}
+      title="Profiles & accessories:"
+      hand="the spec sheet."
+      interest="Profiles & Accessories"
+      checklist={['Profile types and lengths', 'Coated, non-coated or aluminium-coated', 'Quantities and site location']}
+    >
+      <div className="pc-rows">
         {data.groups.map((g, i) => (
-          <Reveal key={g.code} delay={Math.min(i * 0.05, 0.15)}>
+          <Reveal key={g.id} delay={Math.min(i * 0.05, 0.15)}>
             <div className="spec-row">
               <div className="spec-thumb" aria-hidden="true">
-                <ParallaxImg src={PROFILE_PHOTO[g.fig].src} alt="" speed={0.05} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <ParallaxImg src={PROFILE_PHOTO[g.id].src} alt="" speed={0.05} onError={hideFigure()} />
               </div>
               <div>
-                <p className="meta" style={{ color: 'var(--ink)' }}>{g.code}</p>
+                <p className="meta" style={{ color: 'var(--ink)' }}>{g.no}</p>
                 <h3 className="h3" style={{ marginTop: 'var(--s2)' }}>{g.name}</h3>
-                <p className="body-sm" style={{ marginTop: 'var(--s2)' }}>{GROUP_NOTE[g.fig]}</p>
+                <p className="body-sm" style={{ marginTop: 'var(--s2)' }}>{GROUP_NOTE[g.id]}</p>
               </div>
               <div className="chips" style={{ alignContent: 'center' }}>
                 {g.options.map((o) => (
@@ -527,15 +453,13 @@ function ProfilesBlock({ data }) {
             </div>
           </Reveal>
         ))}
-        <Reveal>
-          <p className="meta" style={{ marginTop: 'var(--s7)', color: 'var(--muted-fg)' }}>Additional profile dimensions:{' '}
-            <NeedsChip term="available profile dimensions beyond 50 mm and 100 mm" interest={'Profiles & Accessories'} style={{ marginLeft: 'var(--s2)' }}>Needs confirmation</NeedsChip>
-          </p>
-        </Reveal>
-        <ChapterCTA interest="Profiles & Accessories" blurb="Junctions, edges and tracks to close out? List the profiles for confirmed options." checklist={['Profile types and lengths', 'Coated, non-coated or aluminium-coated', 'Quantities and site location']} />
-        </div>
       </div>
-    </section>
+      <Reveal>
+        <p className="meta" style={{ color: 'var(--muted-fg)' }}>Additional profile dimensions:{' '}
+          <NeedsChip term="available profile dimensions beyond 50 mm and 100 mm" interest={'Profiles & Accessories'} style={{ marginLeft: 'var(--s2)' }}>Needs confirmation</NeedsChip>
+        </p>
+      </Reveal>
+    </Chapter>
   );
 }
 
@@ -543,52 +467,47 @@ export default function Products() {
   useHashJump();
   return (
     <div className="page">
-      <section className="prod-hero">
-        <div className="wrap" style={{ position: 'relative', zIndex: 1 }}>
-          <p className="meta" style={{ color: 'var(--datum)', marginBottom: 'var(--s5)' }}>AKALKA catalogue</p>
-          <h1 className="display">
-            <span className="mask"><span>{TOTAL_WORD} systems.</span></span>
-            <span className="mask"><span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>One language.</span></span></span>
-          </h1>
-          <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 'var(--s6)', maxWidth: '56ch' }}>
-            {TOTAL_WORD} ranges, one catalogue. Pick a category — everything listed
-            is confirmed data.
-          </p>
-          <div className="cat-cards" style={{ '--cat-cols': CAT_COLS }}>
+      {/* ---- opening: the catalogue as a row of six doors ---- */}
+      <section className="pr-hero">
+        <div className="wrap pr-hero-in">
+          <div className="pr-hero-head">
+            <p className="meta" style={{ color: 'var(--datum)', marginBottom: 'var(--s5)' }}>AKALKA catalogue</p>
+            <h1 className="display">
+              <span className="mask"><span>{TOTAL_WORD} systems.</span></span>
+              <span className="mask"><span style={{ animationDelay: '0.12s' }}><span className="font-hand" style={{ color: 'var(--datum)' }}>One language.</span></span></span>
+            </h1>
+            <p className="lede" style={{ color: 'var(--on-dark-muted)', marginTop: 'var(--s6)', maxWidth: '56ch' }}>
+              Doors, panels and the profiles that join them. Pick a category to begin.
+            </p>
+          </div>
+          <ol className="pr-doors" style={{ '--n': TOTAL }}>
             {CATEGORIES.map((c, i) => {
               const img = CARD_IMG[c.id];
               return (
-                <a key={c.id} href={`#${c.id}`} className="cat-card" style={{ animationDelay: `${0.08 * i + 0.2}s` }}>
-                  <span className="cat-card-ph">
-                    <img src={img.src} srcSet={srcSetFor(img.src)} sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw" alt="" loading={i < 2 ? 'eager' : 'lazy'} decoding="async" />
-                  </span>
-                  <span className="cat-card-body">
-                    <span className="meta">{c.index} / {TOTAL_LABEL}</span>
-                    <span className="cat-card-name">{c.name}</span>
-                  </span>
-                </a>
+                <li key={c.id} style={{ animationDelay: `${0.45 + 0.08 * i}s` }}>
+                  <a href={`#${c.id}`} className="pr-door">
+                    <img src={img.src} srcSet={srcSetFor(img.src)} sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 16vw" alt="" loading={i < 3 ? 'eager' : 'lazy'} decoding="async" />
+                    <span className="pr-door-body">
+                      <span className="meta">{c.index} / {TOTAL_LABEL}</span>
+                      <span className="pr-door-name">{c.name}</span>
+                    </span>
+                  </a>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
       </section>
+
       <ChapterDock />
-      <DoorsBlock data={CATEGORIES.find((c) => c.id === 'doors')} />
-      <SandwichBlock data={CATEGORIES.find((c) => c.id === 'sandwich')} />
-      <CleanroomBlock data={CATEGORIES.find((c) => c.id === 'cleanroom')} />
-      <PartitionBlock data={CATEGORIES.find((c) => c.id === 'partition')} />
-      <GlassBlock data={CATEGORIES.find((c) => c.id === 'glass')} />
-      <ProfilesBlock data={CATEGORIES.find((c) => c.id === 'profiles')} />
+      <DoorsBlock data={CAT.doors} />
+      <SandwichBlock data={CAT.sandwich} />
+      <CleanroomBlock data={CAT.cleanroom} />
+      <PartitionBlock data={CAT.partition} />
+      <GlassBlock data={CAT.glass} />
+      <ProfilesBlock data={CAT.profiles} />
+
       <section className="section">
-        <div className="wrap">
-          <SectionHead index="How" label="How an order works" hint="4 steps" />
-          <Materialize>
-            <h2 className="h2" style={{ maxWidth: '20ch', marginBottom: 'var(--s9)' }}>From chapter to <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>confirmed specification.</span></h2>
-          </Materialize>
-          <Process />
-        </div>
-      </section>
-      <section className="section" style={{ paddingTop: 0 }}>
         <div className="wrap">
           <Reveal>
             <div className="cta-band">

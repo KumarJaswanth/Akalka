@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
-import { addScrollJob } from './components/Reveal.jsx';
+import { addScrollJob, flushScrollJobs } from './components/Reveal.jsx';
 import Lenis from 'lenis';
 import Nav from './components/Nav.jsx';
 import Boot from './components/Boot.jsx';
@@ -15,6 +15,7 @@ const Home = lazy(() => import('./pages/Home.jsx'));
 const Products = lazy(() => import('./pages/Products.jsx'));
 const About = lazy(() => import('./pages/About.jsx'));
 const Contact = lazy(() => import('./pages/Contact.jsx'));
+const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
 function RouteFallback() {
   return (
@@ -24,28 +25,41 @@ function RouteFallback() {
   );
 }
 
-/* Inertial smooth scrolling (Lenis, Jakub lens): expo-out easing for a
-   weighted, settled stop; native rAF loop and anchor handling; skipped
-   entirely under reduced-motion. Stored for instant jumps. */
+/* Inertial smooth scrolling (Lenis): expo-out easing for a weighted, settled
+   stop; native rAF loop; touch stays native (momentum on a phone is the
+   platform's, and cannot be matched); skipped entirely under reduced
+   motion. Stored on window for instant jumps.
+   Three details that make it feel exact rather than merely smooth:
+     · scenes are flushed from the smoother's OWN scroll event, in the frame
+       that moved the page — the browser's scroll event arrives a frame
+       later, which left every pinned scene one frame behind the content it
+       is pinned against (a faint shimmer);
+     · in-page anchors land clear of the fixed nav;
+     · the page is re-measured when fonts and images settle, so a scene
+       never works from a stale height. */
 function SmoothScroll() {
   const reduce = useReducedMotion();
   useEffect(() => {
-    if (reduce) return;
+    if (reduce) return undefined;
     const lenis = new Lenis({
       autoRaf: true,
       duration: 1.15,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      anchors: true,
+      anchors: { offset: -90, duration: 1.2 },
     });
     window.__lenis = lenis;
     /* Scroll velocity, normalised to −1…1, for velocity-reactive scenes
-       (skewing type, stretching marquees). Read inside the shared scene
-       batch, so it costs no extra listener per element. */
+       (skewing cards). Written before the flush so the same frame uses it. */
     lenis.on('scroll', (e) => {
       window.__vel = Math.max(-1, Math.min(1, (e.velocity || 0) / 40));
+      flushScrollJobs();
     });
+    const resize = () => lenis.resize();
+    window.addEventListener('load', resize);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(resize);
     return () => {
+      window.removeEventListener('load', resize);
       lenis.destroy();
       window.__lenis = undefined;
     };
@@ -86,7 +100,7 @@ const TITLES = {
 function PageTitle() {
   const { pathname } = useLocation();
   useEffect(() => {
-    document.title = TITLES[pathname] || TITLES['/'];
+    document.title = TITLES[pathname.replace(/\/$/, '') || '/'] || 'Page not found | AKALKA Doors & Panels';
   }, [pathname]);
   return null;
 }
@@ -226,8 +240,9 @@ export default function App() {
       <ScrollProgress />
       <RouteCurtain />
       <Cursor />
+      <a className="skip-link" href="#main">Skip to content</a>
       <Nav />
-      <main key={pathname.split('#')[0]}>
+      <main id="main" tabIndex={-1} key={pathname.split('#')[0]}>
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
@@ -235,7 +250,7 @@ export default function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="*" element={<Home />} />
+            <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

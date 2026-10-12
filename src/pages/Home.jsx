@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CATEGORIES } from '../data/products.js';
+import { CATEGORIES, CAT, PANEL_CORES, WALL_THICKNESSES, word, tag } from '../data/products.js';
 import { Reveal, Materialize, SectionHead, Magnetic, ScrollWords, CountUp } from '../components/Reveal.jsx';
 import { ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
@@ -7,7 +7,8 @@ import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
 import EnquiryForm from '../components/EnquiryForm.jsx';
 import Hero from '../components/Hero.jsx';
 import NeedsChip from '../components/NeedsChip.jsx';
-import { SystemAnatomy, ImageExpand, PanelExploded, DoorExploded, Applications } from '../components/Scenes.jsx';
+import { SystemAnatomy, PanelExploded, DoorExploded, Applications } from '../components/Scenes.jsx';
+import { ImageExpand } from '../components/Blocks.jsx';
 import { IMG, PHOTO } from '../data/images.js';
 
 /* Home is one argument, told in order: who AKALKA is, what it makes
@@ -40,9 +41,9 @@ function Strip() {
 function Intro() {
   const facts = [
     { n: CATEGORIES.length, t: 'Product families', d: 'Doors to profiles, one maker' },
-    { n: 3, t: 'Door types', d: 'Modular, fire rated, emergency' },
-    { n: 3, t: 'Panel cores', d: 'PUF, rockwool, honeycomb' },
-    { n: 2, t: 'Wall thicknesses', d: '50 mm and 100 mm' },
+    { n: CAT.doors.types.length, t: 'Door types', d: 'Modular, fire rated, emergency' },
+    { n: PANEL_CORES.length, t: 'Panel cores', d: 'PUF, rockwool, honeycomb' },
+    { n: WALL_THICKNESSES.length, t: 'Wall thicknesses', d: '50 mm and 100 mm' },
   ];
   return (
     <section className="section" id="intro">
@@ -75,7 +76,7 @@ function Intro() {
           <dl className="facts">
             {facts.map((f) => (
               <div key={f.t}>
-                <dt className="facts-n"><CountUp to={f.n} /></dt>
+                <dt className="facts-n"><CountUp to={f.n} pad /></dt>
                 <dd>
                   <b>{f.t}</b>
                   <span>{f.d}</span>
@@ -95,7 +96,7 @@ function SystemIntro() {
     <>
       <section className="section sys-head" id="system">
         <div className="wrap">
-          <SectionHead index="System" label="What we make" hint="Six families · one room" />
+          <SectionHead index="System" label="What we make" hint={`${word(CATEGORIES.length)} families · one room`} />
           <div className="sys-grid">
             <Materialize>
               <h2 className="h2" style={{ maxWidth: '16ch' }}>
@@ -120,13 +121,13 @@ function SystemIntro() {
 /* Real product photography straight after the exploded door — the
    drawing explains the build, the gallery proves the finish. */
 const DOOR_SLIDES = [
-  { ...IMG.doorSingle, code: 'DR-S', title: 'Regular Modular Single', note: 'Size as per requirement' },
-  { ...IMG.doorDouble, code: 'DR-D', title: 'Regular Modular Double', note: 'Size as per requirement' },
-  { ...IMG.doorFire, code: 'DR-FS', title: 'Fire Rated Single', note: 'Push-bar hardware — rating: needs confirmation' },
-  { ...IMG.doorFireDouble, code: 'DR-FD', title: 'Fire Rated Double', note: 'Double-leaf push-bar — rating: needs confirmation' },
-  { ...IMG.doorEmergency, code: 'DR-ES / DR-ED', title: 'Emergency', note: 'Single and double — hardware: needs confirmation' },
-  { ...PHOTO.steelDoorWall, code: 'DR / In the wall', title: 'Set into the panel system', note: 'Doors and panels from one maker' },
-  { ...IMG.doorSingleAlt, code: 'DR / Colour', title: 'Coated colour options', note: 'White, matt white, as per requirement' },
+  { ...IMG.doorSingle, tag: tag('doors', 'regular-single'), title: 'Regular Modular Single', note: 'Size as per requirement' },
+  { ...IMG.doorDouble, tag: tag('doors', 'regular-double'), title: 'Regular Modular Double', note: 'Size as per requirement' },
+  { ...IMG.doorFire, tag: tag('doors', 'fire-single'), title: 'Fire Rated Single', note: 'Push-bar hardware — rating: needs confirmation' },
+  { ...IMG.doorFireDouble, tag: tag('doors', 'fire-double'), title: 'Fire Rated Double', note: 'Double-leaf push-bar — rating: needs confirmation' },
+  { ...IMG.doorEmergency, tag: `${tag('doors', 'emergency-single')} / ${CAT.doors.variants[5].no}`, title: 'Emergency', note: 'Single and double — hardware: needs confirmation' },
+  { ...PHOTO.steelDoorWall, tag: tag('doors'), title: 'Set into the panel system', note: 'Doors and panels from one maker' },
+  { ...IMG.doorSingleAlt, tag: tag('doors'), title: 'Coated colour options', note: 'White, matt white, as per requirement' },
 ];
 
 function DoorGallery() {
@@ -147,7 +148,7 @@ function Cleanroom() {
   return (
     <section className="section dark-sec on-dark" id="cleanroom">
       <div className="wrap">
-        <SectionHead index="CR" label="Cleanroom panels" hint="Wall · ceiling · washable · flush" />
+        <SectionHead index={cr.index} label="Cleanroom panels" hint="Wall · ceiling · washable · flush" />
         <div className="sys-grid">
           <Materialize>
             <h2 className="h2" style={{ maxWidth: '16ch' }}>Controlled interiors, <span className="font-hand" style={{ color: 'var(--datum)' }}>flush surfaces.</span></h2>
@@ -192,7 +193,7 @@ function WhereUsed() {
       items={APPS}
       head={
         <>
-          <SectionHead index="Use" label="Where it's used" hint="Six kinds of space" />
+          <SectionHead index="Use" label="Where it's used" hint={`${word(APPS.length)} kinds of space`} />
           <Materialize>
             <h2 className="h2">Built for rooms <span className="font-hand" style={{ color: 'var(--datum-ink)' }}>that have to work.</span></h2>
             <p className="lede" style={{ marginTop: 'var(--s4)' }}>From sealed cleanrooms to everyday partitions — the same coordinated system, specified per space.</p>
@@ -222,7 +223,7 @@ function Enquiry() {
   return (
     <section className="section" id="enquiry">
       <div className="wrap">
-        <SectionHead index="Contact" label="Start an enquiry" hint="Response time: unconfirmed" />
+        <SectionHead index="Contact" label="Start an enquiry" />
         <div className="enquiry-grid">
           <div>
             <Materialize>
