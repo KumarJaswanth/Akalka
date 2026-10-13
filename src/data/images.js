@@ -1,15 +1,16 @@
 /* Central photography map.
    ------------------------------------------------------------------
    Local AKALKA product photography (public/Images/) is used for all
-   door, fire-door and panel subjects. Remaining remote Unsplash/Pexels
-   images cover only subjects with no local equivalent (partitions,
-   glass, profiles, riser vent). Alt text describes the photograph
+   door, fire-door and panel subjects. Remaining remote Pexels
+   (free licence) images cover only subjects with no local equivalent
+   (cleanrooms, partitions, profiles, riser vent), each checked for
+   watermarks, captions and stray text. Alt text describes the photograph
    itself, never an AKALKA product. Every <img> hides gracefully
    on error.
    ------------------------------------------------------------------ */
 
-/* Responsive sources for the remote CDNs. Both Pexels and Unsplash
-   resize on the fly via `w=`, so one URL fans out into a width ladder
+/* Responsive sources for the remote CDNs. Pexels
+   resizes on the fly via `w=`, so one URL fans out into a width ladder
    and the browser fetches only what the layout needs — a phone gets a
    ~480–800px file instead of the 2000px desktop original. Fixed-crop
    URLs (with `h=`) and local files are returned untouched. */
@@ -25,10 +26,6 @@ export function srcSetFor(src) {
   ws.push(max);
   return ws.map((w) => `${sized(src, w)} ${w}w`).join(', ');
 }
-
-/* Unsplash — photo-<id>, width only. */
-const U = (id, w = 1400) =>
-  `https://images.unsplash.com/photo-${id}?q=80&w=${w}&auto=format&fit=crop`;
 
 /* Pexels — photo-<id>, width only. */
 const P = (id, w = 1400) =>
@@ -106,17 +103,11 @@ export const IMG = {
     alt: 'Louvred ventilation panel in a metal frame, set flush into a panel wall',
   },
 
-  /* ---- Glass: view panels set into door leaves ---- */
-  glass: {
-    src: P(6446313, 1400),
-    alt: 'Glazed door leaf with a clear view panel through to a lit room',
-  },
-
   /* ---- Profiles: formed metal sections and tracks ---- */
   profiles: {
     alucoat: {
-      src: U('1759310347407-b0dbfeb8745d', 900),
-      alt: 'Profiled metal cladding sheets, close view',
+      src: P(7078491, 1200),
+      alt: 'Close view of coated aluminium cladding strips catching the light',
     },
   },
 };
@@ -129,8 +120,8 @@ export const PHOTO = {
     alt: 'Technician in a gown walking through a bright high-tech cleanroom',
   },
   cleanroomLab: {
-    src: P(5953827, 1600),
-    alt: 'Bright sterile production room with flush white walls and steel benches',
+    src: P(9574454, 1600),
+    alt: 'Bright sterile laboratory with flush white walls, a clean ceiling grid and tiled floor',
   },
   cleanroomWindow: {
     src: P(10514768, 1400),
@@ -156,6 +147,10 @@ export const PHOTO = {
     src: P(14029360, 1600),
     alt: 'Grey steel door set flush into a ribbed white panel wall',
   },
+  cornerSection: {
+    src: P(9729590, 1400),
+    alt: 'Cross-section of a coated aluminium profile held in the hands',
+  },
   glassHall: {
     src: P(8477485, 1600),
     alt: 'Corridor lined with glazed walls leading to a meeting room',
@@ -169,12 +164,12 @@ export const PHOTO = {
     alt: 'Hands measuring an aluminium profile with a tape on the workbench',
   },
   aluStock: {
-    src: P(36397989, 1600),
-    alt: 'Racks of aluminium and steel sections in a workshop',
+    src: P(9729573, 1600),
+    alt: 'Fitting hardware into a long aluminium frame profile with a power driver',
   },
   angles: {
-    src: P(36003962, 1400),
-    alt: 'Drilled steel angle sections in low workshop light',
+    src: P(9729583, 1400),
+    alt: 'Hands holding a cut section of a coated aluminium frame profile',
   },
 };
 
@@ -182,7 +177,7 @@ export const PHOTO = {
    Separate from IMG.profiles so the hero journey, which reads IMG, is
    untouched. */
 export const PROFILE_PHOTO = {
-  corner: PHOTO.angles,
+  corner: PHOTO.cornerSection,
   formed3d: PHOTO.aluStock,
   track: PHOTO.measure,
   alucoat: IMG.profiles.alucoat,
