@@ -46,19 +46,15 @@ const PV = (id, w, h) =>
 const L = (file) =>
   `${import.meta.env.BASE_URL}Images/${file.split(' ').join('%20')}`;
 
-/* Hero photograph (Pexels 9574536, free licence), served locally as a
-   WebP width ladder cut from the 5831px original — sharp on any screen,
-   a fraction of the old PNG's weight. A small foreign-language exit sign
-   above the door was retouched out of the master. `w`/`h` are the
-   master's proportions: the hero lays the image out by hand so its door
-   can be located exactly. */
-const HERO_WIDTHS = [1280, 1920, 2560, 3200];
+/* Hero photograph: the AKALKA showroom (akalka-bg.webp, cut from the
+   supplied PNG). `w`/`h` are its proportions: the hero lays the image out
+   by hand so the drawn door can be placed on the logo wall exactly. */
 export const HERO = {
-  src: L('hero-cleanroom-1920.webp'),
-  srcSet: HERO_WIDTHS.map((w) => `${L(`hero-cleanroom-${w}.webp`)} ${w}w`).join(', '),
-  alt: 'Technician wheeling a sample cart down a bright cleanroom corridor of white wall panels, a door at its end',
-  w: 5831,
-  h: 3887,
+  src: L('akalka-bg.webp'),
+  srcSet: `${L('akalka-bg.webp')} 1983w`,
+  alt: 'AKALKA showroom: coated steel doors and sandwich panels either side of the AKALKA Doors & Panels wall',
+  w: 1983,
+  h: 793,
 };
 
 export const IMG = {

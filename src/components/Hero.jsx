@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useScrollVar, usePointerTilt } from './Reveal.jsx';
+import { useScrollVar } from './Reveal.jsx';
 import { HERO } from '../data/images.js';
 import { doorNo } from '../data/products.js';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
@@ -27,8 +27,8 @@ import { ArrowRight, ArrowUpRight } from './icons.jsx';
    pinned run. */
 
 /* Door opening in the photograph, as fractions of the frame
-   (measured on the 3200px master). */
-const OPEN = { l: 0.489, r: 0.583, t: 0.432, b: 0.737 };
+   (the AKALKA wall in the showroom photograph, from sill to header). */
+const OPEN = { l: 0.451, r: 0.528, t: 0.2, b: 0.62 };
 /* The photo is drawn slightly larger than the stage so the pointer
    parallax can pan it without ever showing an edge. */
 const OVERSCAN = 1.04;
@@ -125,16 +125,6 @@ export default function Hero() {
   const reduced = useRef(
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
-  /* The pointer pan is written straight onto the three layers that move
-     (photo, light, door) as a `translate` — no inherited variable, so a
-     moving mouse never restyles the hero's subtree. */
-  usePointerTilt(pinRef, (x, y) => {
-    const t = `${(-x * 16).toFixed(2)}px ${(-y * 10).toFixed(2)}px`;
-    if (imgRef.current) imgRef.current.style.translate = t;
-    if (glowRef.current) glowRef.current.style.translate = t;
-    if (doorRef.current) doorRef.current.style.translate = t;
-  });
-
   /* Lay the photograph out to cover the stage with the door centred
      horizontally whenever the frame is cropped at the sides, then place
      the light layer and the drawn door exactly over the photographed one. */
@@ -148,13 +138,17 @@ export default function Hero() {
       const vw = pin.clientWidth;
       const vh = pin.clientHeight;
       if (!vw || !vh) return;
-      const s = Math.max(vw / HERO.w, vh / HERO.h) * OVERSCAN;
+      /* Portrait phones: a 2.5:1 photo cropped to cover would show only a
+         sliver of wall, so frame the logo wall instead and let the photo
+         fade into the dark stage (see .hero-photo in hero.css). */
+      const portrait = vw / vh <= 0.8;
+      const s = portrait ? (vw * 2.4) / HERO.w : Math.max(vw / HERO.w, vh / HERO.h) * OVERSCAN;
       const iw = HERO.w * s;
       const ih = HERO.h * s;
       const mid = (OPEN.l + OPEN.r) / 2;
       /* Centre the door, but keep PAN px of photo past every edge. */
       const ox = Math.min(-PAN, Math.max(vw - iw + PAN, vw / 2 - mid * iw));
-      const oy = (vh - ih) / 2;
+      const oy = portrait ? vh * 0.2 : (vh - ih) / 2;
       const L = ox + OPEN.l * iw;
       const T = oy + OPEN.t * ih;
       const W = (OPEN.r - OPEN.l) * iw;
