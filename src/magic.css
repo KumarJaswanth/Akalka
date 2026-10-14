@@ -1,0 +1,117 @@
+/* ==================================================================
+   AKALKA — finishing layer.
+   Small, signature touches that sit on top of the existing motion
+   system. Everything here animates only transform / opacity (or paints a
+   few glyphs once), every looping effect is paused while it is off
+   screen (`.is-live`, set by useLiveRegions in App.jsx), and all of it
+   switches off under reduced motion.
+   ================================================================== */
+
+/* ---------- laminar airflow on the dark surfaces ----------
+   Cleanrooms are defined by filtered air falling in straight, even
+   columns. The graphite chapters carry a faint trace of it: hairline
+   columns with a soft lime pulse sliding down them, on a slight diagonal
+   so neighbouring columns arrive one after another. One pseudo-element
+   per surface, moved by transform only. */
+.dark-sec, .page-hero, .pr-hero { isolation: isolate; overflow: clip; }
+.dark-sec::before, .page-hero::before, .pr-hero::before {
+  content: ''; position: absolute; left: 0; right: 0; top: -569px; bottom: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(170deg,
+    rgba(160, 214, 60, 0) 0 220px,
+    rgba(170, 222, 80, 0.32) 300px,
+    rgba(255, 255, 255, 0) 380px 560px);
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 72px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 72px);
+  opacity: 0.55;
+  animation: airFall 11s linear infinite;
+  animation-play-state: paused;
+}
+/* One vertical repeat of a 560px band laid at 10° from vertical. */
+@keyframes airFall { to { transform: translate3d(0, 568.64px, 0); } }
+.is-live::before { animation-play-state: running; }
+
+/* ---------- motes in the painted horizons ----------
+   Day: pollen catching the sun, rising and fading.
+   Dusk: fireflies wandering and pulsing over the footer hills. */
+.ls-motes { position: absolute; inset: 0; z-index: 2; }
+.ls-motes i {
+  position: absolute; left: var(--mx); top: var(--my); width: var(--ms); height: var(--ms); border-radius: 50%;
+  opacity: 0;
+  animation-play-state: paused !important;
+}
+.ls.is-live .ls-motes i { animation-play-state: running !important; }
+.ls-day .ls-motes i {
+  background: rgba(255, 253, 236, 0.95);
+  box-shadow: 0 0 6px 1px rgba(255, 250, 210, 0.7);
+  animation: pollen var(--mt) linear var(--md) infinite;
+}
+@keyframes pollen {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  15% { opacity: 0.9; }
+  70% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate3d(var(--mdx), -140px, 0); }
+}
+.ls-dusk .ls-motes i {
+  background: #e4ff8a;
+  box-shadow: 0 0 10px 3px rgba(180, 240, 60, 0.55);
+  animation: ffWander var(--mt) ease-in-out var(--md) infinite alternate, ffPulse calc(var(--mt) * 0.34) ease-in-out var(--md) infinite alternate;
+}
+@keyframes ffWander {
+  0% { transform: translate3d(0, 0, 0); }
+  33% { transform: translate3d(calc(var(--mdx) * 0.6), -18px, 0); }
+  66% { transform: translate3d(calc(var(--mdx) * -0.3), -32px, 0); }
+  100% { transform: translate3d(var(--mdx), -10px, 0); }
+}
+@keyframes ffPulse { 0%, 30% { opacity: 0; } 60% { opacity: 0.95; } 100% { opacity: 0.15; } }
+
+/* Looping decor elsewhere rests while off screen too. */
+.marquee:not(.is-live) .marquee-track,
+.ls:not(.is-live) .ls-drift { animation-play-state: paused; }
+
+/* ---------- ink sweep on the handwritten accents ----------
+   When a heading materialises, a light catches its lime handwriting
+   word by word. Painted once; afterwards the words rest in their own
+   colour (the gradient ends on currentColor at both sides). */
+.mz .font-hand .wi {
+  background-image: linear-gradient(100deg, currentColor 0 40%, #f6ffd6 50%, currentColor 60% 100%);
+  background-size: 280% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-inline: 0.06em; margin-inline: -0.06em;
+}
+.mz.is-in .font-hand .wi { animation: inkSweep 1.6s var(--ease-soft) calc(0.5s + var(--wi, 0) * 70ms) both; }
+@keyframes inkSweep { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+/* ---------- specification rows settle in as they are read ----------
+   The catalogue's tables and cards were the one place nothing moved.
+   Progressive: browsers without scroll-driven animations show them as-is. */
+@supports (animation-timeline: view()) {
+  .spec-tr, .spec-mrow, .pc-cards .pt-card {
+    animation: rowIn linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 90%;
+  }
+  @keyframes rowIn {
+    from { opacity: 0; transform: translate3d(-14px, 10px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/* ---------- FAQ answers open and close smoothly ---------- */
+@supports (interpolate-size: allow-keywords) {
+  .faq-item { interpolate-size: allow-keywords; }
+  .faq-item::details-content {
+    height: 0; overflow: clip;
+    transition: height 0.5s var(--ease-soft), content-visibility 0.5s allow-discrete;
+  }
+  .faq-item[open]::details-content { height: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark-sec::before, .page-hero::before, .pr-hero::before { animation: none; }
+  .ls-motes { display: none; }
+  .mz .font-hand .wi { background: none; -webkit-text-fill-color: currentColor; animation: none; }
+  .spec-tr, .spec-mrow, .pc-cards .pt-card { animation: none; }
+}

@@ -4,6 +4,7 @@ import { Reveal, Materialize, SectionHead } from '../components/Reveal.jsx';
 import Carousel from '../components/Carousel.jsx';
 import { ImageExpand, Process, PROCESS_STEPS } from '../components/Blocks.jsx';
 import { IMG, PHOTO, srcSetFor } from '../data/images.js';
+import Landscape from '../components/Landscape.jsx';
 
 const FINISH_SLIDES = [
   { ...IMG.cleanroomFinished, tag: tag('cleanroom'), title: 'Completed cleanroom', note: 'Flush panels, blue doors, blue floor' },
@@ -150,7 +151,8 @@ export default function About() {
       </section>
 
       {/* ---- finished interiors ---- */}
-      <section className="section">
+      <section className="section has-ls">
+        <Landscape seed={5} />
         <div className="wrap">
           <SectionHead index="Work" label="Finished interiors" hint="Drag / scroll" />
           <Reveal>

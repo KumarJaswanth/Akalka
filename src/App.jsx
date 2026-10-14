@@ -8,6 +8,7 @@ import Boot from './components/Boot.jsx';
 import Footer from './components/Footer.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Cursor from './components/Cursor.jsx';
+import { routeFor, canonical, NOT_FOUND, SITE_URL } from './data/seo.js';
 
 /* Route-split: visitors download only the page they open. Shared UI
    (nav, motion, galleries) stays in one common chunk automatically. */
@@ -90,17 +91,44 @@ function ScrollToTop() {
   return null;
 }
 
-/* Per-route document titles — the tab always says where you are. */
-const TITLES = {
-  '/': 'AKALKA — Doors & Panels | Precision Manufacturing',
-  '/products': 'Products catalogue | AKALKA Doors & Panels',
-  '/about': 'About | AKALKA Doors & Panels',
-  '/contact': 'Contact & enquiries | AKALKA Doors & Panels',
-};
-function PageTitle() {
+/* Per-route <head>: title, description, canonical, sharing tags and the
+   robots directive, kept in step on every in-app navigation. The build
+   writes the same values into each route's own HTML file (postbuild.mjs),
+   so crawlers and link previews read them without running any script. */
+function setMeta(attr, key, value) {
+  let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', value);
+}
+function Seo() {
   const { pathname } = useLocation();
   useEffect(() => {
-    document.title = TITLES[pathname.replace(/\/$/, '') || '/'] || 'Page not found | AKALKA Doors & Panels';
+    const route = routeFor(pathname);
+    const m = route || NOT_FOUND;
+    const url = route ? canonical(route.path) : null;
+    document.title = m.title;
+    setMeta('name', 'description', m.description);
+    setMeta('name', 'robots', route ? 'index, follow, max-image-preview:large' : 'noindex, follow');
+    setMeta('property', 'og:title', m.title);
+    setMeta('property', 'og:description', m.description);
+    setMeta('property', 'og:url', url || SITE_URL);
+    setMeta('name', 'twitter:title', m.title);
+    setMeta('name', 'twitter:description', m.description);
+    let link = document.head.querySelector('link[rel="canonical"]');
+    if (url) {
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'canonical';
+        document.head.appendChild(link);
+      }
+      link.href = url;
+    } else if (link) {
+      link.remove();
+    }
   }, [pathname]);
   return null;
 }
@@ -171,6 +199,47 @@ function Freshness() {
   return null;
 }
 
+/* Looping decoration (airflow, motes, cloud drift, the spec strip) only
+   runs while it is on screen: every matching element gets `.is-live` while
+   it intersects the viewport, and the CSS pauses it otherwise. Pages load
+   lazily, so new elements are picked up as they mount. */
+const LIVE = '.dark-sec, .page-hero, .pr-hero, .ls, .marquee';
+function LiveRegions() {
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => e.target.classList.toggle('is-live', e.isIntersecting)),
+      { rootMargin: '100px 0px' }
+    );
+    /* Watched elements, so ones a route change removed can be released. */
+    const seen = new Set();
+    const scan = () => {
+      seen.forEach((el) => {
+        if (el.isConnected) return;
+        io.unobserve(el);
+        seen.delete(el);
+      });
+      document.querySelectorAll(LIVE).forEach((el) => {
+        if (seen.has(el)) return;
+        seen.add(el);
+        io.observe(el);
+      });
+    };
+    let t = 0;
+    const mo = new MutationObserver(() => {
+      clearTimeout(t);
+      t = setTimeout(scan, 60);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    scan();
+    return () => {
+      clearTimeout(t);
+      mo.disconnect();
+      io.disconnect();
+    };
+  }, []);
+  return null;
+}
+
 /* Route curtain: on every in-app navigation (never the first load —
    Boot owns that), a worksurface sheet carrying the wordmark covers the
    swap and lifts away. Pure CSS animation, remounted by key. */
@@ -235,8 +304,9 @@ export default function App() {
       <SmoothScroll />
       <Boot />
       <ScrollToTop />
-      <PageTitle />
+      <Seo />
       <Freshness />
+      <LiveRegions />
       <ScrollProgress />
       <RouteCurtain />
       <Cursor />

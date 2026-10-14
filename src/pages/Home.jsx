@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { CATEGORIES, CAT, PANEL_CORES, WALL_THICKNESSES, word, tag } from '../data/products.js';
 import { Reveal, Materialize, SectionHead, Magnetic, ScrollWords, CountUp } from '../components/Reveal.jsx';
@@ -10,6 +11,7 @@ import NeedsChip from '../components/NeedsChip.jsx';
 import { SystemAnatomy, PanelExploded, DoorExploded, Applications } from '../components/Scenes.jsx';
 import { ImageExpand } from '../components/Blocks.jsx';
 import { IMG, PHOTO } from '../data/images.js';
+import Landscape from '../components/Landscape.jsx';
 
 /* Home is one argument, told in order: who AKALKA is, what it makes
    (the drawn room), how it makes it (to order), the two products taken
@@ -18,6 +20,44 @@ import { IMG, PHOTO } from '../data/images.js';
 
 /* ---------------- Static specification strip ---------------- */
 function Strip() {
+  /* The strip answers the scroll: it speeds up with it, runs backwards
+     when the page goes up, and eases back to its own drift when the page
+     rests. One rAF loop, alive only while the page is moving. */
+  const trackRef = useRef(null);
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const anim = track.getAnimations ? track.getAnimations()[0] : null;
+    if (!anim) return undefined;
+    let raf = 0;
+    let rate = 1;
+    let lastY = window.scrollY;
+    const tick = () => {
+      const y = window.scrollY;
+      const v = y - lastY;
+      lastY = y;
+      const target = 1 + Math.max(-7, Math.min(9, v / 5));
+      rate += (target - rate) * 0.1;
+      anim.playbackRate = rate;
+      if (Math.abs(v) > 0.1 || Math.abs(rate - 1) > 0.02) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        anim.playbackRate = 1;
+        rate = 1;
+        raf = 0;
+      }
+    };
+    /* lastY holds the resting position between bursts, so the first frame
+       of a new scroll already sees how far the page moved. */
+    const kick = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener('scroll', kick, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', kick);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
   const items = ['Regular / Fire / Emergency Doors', 'Single & Double', 'PUF / Rockwool / Honeycomb', '50 / 100 mm', 'Cleanroom Wall & Ceiling', 'Riser Panels with Grill', 'View Glass', 'R-70 / R-90 Profiles'];
   const row = (hidden) => (
     <span aria-hidden={hidden || undefined}>
@@ -26,7 +66,7 @@ function Strip() {
   );
   return (
     <div className="marquee" id="range-strip" aria-label="Confirmed range summary">
-      <div className="marquee-track">
+      <div className="marquee-track" ref={trackRef}>
         {row(false)}
         {row(true)}
       </div>
@@ -46,7 +86,8 @@ function Intro() {
     { n: WALL_THICKNESSES.length, t: 'Wall thicknesses', d: '50 mm and 100 mm' },
   ];
   return (
-    <section className="section" id="intro">
+    <section className="section has-ls" id="intro">
+      <Landscape seed={3} />
       <div className="wrap">
         <SectionHead index="Hello" label="Who we are" hint="Manufacturing first" />
         <Materialize>
@@ -221,7 +262,8 @@ function Enquiry() {
     doorMeta = '';
   }
   return (
-    <section className="section" id="enquiry">
+    <section className="section has-ls" id="enquiry">
+      <Landscape seed={7} />
       <div className="wrap">
         <SectionHead index="Contact" label="Start an enquiry" />
         <div className="enquiry-grid">

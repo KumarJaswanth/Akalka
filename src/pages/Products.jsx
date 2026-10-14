@@ -6,6 +6,7 @@ import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import { IMG, PHOTO, PROFILE_PHOTO, srcSetFor } from '../data/images.js';
 import NeedsChip from '../components/NeedsChip.jsx';
 import Term from '../components/Term.jsx';
+import Landscape from '../components/Landscape.jsx';
 
 /* One photograph per category for the opening index. */
 const CARD_IMG = {
@@ -507,7 +508,8 @@ export default function Products() {
       <GlassBlock data={CAT.glass} />
       <ProfilesBlock data={CAT.profiles} />
 
-      <section className="section">
+      <section className="section has-ls">
+        <Landscape seed={13} />
         <div className="wrap">
           <Reveal>
             <div className="cta-band">

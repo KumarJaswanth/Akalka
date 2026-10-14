@@ -5,6 +5,7 @@ import { Reveal, Materialize, Magnetic, useScrollVar } from './Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
 import Logo from './Logo.jsx';
 import { CONTACT, telHref } from '../data/company.js';
+import Landscape from './Landscape.jsx';
 
 export default function Footer() {
   /* The wordmark rises letter by letter and fills with lime as the
@@ -16,7 +17,8 @@ export default function Footer() {
     else window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   return (
-    <footer>
+    <footer className="has-ls">
+      <Landscape variant="dusk" seed={21} mode="enter" neutral="end" />
       <div className="wrap">
         <div className="foot-top">
           <Materialize>

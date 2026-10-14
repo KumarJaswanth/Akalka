@@ -1,0 +1,70 @@
+/* ==================================================================
+   AKALKA — painted horizon (Landscape.jsx).
+   A section that carries `.has-ls` keeps all its content; the horizon
+   lives behind it in its own clipped box and the section gains room at
+   the bottom for the hills to rise into. Layers are canvases painted once;
+   each scrolled frame writes one transform per layer.
+   ================================================================== */
+.has-ls { isolation: isolate; --lsh: clamp(240px, 36vw, 560px); padding-bottom: calc(var(--lsh) * 0.94); }
+.has-ls > .wrap { position: relative; z-index: 1; }
+
+.ls { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; border-radius: inherit; }
+.ls-band { position: absolute; left: 0; right: 0; bottom: 0; height: var(--lsh); }
+.ls-l, .ls-clouds { position: absolute; left: 0; top: 0; display: block; width: 100%; will-change: transform; }
+.ls-l { height: 140%; transform-origin: 50% 72%; }
+
+/* Valley haze between ridges: its own depth, and a slow sideways breath. */
+.ls-mist {
+  position: absolute; left: -8%; right: -8%; height: 24%; pointer-events: none; will-change: transform;
+  background: linear-gradient(180deg, rgba(238, 245, 240, 0), rgba(238, 245, 240, 0.62) 48%, rgba(238, 245, 240, 0));
+  animation: mistBreath 38s ease-in-out infinite alternate;
+}
+.ls-dusk .ls-mist { background: linear-gradient(180deg, rgba(125, 178, 0, 0), rgba(150, 190, 90, 0.09) 50%, rgba(125, 178, 0, 0)); }
+@keyframes mistBreath { from { translate: -3% 0; } to { translate: 3% 0; } }
+
+/* Sun rays: a soft fan of light from the sun's corner, turning very slowly. */
+.ls-rays {
+  position: absolute; left: 74%; top: -40%; width: 90vmax; height: 90vmax; translate: -50% -50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 250, 226, 0.22) 0deg 3deg, rgba(255, 250, 226, 0) 3deg 11deg);
+  -webkit-mask-image: radial-gradient(closest-side, #000 8%, rgba(0, 0, 0, 0.5) 30%, transparent 62%);
+  mask-image: radial-gradient(closest-side, #000 8%, rgba(0, 0, 0, 0.5) 30%, transparent 62%);
+  opacity: 0.7; pointer-events: none;
+  animation: raysTurn 180s linear infinite;
+}
+@keyframes raysTurn { to { rotate: 360deg; } }
+.ls:not(.is-live) :is(.ls-mist, .ls-rays) { animation-play-state: paused; }
+
+/* Sky: clear page above, a pale blue that warms toward the horizon, and
+   a soft sun glow up and to the right. Fixed to the band, so it never
+   competes with the copy above it. */
+.ls-sky {
+  position: absolute; left: 0; right: 0; bottom: 30%; height: 190%;
+  background:
+    radial-gradient(60% 45% at 74% 62%, rgba(255, 250, 232, 0.85), rgba(255, 250, 232, 0) 70%),
+    linear-gradient(180deg, rgba(250, 250, 248, 0) 0%, rgba(218, 236, 246, 0.7) 52%, #d6eaf3 78%, #e9f3ea 100%);
+}
+.ls-drift { position: absolute; left: 0; right: 0; top: -48%; height: 90%; }
+.ls-clouds { height: 100%; }
+/* Clouds drift on their own, independent of scroll. */
+.ls-drift { animation: lsDrift 70s ease-in-out infinite alternate; }
+@keyframes lsDrift { from { translate: -2.5% 0; } to { translate: 2.5% 0; } }
+
+/* The horizon dissolves into the page at its foot, so the next section
+   starts on paper rather than on a hard cut of grass. */
+.ls-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 9%; background: linear-gradient(180deg, rgba(250, 250, 248, 0), var(--paper) 92%); }
+
+/* ---------- dusk: the footer ---------- */
+footer.has-ls { --lsh: clamp(200px, 22vw, 340px); padding-bottom: 0; }
+.ls-dusk .ls-sky {
+  bottom: 20%; height: 120%;
+  background: radial-gradient(55% 60% at 50% 100%, rgba(125, 178, 0, 0.2), rgba(125, 178, 0, 0) 70%);
+}
+.ls-dusk .ls-fade { display: none; }
+
+@media (max-width: 820px) {
+  .has-ls { --lsh: clamp(220px, 62vw, 420px); }
+  footer.has-ls { --lsh: clamp(180px, 50vw, 300px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ls-drift, .ls-mist, .ls-rays { animation: none; }
+}

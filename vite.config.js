@@ -7,9 +7,12 @@ import react from '@vitejs/plugin-react';
    - Vercel (VERCEL env set by their builder): served from domain root,
      output to dist/ which Vercel picks up automatically.
    Router basename + logo follow import.meta.env.BASE_URL, so both work
-   with zero code changes. */
+   with zero code changes.
+   BASE_PATH overrides the base for any other host — e.g. GitHub Pages on
+   the custom domain akalka.in, which serves from the root:
+     BASE_PATH=/ npm run build */
 const isVercel = !!process.env.VERCEL;
-const base = isVercel ? '/' : '/Akalka/';
+const base = process.env.BASE_PATH || (isVercel ? '/' : '/Akalka/');
 
 export default defineConfig({
   base,

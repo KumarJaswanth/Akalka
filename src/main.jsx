@@ -6,6 +6,8 @@ import './index.css';
 import './v2.css';
 import './hero.css';
 import './pages.css';
+import './landscape.css';
+import './magic.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

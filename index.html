@@ -1,20 +1,33 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AKALKA Doors & Panels — precision-manufactured doors, sandwich panels, cleanroom panels, partition systems, profiles & accessories." />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="AKALKA — Doors & Panels | Precision Manufacturing" />
-    <meta property="og:description" content="Doors, sandwich panels, cleanroom panels, partition systems and the profiles that join them — one coordinated manufacturing system." />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="AKALKA — Doors & Panels" />
-    <meta name="twitter:description" content="Precision-manufactured doors, panels and profiles. Everything listed is confirmed data." />
     <meta name="theme-color" content="#2B3036" />
-    <title>AKALKA — Doors & Panels | Precision Manufacturing</title>
+    <!--seo: replaced per route at build time (scripts/postbuild.mjs); these are the Home defaults for dev-->
+    <title>AKALKA Doors &amp; Panels | Doors, Sandwich &amp; Cleanroom Panels</title>
+    <meta name="description" content="AKALKA manufactures doors, sandwich panels, cleanroom panels, partition systems, view glass and profiles — one coordinated system, made to your sizes." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://akalka.in/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://akalka.in/" />
+    <meta property="og:title" content="AKALKA Doors &amp; Panels | Doors, Sandwich &amp; Cleanroom Panels" />
+    <meta property="og:description" content="AKALKA manufactures doors, sandwich panels, cleanroom panels, partition systems, view glass and profiles — one coordinated system, made to your sizes." />
+    <meta name="twitter:title" content="AKALKA Doors &amp; Panels | Doors, Sandwich &amp; Cleanroom Panels" />
+    <meta name="twitter:description" content="AKALKA manufactures doors, sandwich panels, cleanroom panels, partition systems, view glass and profiles — one coordinated system, made to your sizes." />
+    <!--/seo-->
+    <meta property="og:site_name" content="AKALKA Doors &amp; Panels" />
+    <meta property="og:locale" content="en_IN" />
+    <meta property="og:image" content="https://akalka.in/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The AKALKA showroom: coated steel doors and sandwich panels either side of the AKALKA Doors &amp; Panels wall" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://akalka.in/og-image.jpg" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="sitemap" type="application/xml" href="https://akalka.in/sitemap.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://images.unsplash.com" />
     <link rel="preconnect" href="https://images.pexels.com" />
     <script>
       /* First visit of a session: the boot overture runs, and the page holds
@@ -38,11 +51,9 @@
       (function () {
         var base = "%FAVICON_BASE%", p = location.pathname;
         if (p !== base && p + "/" !== base && p !== base + "index.html") return;
-        var l = document.createElement("link"), w = [1280, 1920, 2560, 3200];
+        var l = document.createElement("link");
         l.rel = "preload"; l.as = "image"; l.type = "image/webp"; l.fetchPriority = "high";
-        l.href = base + "Images/hero-cleanroom-1920.webp";
-        l.imageSrcset = w.map(function (x) { return base + "Images/hero-cleanroom-" + x + ".webp " + x + "w"; }).join(", ");
-        l.imageSizes = "(max-aspect-ratio: 3/2) 156svh, 104vw";
+        l.href = base + "Images/akalka-bg.webp";
         document.head.appendChild(l);
       })();
     </script>
