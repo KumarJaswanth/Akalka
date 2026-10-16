@@ -44,7 +44,7 @@ export default function Footer() {
           <div className="foot-brand">
             <Logo height={56} big />
             <p>
-              A product-focused manufacturer of doors, wall systems and the profiles that join them.
+              A product-focused manufacturer of doors, wall systems and the profiles that join them — doors and panels manufacturers in Visakhapatnam (Vizag), Andhra Pradesh.
             </p>
           </div>
           <div>
