@@ -320,7 +320,7 @@ button.chip, a.chip { min-height: 44px; display: inline-flex; align-items: cente
 .nav.open { z-index: 70; }
 .nav.open .nav-inner { background: transparent; border-color: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .brand-link { display: inline-flex; align-items: center; }
-.logo-img { height: 54px; width: auto; display: block; background: #fff; padding: 5px 14px; border-radius: 999px; box-shadow: 0 10px 30px -14px rgba(35, 40, 45, 0.35); }
+.logo-img { height: 54px; width: auto; display: block; }
 .logo-img.big { height: 66px; }
 .logo-fallback { display: inline-flex; align-items: center; gap: 12px; }
 .logo-word { font-family: var(--hand); font-weight: 800; font-size: 2.2rem; line-height: 1; color: var(--ink); letter-spacing: -0.01em; }
@@ -599,8 +599,7 @@ button.chip, a.chip { min-height: 44px; display: inline-flex; align-items: cente
   position: absolute; z-index: 4; top: 50%; translate: 0 -50%;
   width: 60px; height: 60px; border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(20, 22, 25, 0.42);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  background: rgba(20, 22, 25, 0.62);
   color: #fff; display: grid; place-items: center;
   opacity: 0; scale: 0.9;
   transition: opacity 0.4s var(--ease-soft), scale 0.4s var(--ease-soft), background 0.3s, border-color 0.3s;
@@ -890,16 +889,17 @@ html.booting :is(main, main *, header, header *, footer, footer *) { animation-p
 }
 
 /* ---------- scroll reveals ---------- */
-/* The resting state is `filter: none`, never blur(0): any non-none filter
-   keeps its element on its own render surface for good, and a page of
-   revealed blocks was paying for hundreds of them. none → blur(6px)
-   still interpolates, so the reveal looks exactly as before. */
-.rv, .mz { opacity: 0; filter: blur(6px); }
-.rv { transform: translateY(30px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft), filter 0.9s var(--ease-soft); }
-.mz { transform: translateY(14px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft), filter 0.9s var(--ease-soft); }
-.rv.is-in, .mz.is-in { opacity: 1; transform: none; filter: none; }
+/* Reveals are opacity + transform only: a blur filter on every block put
+   hundreds of elements on their own render surfaces and made scrolling
+   re-composite them all. */
+.rv, .mz { opacity: 0; }
+.rv { transform: translateY(30px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft); }
+.mz { transform: translateY(14px); transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft); }
+.rv.is-in, .mz.is-in { opacity: 1; transform: none; }
 
-.cp { clip-path: inset(10% 6% 10% 6%); opacity: 0; transform: scale(0.97); transition: clip-path 1.15s var(--ease-soft), opacity 0.85s var(--ease-soft), transform 1.15s var(--ease-soft); will-change: clip-path, opacity, transform; }
+.cp { clip-path: inset(10% 6% 10% 6%); opacity: 0; transform: scale(0.97); transition: clip-path 1.15s var(--ease-soft), opacity 0.85s var(--ease-soft), transform 1.15s var(--ease-soft); }
+/* No permanent will-change: every revealed image kept its own GPU layer
+   for the life of the page. The transition promotes it while it runs. */
 .cp.is-in { clip-path: inset(0 0 0 0); opacity: 1; transform: none; }
 
 /* ---------- scroll-linked parallax wells ---------- */

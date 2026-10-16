@@ -549,6 +549,8 @@ export function Applications({ items, head }) {
   const trackRef = useRef(null);
   const barRef = useRef(null);
   const distRef = useRef(0);
+  const partsRef = useRef(null);
+  const skewRef = useRef('');
   /* The run is written straight onto the nodes that move: the track, each
      card's lean and each photo's counter-drift, plus the rule. Nothing is
      an inherited variable, so a scrolled frame never restyles the cards'
@@ -561,12 +563,16 @@ export function Applications({ items, head }) {
       const track = trackRef.current;
       if (!track) return;
       track.style.transform = `translate3d(${(-p * distRef.current).toFixed(2)}px, 0, 0)`;
-      const skew = `skewX(${((window.__vel || 0) * -4).toFixed(3)}deg)`;
-      const drift = `translate3d(${((p - 0.5) * -14).toFixed(3)}%, 0, 0) scale(1.22)`;
-      const cards = track.getElementsByClassName('apps-card');
-      for (let i = 0; i < cards.length; i += 1) {
-        cards[i].style.transform = skew;
-        const img = cards[i].querySelector('.apps-ph img');
+      /* Lean is quantised to 0.1° and written only when it changes; the
+         photo nodes are looked up once, not queried every frame. */
+      const skew = `skewX(${((window.__vel || 0) * -4).toFixed(1)}deg)`;
+      const drift = `translate3d(${((p - 0.5) * -14).toFixed(2)}%, 0, 0) scale(1.22)`;
+      const parts = (partsRef.current ||= [...track.getElementsByClassName('apps-card')].map((c) => [c, c.querySelector('.apps-ph img')]));
+      const leanChanged = skew !== skewRef.current;
+      skewRef.current = skew;
+      for (let i = 0; i < parts.length; i += 1) {
+        const [card, img] = parts[i];
+        if (leanChanged) card.style.transform = skew;
         if (img) img.style.transform = drift;
       }
       if (barRef.current) barRef.current.style.transform = `scaleX(${p.toFixed(4)})`;

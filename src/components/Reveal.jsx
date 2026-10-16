@@ -526,13 +526,21 @@ export function Magnetic({ children }) {
   return <span ref={ref} style={{ display: 'inline-flex' }}>{children}</span>;
 }
 
+/* Reads the position inside the shared frame's read phase — a bare scroll
+   listener reading scrollY lands after that frame's style writes and
+   forces a second style recalculation. State changes only on a crossing. */
 export function useScrolled(threshold = 24) {
   const [s, setS] = useState(false);
   useEffect(() => {
-    const fn = () => setS(window.scrollY > threshold);
-    fn();
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    let last = null;
+    return addScrollJob({
+      read: () => window.scrollY > threshold,
+      write: (v) => {
+        if (v === last) return;
+        last = v;
+        setS(v);
+      },
+    });
   }, [threshold]);
   return s;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { CATEGORIES, CAT, PANEL_CORES, WALL_THICKNESSES, word, tag } from '../data/products.js';
-import { Reveal, Materialize, SectionHead, Magnetic, ScrollWords, CountUp } from '../components/Reveal.jsx';
+import { Reveal, Materialize, SectionHead, Magnetic, ScrollWords, CountUp, addScrollJob } from '../components/Reveal.jsx';
 import { ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
@@ -29,32 +29,47 @@ function Strip() {
     if (!track || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
     const anim = track.getAnimations ? track.getAnimations()[0] : null;
     if (!anim) return undefined;
+    /* The position is read in the shared scroll frame (never a forced
+       recalculation of its own), only while the strip is on screen. The
+       easing loop touches nothing but playbackRate, and only when it moves
+       by a visible step: every playbackRate change re-syncs a composited
+       animation, so writing it each frame was a cost of its own. */
     let raf = 0;
     let rate = 1;
+    let target = 1;
     let lastY = window.scrollY;
-    const tick = () => {
-      const y = window.scrollY;
-      const v = y - lastY;
-      lastY = y;
-      const target = 1 + Math.max(-7, Math.min(9, v / 5));
-      rate += (target - rate) * 0.1;
-      anim.playbackRate = rate;
-      if (Math.abs(v) > 0.1 || Math.abs(rate - 1) > 0.02) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        anim.playbackRate = 1;
+    let visible = false;
+    const ease = () => {
+      target = 1 + (target - 1) * 0.86;
+      const next = rate + (target - rate) * 0.12;
+      if (Math.abs(next - 1) < 0.03 && Math.abs(target - 1) < 0.03) {
         rate = 1;
+        anim.playbackRate = 1;
         raf = 0;
+        return;
       }
+      if (Math.abs(next - anim.playbackRate) > 0.04) anim.playbackRate = next;
+      rate = next;
+      raf = requestAnimationFrame(ease);
     };
-    /* lastY holds the resting position between bursts, so the first frame
-       of a new scroll already sees how far the page moved. */
-    const kick = () => {
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-    window.addEventListener('scroll', kick, { passive: true });
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      lastY = window.scrollY;
+    });
+    io.observe(track);
+    const off = addScrollJob({
+      read: () => (visible ? window.scrollY : null),
+      write: (y) => {
+        if (y === null) return;
+        const v = y - lastY;
+        lastY = y;
+        target = 1 + Math.max(-7, Math.min(9, v / 5));
+        if (!raf) raf = requestAnimationFrame(ease);
+      },
+    });
     return () => {
-      window.removeEventListener('scroll', kick);
+      off();
+      io.disconnect();
       cancelAnimationFrame(raf);
     };
   }, []);

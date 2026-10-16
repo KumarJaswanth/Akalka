@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAV_LINKS, CATEGORIES } from '../data/products.js';
-import { useScrolled } from './Reveal.jsx';
+import { useScrolled, addScrollJob } from './Reveal.jsx';
 import Logo from './Logo.jsx';
 
 export default function Nav() {
@@ -30,21 +30,20 @@ export default function Nav() {
       setHidden(false);
       return;
     }
+    /* Joins the shared scroll frame (read phase), so it never forces an
+       extra style recalculation, and re-renders only when it flips. */
     let last = window.scrollY;
-    let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const y = window.scrollY;
-        setHidden(y > 160 && y > last + 2);
+    let was = false;
+    return addScrollJob({
+      read: () => window.scrollY,
+      write: (y) => {
+        const h = y > 160 && y > last + 2;
         last = y;
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(raf);
-    };
+        if (h === was) return;
+        was = h;
+        setHidden(h);
+      },
+    });
   }, [open ]);
 
   useEffect(() => {

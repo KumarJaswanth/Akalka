@@ -82,12 +82,22 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
         entries.forEach((e) => {
           visibleRef.current = e.isIntersecting;
         });
+        wake();
       },
       { threshold: 0 }
     );
     if (root) io.observe(root);
+    /* Truly asleep off-screen: the loop stops instead of ticking empty
+       frames, and wakes when the gallery or the tab comes back. */
+    const wake = () => {
+      if (!raf && visibleRef.current && !document.hidden) {
+        lastTRef.current = 0;
+        raf = requestAnimationFrame(step);
+      }
+    };
     const onVis = () => {
       lastTRef.current = 0;
+      wake();
     };
     document.addEventListener('visibilitychange', onVis);
     const step = (now) => {
@@ -95,7 +105,7 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
       lastTRef.current = now;
       /* Asleep — spend nothing, keep the beat position frozen. */
       if (document.hidden || !visibleRef.current) {
-        raf = requestAnimationFrame(step);
+        raf = 0;
         return;
       }
       const dt = Math.min(now - last, 100);
@@ -113,7 +123,7 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
       }
       raf = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(step);
+    if (!root) wake();
     return () => {
       io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
@@ -227,16 +237,16 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
             <figcaption className="gal-cap" aria-live="polite" aria-atomic="true">
               <motion.span
                 className="meta car-code"
-                initial={{ opacity: 0, y: 22, filter: 'blur(6px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: T, ease: EASE, delay: reduce ? 0 : 0.35 }}
               >
                 {s.tag}
               </motion.span>
               <motion.span
                 className="car-title"
-                initial={{ opacity: 0, y: 30, filter: 'blur(6px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: T, ease: EASE, delay: reduce ? 0 : 0.45 }}
               >
                 {s.title}
@@ -244,8 +254,8 @@ export default function Carousel({ slides, label, hint, dark = false, play = tru
               {s.note && (
                 <motion.span
                   className="car-note"
-                  initial={{ opacity: 0, y: 26, filter: 'blur(6px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  initial={{ opacity: 0, y: 26 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: T, ease: EASE, delay: reduce ? 0 : 0.55 }}
                 >
                   {s.note}

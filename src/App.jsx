@@ -26,8 +26,8 @@ function RouteFallback() {
   );
 }
 
-/* Inertial smooth scrolling (Lenis): expo-out easing for a weighted, settled
-   stop; native rAF loop; touch stays native (momentum on a phone is the
+/* Inertial smooth scrolling (Lenis): a short lerp that follows the wheel
+   closely and settles softly; native rAF loop; touch stays native (momentum on a phone is the
    platform's, and cannot be matched); skipped entirely under reduced
    motion. Stored on window for instant jumps.
    Three details that make it feel exact rather than merely smooth:
@@ -44,8 +44,10 @@ function SmoothScroll() {
     if (reduce) return undefined;
     const lenis = new Lenis({
       autoRaf: true,
-      duration: 1.15,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      /* Frame-rate-independent lerp rather than a fixed 1.15 s tween: the
+         page follows the wheel at once and settles in about half a second,
+         so it reads as smooth, never as lag behind the hand. */
+      lerp: 0.12,
       smoothWheel: true,
       anchors: { offset: -90, duration: 1.2 },
     });
@@ -203,7 +205,7 @@ function Freshness() {
    runs while it is on screen: every matching element gets `.is-live` while
    it intersects the viewport, and the CSS pauses it otherwise. Pages load
    lazily, so new elements are picked up as they mount. */
-const LIVE = '.dark-sec, .page-hero, .pr-hero, .ls, .marquee';
+const LIVE = '.dark-sec, .page-hero, .pr-hero, .ls, .marquee, .hero-shade, .apps-hint';
 function LiveRegions() {
   useEffect(() => {
     const io = new IntersectionObserver(

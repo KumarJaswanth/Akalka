@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CATEGORIES, CAT, TOTAL, TOTAL_LABEL, word } from '../data/products.js';
-import { Reveal, Materialize, ClipReveal, Magnetic, ParallaxImg } from '../components/Reveal.jsx';
+import { Reveal, Materialize, ClipReveal, Magnetic, ParallaxImg, addScrollJob } from '../components/Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import { IMG, PHOTO, PROFILE_PHOTO, srcSetFor } from '../data/images.js';
 import NeedsChip from '../components/NeedsChip.jsx';
@@ -46,16 +46,24 @@ function ChapterDock() {
       { rootMargin: '-45% 0px -50% 0px' }
     );
     els.forEach((el) => io.observe(el));
-    const onScroll = () => {
-      const first = els[0].getBoundingClientRect().top;
-      const last = els[els.length - 1].getBoundingClientRect().bottom;
-      setShow(first < window.innerHeight * 0.5 && last > window.innerHeight * 0.5);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+    /* Measured in the shared scroll frame's read phase: a scroll listener
+       calling getBoundingClientRect after that frame's writes forced a
+       second layout. The dock re-renders only when it flips. */
+    let was = null;
+    const off = addScrollJob({
+      read: () => {
+        const mid = window.innerHeight * 0.5;
+        return els[0].getBoundingClientRect().top < mid && els[els.length - 1].getBoundingClientRect().bottom > mid;
+      },
+      write: (v) => {
+        if (v === was) return;
+        was = v;
+        setShow(v);
+      },
+    });
     return () => {
       io.disconnect();
-      window.removeEventListener('scroll', onScroll);
+      off();
     };
   }, []);
   useEffect(() => {

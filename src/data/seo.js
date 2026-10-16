@@ -13,7 +13,7 @@
    structured data automatically. */
 export const SITE_URL = 'https://akalka.in';
 export const SITE_NAME = 'AKALKA Doors & Panels';
-export const LOGO = `${SITE_URL}/Akalka-logo.svg`;
+export const LOGO = `${SITE_URL}/Akalka-logo.png`;
 
 /* Where AKALKA is based and who it serves — feeds the LocalBusiness
    structured data, the geo tags and the visible location lines. The street
