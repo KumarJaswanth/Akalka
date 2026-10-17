@@ -381,15 +381,8 @@ export default function EnquiryForm({ defaultInterest = '', defaultAsk = '', def
         {fieldError('files', 'eq-files')}
       </div>
       <div>
-        {/* What happens next, stated BEFORE the commitment — not after it.
-           A visitor deciding whether to send a hospital-door tender to a
-           stranger needs this answer before the button, not on the
-           thank-you card. */}
-        <ol className="form-reassure">
-          <li><b>We review</b><span>Sizes, options and drawings against the confirmed range.</span></li>
-          <li><b>We confirm</b><span>A specification with nothing assumed or invented.</span></li>
-          <li><b>We proceed</b><span>Next steps agreed directly with you.</span></li>
-        </ol>
+        {/* What happens next used to sit here, above the button. It now stands
+           beside the form (see EnquirySide), so the form itself stays short. */}
         {errors.form && (
           <p className="field-error form-error" id="eq-form-error" role="alert">
             {errors.form}

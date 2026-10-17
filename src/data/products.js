@@ -121,6 +121,15 @@ export const PANEL_CORES = ['PUF', 'Rockwool', 'Honeycomb'];
 export const WALL_THICKNESSES = ['50 mm', '100 mm'];
 
 export const CAT = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
+/* The catalogue as the Products page tells it: three families. The menu, the
+   footer and the Home page count and link these; the six entries above stay
+   as the catalogue's numbered data. */
+export const FAMILIES = [
+  { id: 'doors', name: 'Doors' },
+  { id: 'panels', name: 'Panels' },
+  { id: 'profiles', name: 'Profiles & Tracks' },
+];
+
 export const TOTAL = CATEGORIES.length;
 export const TOTAL_LABEL = pad(TOTAL);
 

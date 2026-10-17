@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { NAV_LINKS, CATEGORIES } from '../data/products.js';
+import { NAV_LINKS, FAMILIES } from '../data/products.js';
 import { useScrolled, addScrollJob } from './Reveal.jsx';
 import Logo from './Logo.jsx';
 
@@ -117,7 +117,7 @@ export default function Nav() {
               transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
               <p className="meta" style={{ color: 'var(--on-dark-muted)' }}>Catalogue</p>
-              {CATEGORIES.map((c) => (
+              {FAMILIES.map((c) => (
                 <Link
                   key={c.id}
                   to={`/products#${c.id}`}

@@ -99,6 +99,32 @@ export const IMG = {
     alt: 'Louvred ventilation panel in a metal frame, set flush into a panel wall',
   },
 
+  /* ---- AKALKA's own photographs of finished work and product ---- */
+  cleanroomHall: {
+    src: L('cleanroom-hall.webp'),
+    alt: 'A large white cleanroom with flush panel walls, double doors, view windows and a panel ceiling with lighting cassettes',
+  },
+  cleanroomCorridor: {
+    src: L('cleanroom-corridor.webp'),
+    alt: 'A blue-white cleanroom corridor with flush panel walls, a view window, doors and a panel ceiling with lights and air diffusers',
+  },
+  cornerProfile: {
+    src: L('aluminium-corner-profile.webp'),
+    alt: 'Aluminium corner profiles running up a wall corner and along the edge of a panel ceiling',
+  },
+  cleanroomWhite: {
+    src: L('hero-cleanroom-1920.webp'),
+    alt: 'A technician pushing a trolley down a bright white corridor with glossy flush walls and a clean panel ceiling',
+  },
+  panelPair: {
+    src: L('sandwich-panel-pair.webp'),
+    alt: 'Two sandwich panels laid edge to edge, showing the double skin with the core between',
+  },
+  riserGrilles: {
+    src: L('riser-grilles.webp'),
+    alt: 'Three grilles set flush into a white cleanroom wall',
+  },
+
   /* ---- Profiles: formed metal sections and tracks ---- */
   profiles: {
     alucoat: {
@@ -173,7 +199,7 @@ export const PHOTO = {
    Separate from IMG.profiles so the hero journey, which reads IMG, is
    untouched. */
 export const PROFILE_PHOTO = {
-  corner: PHOTO.cornerSection,
+  corner: IMG.cornerProfile,
   formed3d: PHOTO.aluStock,
   track: PHOTO.measure,
   alucoat: IMG.profiles.alucoat,

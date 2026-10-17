@@ -631,14 +631,14 @@ function PanelsChapter({ sandwich, partition, cleanroom, glass }) {
           </ul>
         </RailCard>
 
-        <RailCard id="riser" no="04" kicker="Wall panels · Service shafts" title="An opening for the shafts" img={IMG.riserPanel} pos="50% 50%">
+        <RailCard id="riser" no="04" kicker="Wall panels · Service shafts" title="An opening for the shafts" img={IMG.riserGrilles} pos="50% 50%">
           <p className="body-sm rc-p">
             {riser.name}: {riser.note.toLowerCase()}.{' '}
             <Term def="Angled slats that ventilate a shaft while screening the opening">Grill</Term>
           </p>
         </RailCard>
 
-        <RailCard id="clean" no="05" kicker="Wall panels · Controlled rooms" title="Where the room has to stay clean" img={IMG.cleanroomFinished} pos="50% 50%">
+        <RailCard id="clean" no="05" kicker="Wall panels · Controlled rooms" title="Where the room has to stay clean" img={IMG.cleanroomHall} pos="50% 55%">
           <p className="body-sm rc-p">
             For clean, controlled interiors the range narrows to flush, washable surfaces:{' '}
             {cleanItems.map((i) => i.name.toLowerCase()).join(', ')}. Stated as range only until the
@@ -661,7 +661,7 @@ function PanelsChapter({ sandwich, partition, cleanroom, glass }) {
           </div>
         </RailCard>
 
-        <RailCard id="glass" no="07" kicker="View glass panels" title="Let the light and sightlines through" img={PHOTO.cleanroomWindow} pos="50% 50%">
+        <RailCard id="glass" no="07" kicker="View glass panels" title="Let the light and sightlines through" img={IMG.cleanroomCorridor} pos="88% 45%" zoom={1.55} origin="86% 42%">
           <p className="body-sm rc-p">
             A solid leaf does not have to mean a blind room. View glass panels set into doors and glazed openings
             keep the room in view, in single or double glazing.

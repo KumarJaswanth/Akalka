@@ -20,7 +20,7 @@ import { mkdirSync, readFileSync, writeFileSync, readdirSync, rmSync, existsSync
 import { ROUTES, NOT_FOUND, SITE_URL, SITE_NAME, LOGO, LOGO_SIZE, WORDMARK, OG_IMAGE, PAGE_IMAGES, LOCATION, canonical } from '../src/data/seo.js';
 import { CATEGORIES, PANEL_CORES, WALL_THICKNESSES } from '../src/data/products.js';
 import { FAQ } from '../src/data/faq.js';
-import { CONTACT } from '../src/data/company.js';
+import { CONTACT, telHref, waHref } from '../src/data/company.js';
 import { PROCESS, PRINCIPLES, PILLARS } from '../src/data/story.js';
 
 const outDir = process.env.VERCEL ? 'dist' : 'docs';
@@ -64,7 +64,7 @@ function organization() {
     image: [OG_IMAGE.url, WORDMARK.url],
     address: {
       '@type': 'PostalAddress',
-      ...(CONTACT.address ? { streetAddress: CONTACT.address } : {}),
+      ...(CONTACT.street ? { streetAddress: CONTACT.street } : {}),
       addressLocality: LOCATION.city,
       addressRegion: LOCATION.region,
       addressCountry: LOCATION.country,
@@ -79,6 +79,15 @@ function organization() {
   };
   if (CONTACT.phone) org.telephone = CONTACT.phone;
   if (CONTACT.email) org.email = CONTACT.email;
+  if (CONTACT.phone || CONTACT.email) {
+    org.contactPoint = [{
+      '@type': 'ContactPoint',
+      contactType: 'sales',
+      areaServed: 'IN',
+      ...(CONTACT.phone ? { telephone: CONTACT.phone } : {}),
+      ...(CONTACT.email ? { email: CONTACT.email } : {}),
+    }];
+  }
   /* The square "a" mark — the same artwork as the favicon — is the logo. */
   if (LOGO) org.logo = { '@type': 'ImageObject', '@id': `${SITE_URL}/#logo`, url: LOGO, contentUrl: LOGO, width: LOGO_SIZE, height: LOGO_SIZE, caption: `${SITE_NAME} logo` };
   return org;
@@ -161,8 +170,6 @@ function head(meta, url, ld) {
 
 /* ---------- readable snapshot ---------- */
 const nav = () => `<nav aria-label="Site"><a href="${BASE}">Home</a> · <a href="${BASE}products/">Products</a> · <a href="${BASE}about/">About</a> · <a href="${BASE}contact/">Contact</a></nav>`;
-const CHAPTER_OF = { doors: 'doors', sandwich: 'panels', cleanroom: 'panels', partition: 'panels', glass: 'panels', profiles: 'profiles' };
-const cats = (link) => CATEGORIES.map((c) => `<section><h2>${esc(c.name)}</h2><p>${esc(c.description)}</p>${link ? `<p><a href="${BASE}products/#${CHAPTER_OF[c.id]}">${esc(c.name)} in the catalogue</a></p>` : ''}</section>`).join('');
 
 const BODIES = {
   '/': () => `
@@ -170,7 +177,7 @@ const BODIES = {
     <p>AKALKA Doors &amp; Panels — doors and panels manufacturers in Visakhapatnam (Vizag), Andhra Pradesh, supplying Vizag, Anakapalle, Vizianagaram, Srikakulam, Rajahmundry, Kakinada and beyond.</p>
     <p>Doors, sandwich panels, cleanroom panels, partition systems, view glass and the profiles that join them — one coordinated manufacturing system.</p>
     <p>AKALKA manufactures doors, panels and profiles for clean, finished interiors — designed as one system, made to your sizes.</p>
-    ${cats(true)}
+    ${CHAPTERS.map((c) => `<section><h2>${esc(c.name)}</h2><p>${esc(c.summary)}</p><p><a href="${BASE}products/#${c.id}">${esc(c.name)} in the catalogue</a></p></section>`).join('')}
     <h2>Have a requirement? Send the sizes.</h2>
     <p>Doors, panels and profiles are manufactured to order. Share drawings, dimensions or a bill of quantities and receive a confirmed specification. <a href="${BASE}contact/">Start an enquiry</a>.</p>`,
   '/products': () => {
@@ -223,6 +230,12 @@ const BODIES = {
     <h1>Send the sizes. We confirm the rest.</h1>
     <p>AKALKA Doors &amp; Panels, Visakhapatnam (Vizag), Andhra Pradesh.</p>
     <p>Doors, panels and profiles are manufactured to order. Share drawings, dimensions or a bill of quantities and receive a confirmed specification.</p>
+    ${CONTACT.email || CONTACT.phone || CONTACT.whatsapp ? `<h2>Reach us directly</h2><ul>${[
+      CONTACT.email && `<li>Email: <a href="mailto:${esc(CONTACT.email)}">${esc(CONTACT.email)}</a></li>`,
+      CONTACT.phone && `<li>Mobile: <a href="${esc(telHref(CONTACT.phone))}">${esc(CONTACT.phone)}</a></li>`,
+      CONTACT.whatsapp && `<li>WhatsApp: <a href="${esc(waHref(CONTACT.whatsapp))}">${esc(CONTACT.whatsapp)}</a></li>`,
+      CONTACT.address && `<li>Location: ${esc(CONTACT.address)}</li>`,
+    ].filter(Boolean).join('')}</ul>` : ''}
     <h2>Questions, answered straight.</h2>
     <dl>${FAQ.map((f) => `<dt>${esc(f.q)}</dt><dd>${esc(f.a)}</dd>`).join('')}</dl>`,
 };

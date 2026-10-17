@@ -3,9 +3,9 @@ import { Reveal, Materialize, SectionHead } from '../components/Reveal.jsx';
 import { Plus } from '../components/icons.jsx';
 import { Process, PROCESS_STEPS } from '../components/Blocks.jsx';
 import { word } from '../data/products.js';
-import { CONTACT, hasChannels, telHref, ZOHO_FORM_URL } from '../data/company.js';
+import { ZOHO_FORM_URL } from '../data/company.js';
 import EnquiryForm from '../components/EnquiryForm.jsx';
-import Term from '../components/Term.jsx';
+import { EnquiryChannels, EnquirySteps } from '../components/EnquirySide.jsx';
 import Landscape from '../components/Landscape.jsx';
 import { FAQ } from '../data/faq.js';
 
@@ -75,27 +75,12 @@ export default function Contact() {
               </div>
             </Reveal>
           </div>
-          <div>
-            <SectionHead index={hasChannels ? 'Channels' : 'Send'} label={hasChannels ? 'Direct channels' : 'What to send'} />
+          <div className="contact-side">
             <Reveal>
-              {/* Only details the client has supplied are shown (data/company.js). */}
-              <div className="info-rows">
-                {CONTACT.phone && <div className="info-row"><span className="meta">Phone</span><a href={telHref(CONTACT.phone)}>{CONTACT.phone}</a></div>}
-                {CONTACT.email && <div className="info-row"><span className="meta">Email</span><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></div>}
-                {CONTACT.address && <div className="info-row"><span className="meta">Works / office</span><span>{CONTACT.address}</span></div>}
-                {CONTACT.hours && <div className="info-row"><span className="meta">Hours</span><span>{CONTACT.hours}</span></div>}
-                <div className="info-row"><span className="meta">Include</span><span>Drawings, opening schedules, panel layouts, thicknesses, finishes. Anything specified beats anything described.</span></div>
-              </div>
+              <EnquiryChannels />
             </Reveal>
             <Reveal delay={0.08}>
-              <div className="cta-band on-dark" style={{ marginTop: 'var(--s8)', padding: 'var(--s9) var(--s8)' }}>
-                <h2 style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: '1.5rem' }}>Specify first, then enquire.</h2>
-                <div className="chips" style={{ marginTop: 'var(--s4)' }}>
-                  <span className="chip">Single / double</span>
-                  <span className="chip">50 / 100 mm</span>
-                  <span className="chip"><Term def="Coating option code in this catalogue — its exact specification is confirmed on enquiry">R-70 / R-90</Term></span>
-                </div>
-              </div>
+              <EnquirySteps />
             </Reveal>
           </div>
         </div>

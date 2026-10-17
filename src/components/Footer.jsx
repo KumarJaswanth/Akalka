@@ -1,10 +1,10 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { CATEGORIES } from '../data/products.js';
+import { FAMILIES } from '../data/products.js';
 import { Reveal, Materialize, Magnetic, useScrollVar } from './Reveal.jsx';
 import { ArrowRight, ArrowUpRight } from './icons.jsx';
 import Logo from './Logo.jsx';
-import { CONTACT, telHref } from '../data/company.js';
+import { CONTACT, telHref, waHref } from '../data/company.js';
 import Landscape from './Landscape.jsx';
 
 export default function Footer() {
@@ -52,7 +52,7 @@ export default function Footer() {
             <ul>
               {/* Derived, never hand-listed — this list fell a category
                   behind the catalogue the moment a 6th chapter was added. */}
-              {CATEGORIES.map((c) => (
+              {FAMILIES.map((c) => (
                 <li key={c.id}><Link to={`/products#${c.id}`}>{c.name}</Link></li>
               ))}
             </ul>
@@ -70,6 +70,7 @@ export default function Footer() {
             <h4>Enquiries</h4>
             <ul>
               {CONTACT.phone && <li><a href={telHref(CONTACT.phone)}>{CONTACT.phone}</a></li>}
+              {CONTACT.whatsapp && <li><a href={waHref(CONTACT.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp {CONTACT.whatsapp}</a></li>}
               {CONTACT.email && <li><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></li>}
               {CONTACT.address && <li>{CONTACT.address}</li>}
               <li><Link to="/contact">Request specifications</Link></li>

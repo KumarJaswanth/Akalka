@@ -500,3 +500,40 @@
 @media (max-width: 640px) {
   .ab2-tri { grid-template-columns: 1fr; gap: clamp(28px, 7vw, 40px); }
 }
+
+/* ================= beside the enquiry form: ways to reach us, and what happens next ================= */
+.contact-side { display: grid; gap: var(--s4); align-content: start; position: sticky; top: calc(var(--nav-h) + 24px); }
+.enq-side { display: grid; gap: var(--s4); margin-top: var(--s7); }
+.es-card { --ease-x: cubic-bezier(0.32, 0.72, 0, 1); }
+.es-in { padding: clamp(20px, 2.4vw, 30px); display: grid; gap: var(--s4); }
+.es-k { color: var(--datum-ink); margin: 0; }
+.es-rows { list-style: none; display: grid; gap: 4px; }
+.es-rows a { display: flex; align-items: center; gap: 14px; padding: 10px 12px 10px 10px; margin-inline: -10px; border-radius: 18px; transition: background 0.4s var(--ease-x); }
+.es-rows a:hover { background: var(--tint); }
+.es-rows a:focus-visible { outline: 2px solid var(--datum); outline-offset: 2px; }
+.es-ico { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; transition: background 0.4s var(--ease-x), color 0.4s, transform 0.5s var(--ease-x); }
+.es-rows a:hover .es-ico { background: var(--datum); color: var(--worksurface-2); transform: scale(1.06); }
+.es-txt { display: grid; gap: 2px; min-width: 0; }
+.es-txt .meta { color: var(--muted-fg); }
+.es-txt b { font-size: 1rem; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.es-hours { color: var(--muted-fg); margin: 0; }
+.es-steps { list-style: none; display: grid; gap: var(--s4); }
+.es-steps li { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; }
+.es-n { font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1; letter-spacing: -0.02em; color: var(--datum-ink); min-width: 2ch; }
+.es-steps li > span { display: grid; gap: 2px; }
+.es-steps li > span > b { font-size: 0.98rem; color: var(--ink); }
+.es-steps li > span > span { font-size: 0.88rem; line-height: 1.55; color: var(--secondary); }
+.es-note { margin: 0; padding-top: var(--s4); border-top: 1px solid rgba(66, 71, 77, 0.12); font-size: 0.88rem; }
+.es-note b { color: var(--ink); }
+@media (max-width: 900px) { .contact-side { position: static; } }
+/* Home enquiry: the form used to line up with the page heading, so it stood
+   too high beside the contact cards. Flatten the left column so the heading
+   takes the top row and the form drops to share the cards' row. CSS only —
+   the markup is untouched. */
+@media (min-width: 901px) {
+  .enquiry-grid > div:first-child { display: contents; }
+  .enquiry-grid > div:first-child > .mz { grid-column: 1; grid-row: 1; }
+  .enquiry-grid > div:first-child > .rv { grid-column: 1; grid-row: 2; }
+  .enquiry-grid > .rv { grid-column: 2; grid-row: 2; }
+  .enquiry-grid > div:first-child > .rv .enq-side { margin-top: 0; }
+}

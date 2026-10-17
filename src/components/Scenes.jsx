@@ -205,7 +205,7 @@ export function SystemAnatomy() {
                   <div className="anat-more">
                     <div>
                       <p className="body-sm">{a.d}</p>
-                      <Link to={`/products#${a.id}`} className="link-line">
+                      <Link to={`/products#${{ sandwich: 'panels', cleanroom: 'panels', partition: 'panels', glass: 'panels' }[a.id] || a.id}`} className="link-line">
                         See the range <ArrowRight style={{ width: 14, height: 14 }} />
                       </Link>
                     </div>
@@ -408,7 +408,7 @@ export function PanelExploded() {
               <OptRow label="Finish" items={['Pre-powder coated', 'Powder coated']} value={finish} onPick={setFinish} />
               <ColourRows skin={skin} />
             </div>
-            <Link to="/products#sandwich" className="link-line xpl-more">Full sandwich range <ArrowRight style={{ width: 14, height: 14 }} /></Link>
+            <Link to="/products#panels" className="link-line xpl-more">Full sandwich range <ArrowRight style={{ width: 14, height: 14 }} /></Link>
           </div>
           <div className="xpl-hold" aria-hidden="true" />
         </div>

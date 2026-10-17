@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { CATEGORIES, CAT, PANEL_CORES, WALL_THICKNESSES, word, tag } from '../data/products.js';
+import { FAMILIES, CAT, PANEL_CORES, WALL_THICKNESSES, word, tag } from '../data/products.js';
 import { Reveal, Materialize, SectionHead, Magnetic, ScrollWords, CountUp, addScrollJob } from '../components/Reveal.jsx';
 import { ArrowUpRight } from '../components/icons.jsx';
 import Carousel from '../components/Carousel.jsx';
 import CleanroomShowcase from '../components/CleanroomShowcase.jsx';
 import EnquiryForm from '../components/EnquiryForm.jsx';
+import { EnquiryChannels, EnquirySteps } from '../components/EnquirySide.jsx';
 import Hero from '../components/Hero.jsx';
 import NeedsChip from '../components/NeedsChip.jsx';
 import { SystemAnatomy, PanelExploded, DoorExploded, Applications } from '../components/Scenes.jsx';
@@ -95,7 +96,7 @@ function Strip() {
    the facts row is a count of confirmed catalogue data — nothing claimed. */
 function Intro() {
   const facts = [
-    { n: CATEGORIES.length, t: 'Product families', d: 'Doors to profiles, one maker' },
+    { n: FAMILIES.length, t: 'Product families', d: 'Doors, panels, profiles — one maker' },
     { n: CAT.doors.types.length, t: 'Door types', d: 'Modular, fire rated, emergency' },
     { n: PANEL_CORES.length, t: 'Panel cores', d: 'PUF, rockwool, honeycomb' },
     { n: WALL_THICKNESSES.length, t: 'Wall thicknesses', d: '50 mm and 100 mm' },
@@ -152,7 +153,7 @@ function SystemIntro() {
     <>
       <section className="section sys-head" id="system">
         <div className="wrap">
-          <SectionHead index="System" label="What we make" hint={`${word(CATEGORIES.length)} families · one room`} />
+          <SectionHead index="System" label="What we make" hint={`${word(FAMILIES.length)} families · one room`} />
           <div className="sys-grid">
             <Materialize>
               <h2 className="h2" style={{ maxWidth: '16ch' }}>
@@ -199,23 +200,31 @@ function DoorGallery() {
 }
 
 /* ---------------- Cleanroom showcase chapter ---------------- */
+/* The cleanroom range comes in three types — wall panels, ceiling panels and
+   view glass panels. The numbers are the catalogue numbers of each. */
+const CLEAN_ITEMS = [
+  { id: 'wall', no: CAT.cleanroom.items[0].no, name: 'Wall panels' },
+  { id: 'ceiling', no: CAT.cleanroom.items[1].no, name: 'Ceiling panels' },
+  { id: 'glass', no: CAT.glass.items[0].no, name: 'View glass panels' },
+];
+
 function Cleanroom() {
-  const cr = CATEGORIES.find((c) => c.id === 'cleanroom');
+  const cr = CAT.cleanroom;
   return (
     <section className="section dark-sec on-dark" id="cleanroom">
       <div className="wrap">
-        <SectionHead index={cr.index} label="Cleanroom panels" hint="Wall · ceiling · washable · flush" />
+        <SectionHead index={cr.index} label="Cleanroom panels" hint="Wall · ceiling · view glass" />
         <div className="sys-grid">
           <Materialize>
             <h2 className="h2" style={{ maxWidth: '16ch' }}>Controlled interiors, <span className="font-hand" style={{ color: 'var(--datum)' }}>flush surfaces.</span></h2>
           </Materialize>
           <Reveal delay={0.08}>
-            <p className="lede">{cr.description}</p>
+            <p className="lede">Wall, ceiling and view glass panels for clean, controlled environments. Presented as range only until specifications are confirmed.</p>
           </Reveal>
         </div>
         <div aria-hidden="true" style={{ height: 'var(--s9)' }} />
         <Reveal>
-          <CleanroomShowcase items={cr.items} />
+          <CleanroomShowcase items={CLEAN_ITEMS} />
         </Reveal>
         <Reveal>
           <div style={{ marginTop: 'var(--s8)', display: 'flex', flexWrap: 'wrap', gap: 'var(--s4)', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -223,7 +232,7 @@ function Cleanroom() {
               Classifications, ratings, performance:{' '}
               <NeedsChip term="cleanroom ISO class, GMP compliance and pressure/hygiene ratings" interest="Cleanroom Panels">Needs confirmation</NeedsChip>
             </p>
-            <Link to="/products#cleanroom" className="link-line">Full cleanroom range</Link>
+            <Link to="/products#panels" className="link-line">Full panel range</Link>
           </div>
         </Reveal>
       </div>
@@ -235,12 +244,12 @@ function Cleanroom() {
 /* Kinds of space, each mapped to the confirmed products that build it.
    This describes what the products are for — never a claimed project. */
 const APPS = [
-  { t: 'Cleanrooms & controlled rooms', img: PHOTO.cleanroomTech, to: '/products#cleanroom', d: 'Flush, washable wall and ceiling surfaces, with doors and vision panels set into the same line.', uses: ['Cleanroom panels', 'Doors', 'View glass'] },
-  { t: 'Insulated walls & enclosures', img: PHOTO.panelWall, to: '/products#sandwich', d: 'Double-skin walls with a PUF or rockwool core, in 50 or 100 mm, closed out with matching profiles.', uses: ['Sandwich panels', 'Corner profiles', 'Bottom tracks'] },
-  { t: 'Interior division', img: PHOTO.glassHall, to: '/products#partition', d: 'Partition and flush wall panels that divide space with an architectural finish — glazed where a sightline matters.', uses: ['Partition panels', 'Flush wall', 'View glass'] },
+  { t: 'Cleanrooms & controlled rooms', img: IMG.cleanroomHall, to: '/products#panels', d: 'Flush, washable wall and ceiling surfaces, with doors and vision panels set into the same line.', uses: ['Cleanroom panels', 'Doors', 'View glass'] },
+  { t: 'Insulated walls & enclosures', img: IMG.panelPair, to: '/products#panels', d: 'Double-skin walls with a PUF or rockwool core, in 50 or 100 mm, closed out with matching profiles.', uses: ['Sandwich panels', 'Corner profiles', 'Bottom tracks'] },
+  { t: 'Interior division', img: PHOTO.glassHall, to: '/products#panels', d: 'Partition and flush wall panels that divide space with an architectural finish — glazed where a sightline matters.', uses: ['Partition panels', 'Flush wall', 'View glass'] },
   { t: 'Exit & fire routes', img: IMG.doorFire, to: '/products#doors', d: 'Fire rated and emergency doors, single or double, with push-bar hardware. Ratings confirmed on enquiry.', uses: ['Fire rated doors', 'Emergency doors'] },
-  { t: 'Service risers & shafts', img: IMG.riserPanel, to: '/products#partition', d: 'Riser panels with grill that ventilate and screen service shafts within the finished wall.', uses: ['Riser panel with grill', 'Profiles'] },
-  { t: 'Junctions & finishing', img: PHOTO.angles, to: '/products#profiles', d: 'Corners, channels, angles, box sections and bottom tracks — the details that make it all one surface.', uses: ['Profiles', 'C-type tracks', 'R-70 / R-90'] },
+  { t: 'Service risers & shafts', img: IMG.riserGrilles, to: '/products#panels', d: 'Riser panels with grill that ventilate and screen service shafts within the finished wall.', uses: ['Riser panel with grill', 'Profiles'] },
+  { t: 'Junctions & finishing', img: IMG.cornerProfile, to: '/products#profiles', d: 'Corners, channels, angles, box sections and bottom tracks — the details that make it all one surface.', uses: ['Profiles', 'C-type tracks', 'R-70 / R-90'] },
 ];
 
 function WhereUsed() {
@@ -291,12 +300,11 @@ function Enquiry() {
               </p>
             </Materialize>
             <Reveal>
-              <ul className="enq-points">
-                <li><b>Drawings or a schedule</b><span>Openings, layouts, areas — whatever you have.</span></li>
-                <li><b>Ranges you need</b><span>Doors, panels, profiles, or the full system.</span></li>
-                <li><b>Site and quantities</b><span>So the specification comes back complete.</span></li>
-              </ul>
-              <div style={{ marginTop: 'var(--s7)' }}>
+              <div className="enq-side">
+                <EnquiryChannels />
+                <EnquirySteps />
+              </div>
+              <div style={{ marginTop: 'var(--s6)' }}>
                 <Link to="/products" className="link-line">Browse the catalogue instead</Link>
               </div>
             </Reveal>
@@ -320,7 +328,7 @@ export default function Home() {
       <Strip />
       <Intro />
       <SystemIntro />
-      <ImageExpand img={PHOTO.laser} left="Made" right="to order." kicker="How AKALKA works">
+      <ImageExpand img={IMG.cleanroomHall} left="Made" right="to order." kicker="How AKALKA works">
         <h2 className="h2">Cut, formed and finished <span className="font-hand" style={{ color: 'var(--datum)' }}>to your drawings.</span></h2>
         <p className="lede">
           Every door, panel and profile is produced against a confirmed specification —

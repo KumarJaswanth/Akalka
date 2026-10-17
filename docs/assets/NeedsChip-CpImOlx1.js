@@ -1,1 +1,0 @@
-import{D as e,k as t}from"./icons-_t9vJrER.js";var n=e();function r({children:e,term:r,interest:i,style:a}){let o=new URLSearchParams;i&&o.set(`interest`,i),r&&o.set(`ask`,r);let s=r||String(e);return(0,n.jsx)(t,{to:`/contact?${o.toString()}`,className:`chip needs`,style:a,"aria-label":`Not yet confirmed. Ask AKALKA to confirm: ${s}`,children:e})}export{r as t};

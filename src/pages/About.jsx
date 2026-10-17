@@ -47,10 +47,12 @@ const PILLARS = [
 ];
 
 const FINISH_SLIDES = [
-  { ...IMG.cleanroomFinished, tag: tag('cleanroom'), title: 'Completed cleanroom', note: 'Flush panels, blue doors, blue floor' },
+  { ...IMG.cleanroomHall, tag: tag('cleanroom'), title: 'Completed cleanroom', note: 'Flush panels, double doors, view windows' },
+  { ...IMG.cleanroomCorridor, tag: tag('cleanroom'), title: 'Corridor in blue and white', note: 'Flush walls, view window, panel ceiling' },
   { ...CORRIDOR, tag: tag('cleanroom'), title: 'Clean, controlled rooms', note: 'Flush, washable surfaces' },
   { ...SHOWROOM, tag: tag('sandwich'), title: 'Panels and doors, side by side', note: 'One system, one maker' },
   { ...IMG.doorDouble, tag: tag('doors', 'regular-double'), title: 'Double doors in situ', note: 'Configured openings' },
+  { ...IMG.cornerProfile, tag: tag('profiles'), title: 'Aluminium corner profiles', note: 'Wall corner and ceiling edge, finished' },
   { ...IMG.panelJoint, tag: tag('sandwich'), title: 'Panel joint engineering', note: 'Double-skin construction' },
 ];
 

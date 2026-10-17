@@ -1,0 +1,1 @@
+import{D as e}from"./icons-CUG85UXN.js";var t=e();function n({n:e,children:n}){return(0,t.jsxs)(`p`,{className:`eyebrow`,children:[e&&(0,t.jsx)(`b`,{children:e}),(0,t.jsx)(`span`,{children:n})]})}export{n as t};

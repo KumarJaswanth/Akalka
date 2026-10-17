@@ -1,18 +1,21 @@
-/* Direct contact details.
-   Empty until the client supplies them — and an empty field is simply not
-   rendered anywhere (contact page, footer), so the site never shows a
-   "to be confirmed" placeholder where a real detail will go. Fill in any of
-   these and it appears everywhere it belongs:
+/* Direct contact details, shown on the contact page, beside the Home page
+   form and in the footer. An empty field is simply not rendered anywhere, so
+   the site never shows a "to be confirmed" placeholder.
 
-     phone    "+91 00000 00000"
-     email    "sales@example.com"
-     address  "Works / office address"
-     hours    "Mon–Sat, 9:00–18:00"
+     phone     the mobile number people call
+     whatsapp  the number people message on WhatsApp
+     email     the enquiries inbox
+     address   the place shown to visitors (a town is enough)
+     street    a street address, only if one is ever added — it is the one
+               field the structured data treats as a street
+     hours     opening hours, if wanted
 */
 export const CONTACT = {
-  phone: '',
-  email: '',
-  address: '',
+  phone: '+91 99593 94321',
+  whatsapp: '+91 76759 55234',
+  email: 'info@akalka.in',
+  address: 'Visakhapatnam, Andhra Pradesh, India',
+  street: '',
   hours: '',
 };
 
@@ -26,3 +29,6 @@ export const ZOHO_FORM_URL =
 
 /* tel: links want digits and a leading + only. */
 export const telHref = (p) => `tel:${p.replace(/[^\d+]/g, '')}`;
+
+/* wa.me wants the number as digits only, country code first. */
+export const waHref = (p) => `https://wa.me/${p.replace(/\D/g, "")}`;

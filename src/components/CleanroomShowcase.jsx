@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { PHOTO, srcSetFor } from '../data/images.js';
+import { IMG, srcSetFor } from '../data/images.js';
 import { Plus } from './icons.jsx';
 
 /* Cleanroom showcase: a sticky cinematic visual crossfading with the
@@ -10,17 +10,16 @@ import { Plus } from './icons.jsx';
 const EASE = [0.16, 1, 0.3, 1];
 
 const SHOTS = {
-  'cleanroom-wall': PHOTO.cleanroomTech,
-  'cleanroom-ceiling': PHOTO.cleanroomLab,
-  washable: PHOTO.cleanroomDoor,
-  'flush-wall': PHOTO.cleanroomWindow,
+  wall: { img: IMG.cleanroomCorridor, pos: '50% 50%' },
+  ceiling: { img: IMG.cleanroomWhite, pos: '50% 0%' },
+  glass: { img: IMG.cleanroomHall, pos: '24% 58%' },
 };
 
 export default function CleanroomShowcase({ items }) {
   const [active, setActive] = useState(0);
   const reduce = useReducedMotion();
   const current = items[Math.max(0, active)] || items[0];
-  const shot = SHOTS[current.id] || SHOTS['cleanroom-wall'];
+  const shot = SHOTS[current.id] || SHOTS.wall;
   /* Hover previews on precise pointers only — touch uses taps, where a
      synthesized mouseenter would otherwise open-then-instantly-close. */
   const canHover = () =>
@@ -32,8 +31,9 @@ export default function CleanroomShowcase({ items }) {
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.img
             key={current.id}
-            src={shot.src}
-            srcSet={srcSetFor(shot.src)}
+            src={shot.img.src}
+            srcSet={srcSetFor(shot.img.src)}
+            style={{ objectPosition: shot.pos }}
             sizes="(max-width: 900px) 100vw, 45vw"
             alt=""
             loading="lazy"
