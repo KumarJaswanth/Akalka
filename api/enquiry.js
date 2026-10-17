@@ -81,10 +81,6 @@ export default async function handler(req, res) {
     return send(res, 400, { ok: false, error: 'We could not read the enquiry. Please try again.' });
   }
 
-  /* Honeypot: a field real visitors never see. Bots fill it; they get a
-     cheerful answer and nothing reaches Zoho. */
-  if (text(fd, 'website')) return send(res, 200, { ok: true });
-
   const name = text(fd, 'SingleLine');
   const org = text(fd, 'SingleLine1');
   const phone = text(fd, 'PhoneNumber');

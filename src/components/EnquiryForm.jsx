@@ -139,7 +139,6 @@ export default function EnquiryForm({ defaultInterest = '', defaultAsk = '', def
         PhoneNumber: phone,
         Dropdown: form.interest,
         MultiLine: message,
-        website: e.currentTarget.elements.website.value,
       },
       file,
     );
@@ -297,11 +296,6 @@ export default function EnquiryForm({ defaultInterest = '', defaultAsk = '', def
           <span className="chip chip-accent">{defaultMeta}</span>
         </div>
       )}
-      {/* Honeypot: off-screen and skipped by keyboards and screen readers.
-          Real visitors never fill it; bots do, and the relay drops them. */}
-      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
-        <input name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
-      </div>
       <div className="form-2col">
         <div className="field">
           <label htmlFor="eq-name">Your name</label>
