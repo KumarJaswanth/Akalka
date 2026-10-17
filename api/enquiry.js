@@ -5,7 +5,7 @@
    the same two calls Zoho's own hosted form makes, from the server, and
    answers { ok: true } only when Zoho has recorded the enquiry.
 
-     1. POST <form>/uploadFile   multipart  -> { FileUpload: "<zoho path>" }
+     1. POST <upload server>     raw file   -> { filepath: "<zoho path>" }
      2. POST <form>/records      JSON       -> { thankyou_page_URL, ... } on success
                                                { errors: [{ field: message }] } on rejection
 
@@ -19,6 +19,10 @@ export const config = { api: { bodyParser: false } };
 
 const FORM =
   'https://forms.zohopublic.in/infoneoteric11/form/AkalkaProductEnquiryForm/formperma/OkxgSwiTqRc8e3zqTOwZwhHGK9vMuwYBULXjush9PX0';
+
+/* Zoho's file server and form id, as the hosted page uses them. */
+const UPLOAD_URL = 'https://in2-files.zohopublic.in/forms/v2/stream/publicupload';
+const FORM_ID = '275789000000010005';
 
 /* Zoho's own limits for this form. */
 const PRODUCTS = ['Doors', 'Cleanroom Panels', 'Fire-Rated Doors', 'Emergency Exit Doors', 'Other'];
@@ -108,16 +112,33 @@ export default async function handler(req, res) {
     record['FileUpload-v2'] = []; /* the hosted page always sends this key */
 
     if (hasFile) {
-      const up = new FormData();
-      up.append('mode', 'live');
-      up.append('FileUpload', file, file.name || 'drawing');
-      const upRes = await fetch(`${FORM}/uploadFile`, { method: 'POST', body: up, headers: { ...session, Accept: 'application/json' } });
+      /* Zoho's page streams the raw file to its upload server, then files
+         the returned path under <field>-v2. */
+      const { Cookie: _forms, ...uploadSession } = session; /* forms cookies belong to forms.zohopublic.in only */
+      const upRes = await fetch(UPLOAD_URL, {
+        method: 'POST',
+        body: Buffer.from(await file.arrayBuffer()),
+        headers: {
+          ...uploadSession,
+          'Content-Type': file.type || 'application/octet-stream',
+          'x-service': 'forms',
+          'x-streammode': '1',
+          'upload-id': `infoneoteric11_${FORM_ID}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
+          'x-portalname': 'infoneoteric11',
+          'x-formlinkname': 'AkalkaProductEnquiryForm',
+          'x-fieldlinkname': 'FileUpload',
+          'x-filename': encodeURIComponent(file.name || 'drawing'),
+          'x-assured-response': 'true',
+          'x-live_form_upload': 'true',
+          'x-fclient-version': '2',
+        },
+      });
       const upJson = await upRes.json().catch(() => ({}));
-      if (!upRes.ok || typeof upJson.FileUpload !== 'string') {
+      if (!upRes.ok || typeof upJson.filepath !== 'string') {
         console.error('Zoho upload refused', upRes.status, upJson);
         return send(res, 502, { ok: false, error: 'The drawing could not be uploaded. Please try again, or send the enquiry without it.' });
       }
-      record['FileUpload-v1'] = [upJson.FileUpload];
+      record['FileUpload-v2'] = [upJson.filepath];
     }
 
     const recRes = await fetch(`${FORM}/records`, {
