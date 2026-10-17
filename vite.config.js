@@ -19,6 +19,17 @@ export default defineConfig({
   plugins: [
     react(),
     {
+      /* Serve api/enquiry.js in `npm run dev` / `npm run preview`, the way
+         Vercel serves it in production, so the form can be tried locally. */
+      name: 'enquiry-api',
+      configureServer(server) {
+        server.middlewares.use('/api/enquiry', async (req, res) => {
+          const { default: handler } = await server.ssrLoadModule('/api/enquiry.js');
+          await handler(req, res);
+        });
+      },
+    },
+    {
       name: 'favicon-base',
       transformIndexHtml(html) {
         return html.replaceAll('%FAVICON_BASE%', base);

@@ -202,6 +202,7 @@ main { flex: 1; }
 .btn:hover .arr-up { transform: translate(3px, -3px); }
 .btn-solid { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .btn-solid::before { background: var(--worksurface-2); }
+.btn:disabled { cursor: progress; opacity: 0.72; pointer-events: none; }
 .btn-light { border-color: var(--on-dark-border); color: var(--on-dark); }
 .btn-light::before { background: var(--on-dark); }
 .btn-light:hover { color: var(--ink); border-color: var(--on-dark); }
@@ -796,7 +797,25 @@ details.spec .spec-body { padding: 0 26px 26px; color: var(--secondary); font-si
 .field-error { font-size: 0.85rem; font-weight: 600; color: var(--ink); line-height: 1.5; }
 .field-error::before { content: '△ '; }
 .field textarea { min-height: 150px; resize: vertical; }
+.form-error { margin: 0 0 var(--s4); }
 .contact-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(32px, 5vw, 88px); align-items: start; }
+/* On the contact page the form sits in its own column, where the right-hand
+   details are white cards. Giving it the same card surface and weight stops
+   the column reading as an unfinished sheet of fields. The home enquiry form
+   already lives inside .enquiry-card, so this is scoped to the grid. */
+.contact-grid .form {
+  background: var(--card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lift);
+  padding: clamp(28px, 3.5vw, 44px);
+}
+@media (max-width: 560px) {
+  .contact-grid .form { padding: 22px 18px; }
+}
+/* The label-and-link pair under the form: one quiet line, label first on wide
+   screens, wrapping to two lines on phones. */
+.form-alt { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: var(--s6); }
+.form-alt .meta { color: var(--muted-fg); }
 .info-rows { display: flex; flex-direction: column; gap: 12px; }
 .info-row { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding: 22px 24px; font-size: 0.92rem; background: var(--card); border-radius: 16px; box-shadow: var(--shadow-soft); }
 .info-row .meta { color: var(--muted-fg); padding-top: 3px; }

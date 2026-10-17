@@ -3,11 +3,34 @@ import { Reveal, Materialize, SectionHead } from '../components/Reveal.jsx';
 import { Plus } from '../components/icons.jsx';
 import { Process, PROCESS_STEPS } from '../components/Blocks.jsx';
 import { word } from '../data/products.js';
-import { CONTACT, hasChannels, telHref } from '../data/company.js';
+import { CONTACT, hasChannels, telHref, ZOHO_FORM_URL } from '../data/company.js';
 import EnquiryForm from '../components/EnquiryForm.jsx';
 import Term from '../components/Term.jsx';
 import Landscape from '../components/Landscape.jsx';
 import { FAQ } from '../data/faq.js';
+
+/* Zoho's own "Access Form" integration: the hosted form opened in a centred
+   popup window, sized as Zoho's snippet specifies. It sits beside the branded
+   form as an alternative route to the same inbox. The anchor keeps its real
+   href and target, so with JavaScript off — or on a browser that blocks the
+   popup — it still opens the form instead of doing nothing. */
+const ZOHO_POPUP = { width: 700, height: 648 };
+
+function openZohoForm(event) {
+  const { width, height } = ZOHO_POPUP;
+  /* Centre on the window the visitor is using, not the primary screen —
+     on a second monitor screen.width would throw the popup elsewhere. */
+  const left = Math.round(window.screenX + (window.outerWidth - width) / 2);
+  const top = Math.round(window.screenY + (window.outerHeight - height) / 2);
+  const popup = window.open(
+    ZOHO_FORM_URL,
+    'akalka-zoho-form',
+    `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,status=1,scrollbars=1,resizable=1`,
+  );
+  /* Only cancel the link once the popup has actually opened; if it was
+     blocked, the anchor's own target="_blank" takes over. */
+  if (popup) event.preventDefault();
+}
 
 export default function Contact() {
   const [params] = useSearchParams();
@@ -36,6 +59,21 @@ export default function Contact() {
           <div>
             <SectionHead index="Form" label="Enquiry form" />
             <EnquiryForm defaultInterest={requested} defaultAsk={asked} defaultMeta={meta} />
+            <Reveal delay={0.06}>
+              <div className="form-alt">
+                <span className="meta">Prefer more room?</span>
+                <a
+                  href={ZOHO_FORM_URL}
+                  onClick={openZohoForm}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Akalka Product Enquiry Form"
+                  className="link-line"
+                >
+                  Open the enquiry form in its own window
+                </a>
+              </div>
+            </Reveal>
           </div>
           <div>
             <SectionHead index={hasChannels ? 'Channels' : 'Send'} label={hasChannels ? 'Direct channels' : 'What to send'} />

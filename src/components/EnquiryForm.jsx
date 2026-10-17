@@ -1,22 +1,68 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Magnetic } from './Reveal.jsx';
-import { CATEGORIES } from '../data/products.js';
 import { ArrowRight } from './icons.jsx';
 
-/* Shared enquiry form.
-   Behaviour: validates inline, then queues the enquiry on this device
-   (localStorage) with a reference number and — when a backend endpoint
-   is configured via VITE_ENQUIRY_ENDPOINT — forwards it there too.
-   No contact details are invented: direct channels stay out of the site
-   until the client supplies them (data/company.js). */
+/* Shared enquiry form — our markup and styling, Zoho Forms as the inbox.
 
-/* Derived from the catalogue, so a category can never be missing from the form. */
-const PRODUCT_OPTIONS = [...CATEGORIES.map((c) => c.name), 'Multiple / full system'];
+   The six fields, their order and their limits mirror the Zoho "Akalka
+   Product Enquiry Form" exactly (read from the live form):
 
-const MAX_FILES_MB = 25;
-const ACCEPT = '.pdf,.dwg,.dxf,.zip,.jpg,.jpeg,.png';
+     SingleLine    Your name                                   max 255
+     SingleLine1   Company or site name                        max 255
+     PhoneNumber   Phone (country code off, so +91 is typed)   5–15 digits
+     Dropdown      Select the product you are interested in
+     MultiLine     Quantities, sizes, thicknesses…             max 65535
+     FileUpload    Upload drawings or BOQ                      one file
+
+   None of the six is mandatory in Zoho, and there is no email field.
+
+   The form posts to our own /api/enquiry (api/enquiry.js), which relays it
+   to Zoho server-side — a browser cannot call Zoho directly, because Zoho
+   sends no CORS headers and the page could never read the answer. The
+   relay replies { ok: true } only once Zoho has recorded the enquiry, so
+   the thank-you card is shown on that and nothing else; any other outcome
+   is an error and the visitor's input is kept. */
+
+const ENDPOINT = import.meta.env.VITE_ENQUIRY_ENDPOINT || '/api/enquiry';
+const SUBMIT_TIMEOUT_MS = 60000;
+
+/* Zoho's dropdown options, verbatim and in Zoho's order. */
+const PRODUCT_OPTIONS = ['Doors', 'Cleanroom Panels', 'Fire-Rated Doors', 'Emergency Exit Doors', 'Other'];
+
+/* Zoho's field limits (ZFLive.constraintJson on the live form). The file
+   limit is the relay's: Vercel refuses request bodies over 4.5 MB. */
+const LIMITS = { name: 255, org: 255, phoneDigits: [5, 15], msg: 65535, fileMB: 4 };
+
+/* Prefill only — the visitor can change it. Pages that deep-link into the
+   form pass the site's own category names, which map onto Zoho's list. */
+function toZohoProduct(interest, meta) {
+  if (/fire/i.test(meta)) return 'Fire-Rated Doors';
+  if (/emergency/i.test(meta)) return 'Emergency Exit Doors';
+  if (PRODUCT_OPTIONS.includes(interest)) return interest;
+  return interest ? 'Other' : '';
+}
+
+/* Resolves { ok, error }. ok is true only when the relay confirms Zoho
+   recorded the enquiry. */
+async function sendEnquiry(fields, file) {
+  const data = new FormData();
+  Object.entries(fields).forEach(([k, v]) => data.append(k, v));
+  if (file) data.append('FileUpload', file);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), SUBMIT_TIMEOUT_MS);
+  try {
+    const res = await fetch(ENDPOINT, { method: 'POST', body: data, signal: ctrl.signal });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok && body.ok === true) return { ok: true };
+    return { ok: false, error: body.error };
+  } catch {
+    return { ok: false };
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 function makeRef() {
   const d = new Date();
@@ -25,16 +71,16 @@ function makeRef() {
   return `AK-${ymd}-${rand}`;
 }
 
-export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = '', defaultMeta = '' }) {
+export default function EnquiryForm({ defaultInterest = '', defaultAsk = '', defaultMeta = '' }) {
   const reduce = useReducedMotion();
   const [sent, setSent] = useState(null);
-  const [files, setFiles] = useState([]);
+  const [file, setFile] = useState(null);
+  const busy = useRef(false);
   const [form, setForm] = useState({
     name: '',
     org: '',
     phone: '',
-    email: '',
-    interest: PRODUCT_OPTIONS.includes(defaultInterest) ? defaultInterest : 'Doors',
+    interest: toZohoProduct(defaultInterest, defaultMeta),
     /* Arriving from a "needs confirmation" mark: the question is already
        written, so the visitor never has to remember what they wanted to
        ask before they start typing. */
@@ -45,60 +91,65 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
     /* Clearing a field clears its error — the visitor is already fixing it. */
-    setErrors((prev) => (prev[k] ? { ...prev, [k]: undefined } : prev));
+    setErrors((prev) => (prev[k] || prev.form ? { ...prev, [k]: undefined, form: undefined } : prev));
   };
   const [errors, setErrors] = useState({});
-  const submit = (e) => {
+  const [sending, setSending] = useState(false);
+
+  const submit = async (e) => {
     e.preventDefault();
+    if (busy.current) return; /* a second click while the first is in flight */
     /* Native bubbles alone leave a keyboard user stranded at the button
        with no route to the problem. Validate inline, announce once, and
        move focus to the first field that needs attention. */
     const next = {};
-    if (!form.name.trim()) next.name = 'Please tell us your name so we know who is asking.';
-    if (!form.phone.trim() && !form.email.trim())
-      next.phone = 'Please leave a phone number or an email so we can reply.';
-    else {
-      if (form.phone.trim() && !/^[+\d][\d\s\-()]{5,}$/.test(form.phone.trim()))
-        next.phone = 'That phone number does not look complete — please check it.';
-      if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
-        next.email = 'That email does not look complete — please check it.';
-    }
-    if (!form.msg.trim()) next.msg = 'Please describe the requirement — sizes, quantities or drawings.';
-    const totalMB = files.reduce((s, f) => s + f.size, 0) / (1024 * 1024);
-    if (totalMB > MAX_FILES_MB) next.files = `Drawings total ${totalMB.toFixed(1)} MB — please keep attachments under ${MAX_FILES_MB} MB.`;
+    const phone = form.phone.trim();
+    const digits = phone.replace(/\D/g, '').length;
+    if (phone && (digits < LIMITS.phoneDigits[0] || digits > LIMITS.phoneDigits[1] || !/^[\d+\-.() ]+$/.test(phone)))
+      next.phone = `Phone must have ${LIMITS.phoneDigits[0]}–${LIMITS.phoneDigits[1]} digits (+ - . ( ) and spaces allowed) — e.g. +91 98765 43210.`;
+    if (file && file.size > LIMITS.fileMB * 1024 * 1024)
+      next.files = `That file is ${(file.size / (1024 * 1024)).toFixed(1)} MB — the limit is ${LIMITS.fileMB} MB. Please zip or compress it.`;
+    /* Zoho marks no field mandatory but refuses a wholly empty record. */
+    if (!form.name.trim() && !form.org.trim() && !phone && !form.interest && !form.msg.trim() && !file)
+      next.form = 'Please fill in at least one field before sending.';
     setErrors(next);
     if (Object.keys(next).length > 0) {
-      const first = ['name', 'phone', 'email', 'msg', 'files'].find((k) => next[k]);
-      const id = { name: 'eq-name', phone: 'eq-phone', email: 'eq-email', msg: 'eq-msg', files: 'eq-files' }[first];
+      const first = ['phone', 'files', 'form'].find((k) => next[k]);
+      const id = { phone: 'eq-phone', files: 'eq-files', form: 'eq-name' }[first];
       document.getElementById(id)?.focus();
       return;
     }
+
     const ref = makeRef();
-    const enquiry = {
-      ref,
-      at: new Date().toISOString(),
-      ...form,
-      meta: defaultMeta,
-      files: files.map((f) => ({ name: f.name, size: f.size })),
-    };
-    let queued = false;
-    try {
-      const key = 'akalka-enquiries';
-      const prev = JSON.parse(window.localStorage.getItem(key) || '[]');
-      prev.push(enquiry);
-      window.localStorage.setItem(key, JSON.stringify(prev));
-      queued = true;
-    } catch {
-      queued = false;
-    }
-    /* Optional backend forward — configured at build time. Absent by
-       default, in which case the enquiry waits honestly in the device
-       queue instead of pretending it was delivered. */
-    const endpoint = import.meta.env.VITE_ENQUIRY_ENDPOINT;
-    if (endpoint) {
-      fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(enquiry) }).catch(() => {});
-    }
-    setSent({ ref, queued, forwarded: Boolean(endpoint) });
+    /* Context Zoho has no field for travels inside the message, so the
+       enquiry stays one self-contained record. */
+    const extra = [
+      `Reference: ${ref}`,
+      defaultMeta ? `Configuration: ${defaultMeta}` : null,
+      defaultInterest && form.interest === 'Other' && defaultInterest !== 'Other' ? `Page interest: ${defaultInterest}` : null,
+    ].filter(Boolean);
+    const message = [form.msg.trim(), '', ...extra].join('\n').trim();
+
+    busy.current = true;
+    setSending(true);
+    const result = await sendEnquiry(
+      {
+        SingleLine: form.name.trim(),
+        SingleLine1: form.org.trim(),
+        PhoneNumber: phone,
+        Dropdown: form.interest,
+        MultiLine: message,
+        website: e.currentTarget.elements.website.value,
+      },
+      file,
+    );
+    busy.current = false;
+    setSending(false);
+    if (result.ok) setSent({ ref, fileName: file?.name || '' });
+    else
+      setErrors({
+        form: `${result.error || 'We could not send your enquiry.'} Nothing you typed has been lost — please try again.`,
+      });
   };
   const fieldError = (k, id) =>
     errors[k] ? (
@@ -108,11 +159,12 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
     ) : null;
 
   if (sent) {
-    const first = form.name.split(' ')[0] || 'there';
+    const first = form.name.trim().split(' ')[0] || 'there';
     const msgShort =
       form.msg.length > 140 ? `${form.msg.slice(0, 140).trimEnd()}…` : form.msg;
     return (
       <motion.div
+
         className="sent-card thanks-v2"
         initial={reduce ? false : { opacity: 0, y: 34, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -137,7 +189,7 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Enquiry {sent.ref} — {sent.forwarded ? 'sent' : sent.queued ? 'saved on this device' : 'ready'}
+          Enquiry {sent.ref} — sent
         </motion.p>
         <motion.h2
           className="h2"
@@ -148,37 +200,37 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
         >
           Thank you, {first} — it&apos;s with us.
         </motion.h2>
-        {!sent.forwarded && (
-          <motion.p
-            className="body-sm"
-            style={{ marginTop: 'var(--s3)' }}
-            initial={reduce ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.64, duration: 0.5 }}
-          >
-            {sent.queued
-              ? 'Quote this reference on first contact — your enquiry is queued on this device until an inbox is connected.'
-              : 'Quote this reference on first contact — your browser could not store it, so keep a copy of the text below.'}
-          </motion.p>
-        )}
+        <motion.p
+          className="body-sm"
+          style={{ marginTop: 'var(--s3)' }}
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.64, duration: 0.5 }}
+        >
+          Quote this reference if you follow up with us.
+        </motion.p>
         <motion.div
           className="thanks-recap"
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.55 }}
         >
-          <div>
-            <span className="meta">Interest</span>
-            <b>{form.interest}</b>
-          </div>
-          <div>
-            <span className="meta">Reach you</span>
-            <b>{[form.phone, form.email].filter(Boolean).join('  ·  ')}</b>
-          </div>
-          {form.org && (
+          {form.interest && (
+            <div>
+              <span className="meta">Interest</span>
+              <b>{form.interest}</b>
+            </div>
+          )}
+          {form.phone.trim() && (
+            <div>
+              <span className="meta">Reach you</span>
+              <b>{form.phone.trim()}</b>
+            </div>
+          )}
+          {form.org.trim() && (
             <div>
               <span className="meta">Project</span>
-              <b>{form.org}</b>
+              <b>{form.org.trim()}</b>
             </div>
           )}
           {defaultMeta && (
@@ -187,16 +239,18 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
               <b>{defaultMeta}</b>
             </div>
           )}
-          {files.length > 0 && (
+          {sent.fileName && (
             <div>
               <span className="meta">Drawings</span>
-              <b>{files.length} file{files.length > 1 ? 's' : ''} attached on this device</b>
+              <b>{sent.fileName}</b>
             </div>
           )}
-          <div className="wide">
-            <span className="meta">Requirement</span>
-            <p className="body-sm" style={{ margin: 0 }}>{msgShort}</p>
-          </div>
+          {form.msg.trim() && (
+            <div className="wide">
+              <span className="meta">Requirement</span>
+              <p className="body-sm" style={{ margin: 0 }}>{msgShort}</p>
+            </div>
+          )}
         </motion.div>
         <motion.div
           className="thanks-steps"
@@ -222,7 +276,7 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.95, duration: 0.5 }}
         >
-          <button className="btn btn-solid" onClick={() => { setSent(null); setFiles([]); }}>Send another enquiry</button>
+          <button className="btn btn-solid" onClick={() => { setSent(null); setFile(null); }}>Send another enquiry</button>
           <Link to="/products" className="btn">Browse catalogue</Link>
         </motion.div>
       </motion.div>
@@ -234,8 +288,8 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
       className="form"
       onSubmit={submit}
       /* Custom inline validation below owns every error — native bubbles
-         would fire first on empty submit and strand the visitor at the
-         button with no route to the problem. */
+         would fire first and strand the visitor at the button with no
+         route to the problem. */
       noValidate
     >
       {defaultMeta && (
@@ -243,28 +297,33 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
           <span className="chip chip-accent">{defaultMeta}</span>
         </div>
       )}
+      {/* Honeypot: off-screen and skipped by keyboards and screen readers.
+          Real visitors never fill it; bots do, and the relay drops them. */}
+      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+        <input name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
+      </div>
       <div className="form-2col">
         <div className="field">
-          <label htmlFor="eq-name">Full name *</label>
+          <label htmlFor="eq-name">Your name</label>
           <input
             id="eq-name"
-            required
+            name="SingleLine"
+            maxLength={LIMITS.name}
             value={form.name}
             onChange={set('name')}
-            placeholder="Your name"
             autoComplete="name"
-            aria-invalid={errors.name ? 'true' : undefined}
-            aria-describedby={errors.name ? 'eq-name-error' : undefined}
+            aria-invalid={errors.form ? 'true' : undefined}
+            aria-describedby={errors.form ? 'eq-form-error' : undefined}
           />
-          {fieldError('name', 'eq-name')}
         </div>
         <div className="field">
-          <label htmlFor="eq-org">Company / project</label>
+          <label htmlFor="eq-org">Company or site name</label>
           <input
             id="eq-org"
+            name="SingleLine1"
+            maxLength={LIMITS.org}
             value={form.org}
             onChange={set('org')}
-            placeholder="Company or site name"
             autoComplete="organization"
           />
         </div>
@@ -274,6 +333,7 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
           <label htmlFor="eq-phone">Phone</label>
           <input
             id="eq-phone"
+            name="PhoneNumber"
             type="tel"
             value={form.phone}
             onChange={set('phone')}
@@ -285,61 +345,43 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
           {fieldError('phone', 'eq-phone')}
         </div>
         <div className="field">
-          <label htmlFor="eq-email">Email</label>
-          <input
-            id="eq-email"
-            type="email"
-            value={form.email}
-            onChange={set('email')}
-            placeholder="you@company.com"
-            autoComplete="email"
-            aria-invalid={errors.email ? 'true' : undefined}
-            aria-describedby={errors.email ? 'eq-email-error' : undefined}
-          />
-          {fieldError('email', 'eq-email')}
+          <label htmlFor="eq-int">Select the product you are interested in</label>
+          <select id="eq-int" name="Dropdown" value={form.interest} onChange={set('interest')}>
+            <option value="">-Select-</option>
+            {PRODUCT_OPTIONS.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
         </div>
       </div>
       <div className="field">
-        <label htmlFor="eq-int">Product interest *</label>
-        <select id="eq-int" value={form.interest} onChange={set('interest')}>
-          {PRODUCT_OPTIONS.map((o) => (
-            <option key={o}>{o}</option>
-          ))}
-        </select>
-      </div>
-      <div className="field">
-        <label htmlFor="eq-msg">Requirement details *</label>
+        <label htmlFor="eq-msg">Quantities, sizes, thicknesses (50 / 100 mm), finishes, site location, timeline...</label>
         <textarea
           id="eq-msg"
-          required
+          name="MultiLine"
+          maxLength={LIMITS.msg}
           value={form.msg}
           onChange={set('msg')}
-          placeholder="Quantities, sizes, thicknesses (50 / 100 mm), finishes, site location, timeline…"
-          aria-invalid={errors.msg ? 'true' : undefined}
-          aria-describedby={errors.msg ? 'eq-msg-error' : undefined}
         />
-        {fieldError('msg', 'eq-msg')}
       </div>
       <div className="field">
-        <label htmlFor="eq-files">Drawings / BOQ (PDF, DWG, ZIP, images)</label>
+        <label htmlFor="eq-files">Upload drawings or BOQ (PDF, DWG, ZIP, Images)</label>
         <input
           id="eq-files"
+          name="FileUpload"
           type="file"
-          multiple
-          accept={ACCEPT}
           onChange={(e) => {
-            setFiles(Array.from(e.target.files || []));
-            setErrors((prev) => (prev.files ? { ...prev, files: undefined } : prev));
+            setFile(e.target.files?.[0] || null);
+            setErrors((prev) => (prev.files || prev.form ? { ...prev, files: undefined, form: undefined } : prev));
           }}
+          aria-invalid={errors.files ? 'true' : undefined}
           aria-describedby={errors.files ? 'eq-files-error' : undefined}
         />
-        {files.length > 0 && (
-          <div className="chips" style={{ marginTop: 'var(--s3)' }} aria-label="Selected files">
-            {files.map((f) => (
-              <span key={`${f.name}-${f.size}`} className="chip">
-                {f.name} · {(f.size / 1024).toFixed(0)} KB
-              </span>
-            ))}
+        {file && (
+          <div className="chips" style={{ marginTop: 'var(--s3)' }} aria-label="Selected file">
+            <span className="chip">
+              {file.name} · {(file.size / 1024).toFixed(0)} KB
+            </span>
           </div>
         )}
         {fieldError('files', 'eq-files')}
@@ -354,14 +396,16 @@ export default function EnquiryForm({ defaultInterest = 'Doors', defaultAsk = ''
           <li><b>We confirm</b><span>A specification with nothing assumed or invented.</span></li>
           <li><b>We proceed</b><span>Next steps agreed directly with you.</span></li>
         </ol>
+        {errors.form && (
+          <p className="field-error form-error" id="eq-form-error" role="alert">
+            {errors.form}
+          </p>
+        )}
         <Magnetic>
-          <button type="submit" className="btn btn-solid">
-            Submit enquiry <ArrowRight className="arr arr-r" />
+          <button type="submit" className="btn btn-solid" disabled={sending} aria-busy={sending || undefined}>
+            {sending ? 'Sending…' : <>Submit enquiry <ArrowRight className="arr arr-r" /></>}
           </button>
         </Magnetic>
-        <p className="meta" style={{ marginTop: 'var(--s4)', color: 'var(--muted-fg)' }}>
-          At least one of phone or email is needed so we can reply.
-        </p>
       </div>
     </form>
   );
