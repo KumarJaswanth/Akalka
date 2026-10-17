@@ -1,0 +1,35 @@
+{
+  "name": "AKALKA Doors & Panels",
+  "short_name": "AKALKA",
+  "description": "Doors, panels and profiles made in Visakhapatnam, to your sizes.",
+  "lang": "en-IN",
+  "start_url": "/Akalka/",
+  "scope": "/Akalka/",
+  "display": "standalone",
+  "background_color": "#fafaf8",
+  "theme_color": "#2b3036",
+  "categories": [
+    "business",
+    "manufacturing"
+  ],
+  "icons": [
+    {
+      "src": "/Akalka/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Akalka/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Akalka/akalka-symbol.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

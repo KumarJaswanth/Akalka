@@ -3,15 +3,58 @@
   <url>
     <loc>https://akalka.in/</loc>
     <lastmod>2026-10-17</lastmod>
-    <image:image><image:loc>https://akalka.in/og-image.jpg</image:loc></image:image>
+    <image:image>
+      <image:loc>https://akalka.in/og-image.jpg</image:loc>
+      <image:caption>The AKALKA showroom: coated steel doors and sandwich panels either side of the AKALKA Doors &amp; Panels wall</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/akalka-bg.webp</image:loc>
+      <image:caption>Coated steel doors and wall panel samples on display either side of the AKALKA Doors &amp; Panels wall</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://akalka.in/products</loc>
     <lastmod>2026-10-17</lastmod>
+    <image:image>
+      <image:loc>https://akalka.in/Images/simple%20modular%20single%20door%20003.webp</image:loc>
+      <image:caption>Dark blue coated steel cleanroom door with a vision panel in a panel wall</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/simple%20modular%20double%20door%20001.webp</image:loc>
+      <image:caption>Blue double cleanroom doors open along a clean corridor</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/energence%20door%20001.webp</image:loc>
+      <image:caption>Red fire rated door with push bar in a white finished room</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/energence%20door%20002.webp</image:loc>
+      <image:caption>Red double fire doors with push bars</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/panel%20board.webp</image:loc>
+      <image:caption>Sandwich panel joint detail showing double skins and core</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/panel%20board%20002.webp</image:loc>
+      <image:caption>Finished cleanroom with flush white panels, blue doors and a blue floor</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://akalka.in/about</loc>
     <lastmod>2026-10-17</lastmod>
+    <image:image>
+      <image:loc>https://akalka.in/Images/akalka-bg.webp</image:loc>
+      <image:caption>The AKALKA showroom: coated steel doors and sandwich panels either side of the logo wall</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/hero-cleanroom-1920.webp</image:loc>
+      <image:caption>A bright white cleanroom corridor with glossy flush walls and a clean panel ceiling</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://akalka.in/Images/panel%20board%20002.webp</image:loc>
+      <image:caption>Finished cleanroom with flush white panels, blue doors and a blue floor</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://akalka.in/contact</loc>

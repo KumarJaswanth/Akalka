@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { CAT, PANEL_CORES, WALL_THICKNESSES, tag } from '../data/products.js';
 import { Reveal, Materialize, ParallaxImg, ScrollWords, CountUp, Magnetic } from '../components/Reveal.jsx';
 import Carousel from '../components/Carousel.jsx';
-import { PROCESS } from '../components/Blocks.jsx';
+import { PROCESS, PRINCIPLES, PILLARS as PILLAR_COPY } from '../data/story.js';
 import { HERO, IMG, PHOTO, srcSetFor } from '../data/images.js';
 import { ArrowRight, ArrowUpRight } from '../components/icons.jsx';
 import Eyebrow from '../components/Eyebrow.jsx';
@@ -31,25 +31,19 @@ const PILLARS = [
     k: 'Openings', h: 'Doors', to: '/products#doors', cta: 'Explore doors',
     img: { src: SHOWROOM.src, srcSet: SHOWROOM.srcSet, alt: 'A row of doors on display: white, steel, blue and red leaves, each with a vision panel' },
     pos: '0% 50%', zoom: 1, origin: '0% 50%',
-    p: 'Regular modular, fire rated and emergency doors — single and double, honeycomb or rockwool cores, sized to the opening.',
+    p: PILLAR_COPY[0].p,
   },
   {
     k: 'Surfaces', h: 'Panels', to: '/products#panels', cta: 'Explore panels',
     img: { src: SHOWROOM.src, srcSet: SHOWROOM.srcSet, alt: 'A display stand of wall panel samples, some cut open to show their cores' },
     pos: '95% 50%', zoom: 1.25, origin: '50% 56%',
-    p: 'Sandwich, cleanroom, partition, riser, flush wall and view glass panels in confirmed types and thicknesses.',
+    p: PILLAR_COPY[1].p,
   },
   {
     k: 'Junctions', h: 'Profiles', to: '/products#profiles', cta: 'Explore profiles',
     img: PHOTO.measure, pos: '50% 50%', zoom: 1, origin: '50% 50%',
-    p: 'Corners, 2D and 3D forms, channels, angles, box sections, aluminium-coated profiles and bottom tracks.',
+    p: PILLAR_COPY[2].p,
   },
-];
-
-const PRINCIPLES = [
-  { t: 'Made to meet', d: 'Doors, panels and profiles come from one maker, so junctions line up in the factory instead of being improvised on site.' },
-  { t: 'Variation without invention', d: 'Sizes and colours adapt to requirement. Anything unconfirmed is marked plainly — and one tap asks us, never guessed.' },
-  { t: 'Finish as discipline', d: 'White, Matt White or matched colour across every element, so the whole project stays coherent.' },
 ];
 
 const FINISH_SLIDES = [

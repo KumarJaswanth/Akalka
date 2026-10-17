@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useScrollVar } from './Reveal.jsx';
 import { srcSetFor } from '../data/images.js';
+import { PROCESS } from '../data/story.js';
 
 /* Two light, self-contained scroll blocks used across the pages. They live
    apart from Scenes.jsx (the 3D room, door and panel) so the pages that only
@@ -38,13 +39,6 @@ export function ImageExpand({ img, left, right, kicker, children }) {
    4. Process — how an order moves, with a rule that fills as the
    section crosses the viewport and lights each step in turn.
    ================================================================= */
-export const PROCESS = [
-  { n: '01', t: 'Choose the range', d: 'Doors, sandwich, cleanroom, partition, glass or profiles — start from the catalogue.' },
-  { n: '02', t: 'Send the sizes', d: 'Drawings, opening schedules, panel layouts or a bill of quantities.' },
-  { n: '03', t: 'Confirm the specification', d: 'Variant, core, thickness, finish and colour confirmed back to you. Nothing assumed.' },
-  { n: '04', t: 'Manufactured to order', d: 'Produced to the confirmed specification, as one coordinated system.' },
-];
-
 export const PROCESS_STEPS = PROCESS.length;
 
 /* `vertical` runs the steps down the page instead of across it (About). */

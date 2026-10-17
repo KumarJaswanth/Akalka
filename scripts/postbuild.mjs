@@ -17,10 +17,11 @@
 //   is source art or a photograph rejected on quality — never referenced,
 //   so it is dropped from the deploy rather than shipped as dead weight.
 import { mkdirSync, readFileSync, writeFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
-import { ROUTES, NOT_FOUND, SITE_URL, SITE_NAME, LOGO, OG_IMAGE, LOCATION, canonical } from '../src/data/seo.js';
-import { CATEGORIES } from '../src/data/products.js';
+import { ROUTES, NOT_FOUND, SITE_URL, SITE_NAME, LOGO, LOGO_SIZE, WORDMARK, OG_IMAGE, PAGE_IMAGES, LOCATION, canonical } from '../src/data/seo.js';
+import { CATEGORIES, PANEL_CORES, WALL_THICKNESSES } from '../src/data/products.js';
 import { FAQ } from '../src/data/faq.js';
 import { CONTACT } from '../src/data/company.js';
+import { PROCESS, PRINCIPLES, PILLARS } from '../src/data/story.js';
 
 const outDir = process.env.VERCEL ? 'dist' : 'docs';
 const shell = readFileSync(`${outDir}/index.html`, 'utf8');
@@ -30,6 +31,21 @@ const today = new Date().toISOString().slice(0, 10);
 const BASE = (shell.match(/src="([^"]*?)assets\//) || [, '/'])[1];
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* The Products page tells the catalogue in three chapters. The data file
+   still lists six families (the Home page counts them), so the chapters are
+   gathered from it here, the same way the page does. */
+const byId = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
+const names = (list) => list.map((i) => i.name);
+const CHAPTERS = [
+  { id: 'doors', name: 'Doors', summary: byId.doors.description },
+  {
+    id: 'panels',
+    name: 'Panels',
+    summary: `Wall, ceiling and view glass panels: ${[...names(byId.sandwich.panels), ...names(byId.cleanroom.items), ...names(byId.partition.items), ...names(byId.glass.items)].filter((n, i, a) => a.indexOf(n) === i).join(', ')}.`,
+  },
+  { id: 'profiles', name: 'Profiles & Tracks', summary: byId.profiles.description },
+];
 
 /* ---------- structured data ---------- */
 const ORG_ID = `${SITE_URL}/#organization`;
@@ -45,7 +61,7 @@ function organization() {
     slogan: 'Crafted with care',
     description: 'Manufacturer of doors, sandwich panels, cleanroom panels, partition and view glass panels, and the profiles that join them, based in Visakhapatnam (Vizag), Andhra Pradesh.',
     knowsAbout: CATEGORIES.map((c) => c.name),
-    image: OG_IMAGE.url,
+    image: [OG_IMAGE.url, WORDMARK.url],
     address: {
       '@type': 'PostalAddress',
       ...(CONTACT.address ? { streetAddress: CONTACT.address } : {}),
@@ -63,7 +79,8 @@ function organization() {
   };
   if (CONTACT.phone) org.telephone = CONTACT.phone;
   if (CONTACT.email) org.email = CONTACT.email;
-  if (LOGO) org.logo = { '@type': 'ImageObject', url: LOGO };
+  /* The square "a" mark — the same artwork as the favicon — is the logo. */
+  if (LOGO) org.logo = { '@type': 'ImageObject', '@id': `${SITE_URL}/#logo`, url: LOGO, contentUrl: LOGO, width: LOGO_SIZE, height: LOGO_SIZE, caption: `${SITE_NAME} logo` };
   return org;
 }
 
@@ -100,12 +117,12 @@ function graph(route) {
     page.mainEntity = {
       '@type': 'ItemList',
       name: 'AKALKA product range',
-      numberOfItems: CATEGORIES.length,
-      itemListElement: CATEGORIES.map((c, i) => ({
+      numberOfItems: CHAPTERS.length,
+      itemListElement: CHAPTERS.map((c, i) => ({
         '@type': 'ListItem',
         position: i + 1,
         name: c.name,
-        description: c.description,
+        description: c.summary,
         url: `${url}#${c.id}`,
       })),
     };
@@ -129,6 +146,8 @@ function head(meta, url, ld) {
     `<meta name="description" content="${d}" />`,
     `<meta name="robots" content="${url ? 'index, follow, max-image-preview:large' : 'noindex, follow'}" />`,
     url ? `<link rel="canonical" href="${url}" />` : '',
+    url ? `<link rel="alternate" hreflang="en-IN" href="${url}" />` : '',
+    url ? `<link rel="alternate" hreflang="x-default" href="${url}" />` : '',
     `<meta property="og:type" content="website" />`,
     `<meta property="og:url" content="${url || `${SITE_URL}/`}" />`,
     `<meta property="og:title" content="${t}" />`,
@@ -142,7 +161,8 @@ function head(meta, url, ld) {
 
 /* ---------- readable snapshot ---------- */
 const nav = () => `<nav aria-label="Site"><a href="${BASE}">Home</a> · <a href="${BASE}products/">Products</a> · <a href="${BASE}about/">About</a> · <a href="${BASE}contact/">Contact</a></nav>`;
-const cats = (link) => CATEGORIES.map((c) => `<section><h2>${esc(c.name)}</h2><p>${esc(c.description)}</p>${link ? `<p><a href="${BASE}products/#${c.id}">${esc(c.name)} in the catalogue</a></p>` : ''}</section>`).join('');
+const CHAPTER_OF = { doors: 'doors', sandwich: 'panels', cleanroom: 'panels', partition: 'panels', glass: 'panels', profiles: 'profiles' };
+const cats = (link) => CATEGORIES.map((c) => `<section><h2>${esc(c.name)}</h2><p>${esc(c.description)}</p>${link ? `<p><a href="${BASE}products/#${CHAPTER_OF[c.id]}">${esc(c.name)} in the catalogue</a></p>` : ''}</section>`).join('');
 
 const BODIES = {
   '/': () => `
@@ -153,28 +173,52 @@ const BODIES = {
     ${cats(true)}
     <h2>Have a requirement? Send the sizes.</h2>
     <p>Doors, panels and profiles are manufactured to order. Share drawings, dimensions or a bill of quantities and receive a confirmed specification. <a href="${BASE}contact/">Start an enquiry</a>.</p>`,
-  '/products': () => `
-    <h1>${CATEGORIES.length} systems. One language.</h1>
-    <p>Doors, panels and the profiles that join them.</p>
-    ${CATEGORIES.map((c) => {
-      const list = c.variants || c.panels || c.items || c.groups || [];
-      return `<section id="${c.id}"><h2>${esc(c.name)}</h2><p>${esc(c.tagline || '')}</p><p>${esc(c.description)}</p>${list.length ? `<ul>${list.map((e) => `<li>${esc(e.name)}</li>`).join('')}</ul>` : ''}</section>`;
-    }).join('')}
-    <p><a href="${BASE}contact/">Start an enquiry</a></p>`,
+  '/products': () => {
+    const list = (items) => `<ul>${items.map((e) => `<li>${esc(e.name)}${e.note ? ` — ${esc(e.note)}` : ''}</li>`).join('')}</ul>`;
+    const d = byId.doors;
+    const sw = byId.sandwich;
+    return `
+    <h1>Three families. One language.</h1>
+    <p>A room is built in three moves: the doors you pass through, the panels that make its walls, ceiling and glass, and the profiles and tracks that join it all.</p>
+    <section id="doors">
+      <h2>Doors, configured to requirement</h2>
+      <p>${esc(d.description)}</p>
+      <h3>Variants</h3>${list(d.variants)}
+      <p>Types: ${esc(d.types.join(', '))}. Cores: ${esc(d.cores.join(', '))}. Finishes: ${esc(d.finishes.join(', '))}. Colours: ${esc(d.colours.join(', '))}. Made to your opening size.</p>
+    </section>
+    <section id="panels">
+      <h2>Panels: wall, ceiling and glass</h2>
+      <h3>Wall panels</h3>
+      <p>${esc(sw.description)} Double-skin wall panels come in 50 mm and 100 mm thicknesses.</p>
+      ${list(sw.panels)}
+      <p>Finishes: ${esc(sw.finishes.join(', '))}. Colours: ${esc(sw.colours.join(', '))}.</p>
+      <h3>Partition panels</h3>${list(byId.partition.items)}
+      <h3>Cleanroom and ceiling panels</h3><p>${esc(byId.cleanroom.description)}</p>${list(byId.cleanroom.items)}
+      <h3>View glass panels</h3>${list(byId.glass.items)}<p>${esc(byId.glass.options.join(', '))}.</p>
+    </section>
+    <section id="profiles">
+      <h2>Profiles and tracks</h2>
+      <p>${esc(byId.profiles.description)}</p>
+      <ul>${byId.profiles.groups.map((g) => `<li>${esc(g.name)}: ${esc(g.options.join(', '))}</li>`).join('')}</ul>
+    </section>
+    <p><a href="${BASE}contact/">Start an enquiry</a></p>`;
+  },
   '/about': () => `
     <h1>A manufacturer, defined by product.</h1>
     <p>Based in Visakhapatnam (Vizag), Andhra Pradesh.</p>
     <p>AKALKA manufactures doors, sandwich panels, cleanroom panels, partition and view glass panels — and the profiles that join them — for clean, finished interiors.</p>
-    <h2>Three things, made to fit together.</h2>
+    <p>At a glance: ${byId.doors.types.length} door types, ${PANEL_CORES.length} panel cores (${esc(PANEL_CORES.join(', '))}), ${WALL_THICKNESSES.length} wall thicknesses (${esc(WALL_THICKNESSES.join(' and '))}), ${byId.profiles.groups.length} profile groups.</p>
+    <h2>The idea</h2>
     <p>Most interiors are assembled from parts that were never meant to meet. AKALKA makes the openings, the surfaces and the junctions as one system.</p>
-    <h2>Openings, walls and junctions that read as one.</h2>
-    <p>Doors, panels and profiles are produced to meet — the same coated finish, the same colours, the same confirmed specification — so a room reads as one continuous surface.</p>
+    <h2>Three things, made to fit together</h2>
+    ${PILLARS.map((p) => `<section><h3>${esc(p.h)} (${esc(p.k.toLowerCase())})</h3><p>${esc(p.p)}</p><p><a href="${BASE}products/#${p.id}">${esc(p.h)} in the catalogue</a></p></section>`).join('')}
+    <h2>Openings, walls and junctions that read as one</h2>
+    <p>Doors, panels and profiles are produced to meet, so a room reads as one continuous surface: the same coated finish, the same colours, the same confirmed specification.</p>
     <h2>Why AKALKA</h2>
-    <ul>
-      <li>Made to meet: doors, panels and profiles come from one maker, so junctions line up in the factory instead of being improvised on site.</li>
-      <li>Variation without invention: sizes and colours adapt to requirement. Anything unconfirmed is marked plainly.</li>
-      <li>Finish as discipline: White, Matt White or matched colour across every element, so the whole project stays coherent.</li>
-    </ul>`,
+    <ul>${PRINCIPLES.map((p) => `<li>${esc(p.t)}: ${esc(p.d)}</li>`).join('')}</ul>
+    <h2>How we work</h2>
+    <ol>${PROCESS.map((x) => `<li>${esc(x.t)}: ${esc(x.d)}</li>`).join('')}</ol>
+    <p><a href="${BASE}contact/">Start an enquiry</a></p>`,
   '/contact': () => `
     <h1>Send the sizes. We confirm the rest.</h1>
     <p>AKALKA Doors &amp; Panels, Visakhapatnam (Vizag), Andhra Pradesh.</p>
@@ -208,17 +252,50 @@ for (const r of ROUTES) {
 writeFileSync(`${outDir}/404.html`, page(NOT_FOUND, null, null, null));
 writeFileSync(`${outDir}/.nojekyll`, '');
 
+const imageTags = (path) => (PAGE_IMAGES[path] || []).map((i) => `
+    <image:image>
+      <image:loc>${esc(i.loc)}</image:loc>
+      <image:caption>${esc(i.caption)}</image:caption>
+    </image:image>`).join('');
+
 writeFileSync(
   `${outDir}/sitemap.xml`,
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${ROUTES.map((r) => `  <url>
     <loc>${canonical(r.path)}</loc>
-    <lastmod>${today}</lastmod>${r.path === '/' ? `
-    <image:image><image:loc>${OG_IMAGE.url}</image:loc></image:image>` : ''}
+    <lastmod>${today}</lastmod>${imageTags(r.path)}
   </url>`).join('\n')}
 </urlset>
 `
+);
+
+/* Web app manifest: names the site, its colours and its icons for browsers,
+   home screens and install prompts. The paths follow the base the app was
+   built for, so they work on every host. */
+writeFileSync(
+  `${outDir}/site.webmanifest`,
+  JSON.stringify(
+    {
+      name: SITE_NAME,
+      short_name: 'AKALKA',
+      description: 'Doors, panels and profiles made in Visakhapatnam, to your sizes.',
+      lang: 'en-IN',
+      start_url: BASE,
+      scope: BASE,
+      display: 'standalone',
+      background_color: '#fafaf8',
+      theme_color: '#2b3036',
+      categories: ['business', 'manufacturing'],
+      icons: [
+        { src: `${BASE}favicon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: `${BASE}favicon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: `${BASE}akalka-symbol.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+      ],
+    },
+    null,
+    2
+  ) + '\n'
 );
 writeFileSync(`${outDir}/robots.txt`, `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 
@@ -231,4 +308,4 @@ if (existsSync(`${outDir}/Images`)) {
     }
   }
 }
-console.log(`postbuild: ${ROUTES.length} route pages, 404, sitemap.xml, robots.txt in ${outDir}/; ${pruned} unreferenced PNG(s) pruned`);
+console.log(`postbuild: ${ROUTES.length} route pages, 404, sitemap.xml (with images), site.webmanifest, robots.txt in ${outDir}/; ${pruned} unreferenced PNG(s) pruned`);
