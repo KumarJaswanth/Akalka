@@ -27,6 +27,26 @@ const MAX = { name: 255, org: 255, msg: 65535, phoneDigits: 15 };
    under it, leaving room for the form text. */
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
+/* Zoho answers a bare server request with the same "accepted" reply as a
+   real one but files nothing (verified: entries posted without these never
+   reached the inbox). So the relay behaves like Zoho's own page: it opens
+   the form first to get its session cookies, then sends them back with the
+   Origin / Referer / X-Requested-With the page itself sends. */
+const BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+async function openZohoSession() {
+  const res = await fetch(FORM, { headers: { 'User-Agent': BROWSER_UA, Accept: 'text/html' } });
+  const cookies = (res.headers.getSetCookie?.() || []).map((c) => c.split(';')[0]).join('; ');
+  return {
+    'User-Agent': BROWSER_UA,
+    Origin: 'https://forms.zohopublic.in',
+    Referer: FORM,
+    'X-Requested-With': 'XMLHttpRequest',
+    ...(cookies ? { Cookie: cookies } : {}),
+  };
+}
+
 const send = (res, status, body) => {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -84,12 +104,14 @@ export default async function handler(req, res) {
 
   try {
     const record = { SingleLine: name, SingleLine1: org, PhoneNumber: phone.replace(/\s+/g, ''), Dropdown: product, MultiLine: msg };
+    const session = await openZohoSession();
+    record['FileUpload-v2'] = []; /* the hosted page always sends this key */
 
     if (hasFile) {
       const up = new FormData();
       up.append('mode', 'live');
       up.append('FileUpload', file, file.name || 'drawing');
-      const upRes = await fetch(`${FORM}/uploadFile`, { method: 'POST', body: up, headers: { Accept: 'application/json' } });
+      const upRes = await fetch(`${FORM}/uploadFile`, { method: 'POST', body: up, headers: { ...session, Accept: 'application/json' } });
       const upJson = await upRes.json().catch(() => ({}));
       if (!upRes.ok || typeof upJson.FileUpload !== 'string') {
         console.error('Zoho upload refused', upRes.status, upJson);
@@ -100,7 +122,7 @@ export default async function handler(req, res) {
 
     const recRes = await fetch(`${FORM}/records`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/zoho.forms-v1+json' },
+      headers: { ...session, 'Content-Type': 'application/json', Accept: 'application/zoho.forms-v1+json' },
       body: JSON.stringify(record),
     });
     const recJson = await recRes.json().catch(() => ({}));
