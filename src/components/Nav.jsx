@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAV_LINKS, FAMILIES } from '../data/products.js';
+import { CONTACT, telHref, waHref } from '../data/company.js';
 import { useScrolled, addScrollJob } from './Reveal.jsx';
 import Logo from './Logo.jsx';
 
@@ -134,6 +135,14 @@ export default function Nav() {
               transition={{ delay: 0.06 * NAV_LINKS.length, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
               <Link to="/contact" onClick={() => setOpen(false)} className="mobile-cta">Enquire</Link>
+              {/* A visitor on a phone is one tap from a call or a chat;
+                  the drawer offers both beside the form. */}
+              {(CONTACT.phone || CONTACT.whatsapp) && (
+                <div className="mobile-quick">
+                  {CONTACT.phone && <a href={telHref(CONTACT.phone)} className="mobile-qa">Call</a>}
+                  {CONTACT.whatsapp && <a href={waHref(CONTACT.whatsapp)} target="_blank" rel="noopener noreferrer" className="mobile-qa">WhatsApp</a>}
+                </div>
+              )}
             </motion.div>
           </motion.nav>
         )}

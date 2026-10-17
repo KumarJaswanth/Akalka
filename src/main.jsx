@@ -8,6 +8,7 @@ import './hero.css';
 import './pages.css';
 import './landscape.css';
 import './magic.css';
+import './mobile.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

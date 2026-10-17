@@ -1,0 +1,421 @@
+/* ==================================================================
+   AKALKA — phone & tablet layer.
+   Loaded last. Every rule sits inside a phone/tablet query (≤ 900px or a
+   coarse pointer), so the desktop composition is untouched by construction.
+   ================================================================== */
+
+/* Fade edges for the sideways chip strips; registered so the scroll-driven
+   animation below can interpolate them. */
+@property --chip-fade-l { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --chip-fade-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+
+/* ---------- pinned scenes: shorter runs on touch ----------
+   The scene lengths were set for a mouse wheel. A thumb flick travels
+   a screen or more, so on phones and tablets the same story plays over
+   less scroll — every beat is derived from progress, so nothing is lost,
+   it simply arrives sooner. (.is-static keeps its own height: auto, its
+   two-class selector outranks these.) */
+@media (max-width: 900px) {
+  .hero { height: 210vh; }
+  .anat { height: 400vh; }
+  .xp { height: 190vh; }
+  .xpl { height: 190vh; }
+  .xpl-door { height: 200vh; }
+  .xpl-panel { height: 220vh; }
+}
+
+/* ---------- configurator chip strips ----------
+   On phones each option row is a sideways strip, so the whole door or panel
+   fits beside its drawing in one pinned screen. The strip used to end on a
+   hard cut, which read as a layout bug rather than "more this way". Now it
+   fades at the edge it can scroll toward, snaps chip by chip, and keeps
+   clear room at its end so the last chip never sits under the fade. */
+@media (max-width: 900px) {
+  .xpl .opt-row .chips {
+    --chip-fade-r: 34px;
+    padding-inline-end: 30px;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 2px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--chip-fade-l), #000 calc(100% - var(--chip-fade-r)), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 var(--chip-fade-l), #000 calc(100% - var(--chip-fade-r)), transparent);
+  }
+  .xpl .opt-row .chip { scroll-snap-align: start; }
+  /* Where the browser can follow the strip's own scroll, the fade moves to
+     whichever side still has chips hidden. A strip that fits never scrolls,
+     so its timeline stays inactive and it shows no fade at all. */
+  @supports (animation-timeline: scroll()) {
+    .xpl .opt-row .chips {
+      --chip-fade-r: 0px;
+      animation: chipEdges linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+}
+@keyframes chipEdges {
+  0% { --chip-fade-l: 0px; --chip-fade-r: 34px; }
+  12% { --chip-fade-l: 26px; }
+  88% { --chip-fade-r: 34px; }
+  100% { --chip-fade-l: 26px; --chip-fade-r: 0px; }
+}
+
+/* ---------- products: the chapter dock tucks away while reading ----------
+   The dock floats over the bottom of the screen, where phones put the
+   content being read and the buttons being reached for. It now slides
+   down while the visitor scrolls on, and comes back the moment they
+   scroll up — the gesture of someone looking for where to go next. */
+@media (max-width: 900px) {
+  .dock.show.tuck { transform: translate(-50%, 160%); opacity: 0; pointer-events: none; }
+}
+
+/* ---------- tablets: use the width ----------
+   Between a phone and a laptop the phone layout was simply stretched —
+   three intro cards stacked edge to edge, the four facts in two rows.
+   From 641px there is room to set them side by side. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .intro-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .intro-col { padding: 22px 20px; }
+  .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .facts > div:nth-child(3)::before { display: block; }
+  .facts > div { padding: 26px 20px; }
+  .facts-n { font-size: clamp(2.4rem, 5.6vw, 3rem); }
+}
+
+/* ---------- footer on phones ----------
+   One long column of links made the footer nearly two screens tall. The
+   two short lists (Products, Company) now sit side by side; the brand and
+   the contact details, which carry long lines, keep the full width. */
+@media (max-width: 560px) {
+  .foot-grid { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+  .foot-grid > :first-child, .foot-grid > :last-child { grid-column: 1 / -1; }
+  .foot-grid h4 { margin-bottom: 10px; }
+}
+
+/* ==================================================================
+   Phone-first pass. The desktop composition scaled down read as a
+   compressed page: tiny tracked capitals, cards nested three deep, long
+   towers of identical boxes and a sideways run steered by vertical
+   scroll. Below, each section is re-set for a thumb and a 390px screen.
+   ================================================================== */
+
+/* ---------- foundations: type, rhythm, touch ---------- */
+@media (max-width: 900px) {
+  a, button, summary, label { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+}
+@media (max-width: 640px) {
+  .section { padding-block: 64px; }
+  .h2 { font-size: clamp(1.8rem, 7.6vw, 2.25rem); line-height: 1.12; }
+  .h3 { font-size: 1.2rem; }
+  .lede { font-size: 1rem; line-height: 1.65; }
+  .body-sm { font-size: 0.94rem; line-height: 1.65; }
+  /* Small capitals stay, but tracked for reading rather than for a poster. */
+  .meta { letter-spacing: 0.12em; }
+  .sec-head { margin-bottom: 24px; gap: 8px 14px; }
+  .sec-index .lbl { letter-spacing: 0.14em; }
+  /* The right-hand hint ("Four steps", "Plain answers") repeats what the
+     heading says and crowded the eyebrow onto two lines. */
+  .sec-head .hint { display: none; }
+}
+/* Touch has no hover: lifts and zooms that only a mouse can end would
+   stick after a tap. A short press response replaces them. */
+@media (hover: none) {
+  .intro-col:hover { transform: none; box-shadow: var(--shadow-soft); }
+  .af:hover, .k2 .af0:hover, .k2 .af1:hover { translate: none; }
+  .pr-door:hover { transform: none; }
+  .pr-door:hover img { scale: 1; opacity: 0.8; }
+  .jump:hover, button.chip:hover, a.chip:hover, .foot-grid ul a:hover { transform: none; }
+  :is(.ab2-pc-ph, .apps-ph, .ed-ph):hover img, .ed-ph:hover .px img, .rc:hover .rc-ph img { scale: 1; }
+  :is(.intro-col, .pr-door, .ab2-pc-ph, .rc-ph, .es-rows a, .pill-btn, .mobile-qa) { transition: transform 0.2s var(--ease-out), background 0.3s; }
+  :is(.intro-col, .pr-door, .ab2-pc-ph, .rc-ph, .es-rows a, .mobile-qa):active { transform: scale(0.98); }
+}
+
+/* ---------- navigation ---------- */
+@media (max-width: 900px) {
+  /* A floating pill with air on both sides, sized to the thumb. */
+  .nav-inner { width: auto; height: 58px; margin: 8px 10px 0; padding: 0 4px 0 12px; }
+  .logo-img { height: 42px; }
+  .burger { width: 48px; height: 48px; }
+  .burger span { left: 12px; right: 12px; }
+  .burger span:nth-child(1) { top: 18px; } .burger span:nth-child(2) { top: 24px; } .burger span:nth-child(3) { top: 30px; }
+  .burger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .burger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+  /* The drawer: links, catalogue, then the actions a phone is for. */
+  .mobile-menu { justify-content: flex-start; padding: 96px var(--gutter) max(28px, env(safe-area-inset-bottom)); gap: 0; }
+  .mobile-menu a { font-size: clamp(1.9rem, 8.4vw, 2.6rem); padding: 8px 0; }
+  .mobile-chapters { margin-top: 22px; }
+  .mobile-menu .mobile-chapter { font-family: var(--sans); font-size: 1.05rem; font-weight: 500; padding: 0; min-height: 50px; }
+  .mobile-menu .mobile-cta { display: flex; justify-content: center; width: 100%; min-height: 54px; margin-top: 26px; padding: 0 24px; background: var(--datum); border-color: var(--datum); color: var(--worksurface-2); }
+  .mobile-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .mobile-menu .mobile-qa {
+    display: flex; justify-content: center; align-items: center; min-height: 54px; padding: 0 16px; border-radius: 999px;
+    font-family: var(--sans); font-size: 0.76rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.07); border: 1px solid var(--on-dark-border); color: var(--on-dark);
+  }
+}
+
+/* ---------- home: hero ---------- */
+@media (max-width: 640px) {
+  /* The door's label ran off the right edge on a phone. */
+  .hero-door > .hd-tag { display: none; }
+  .hero-copy .meta { text-shadow: 0 1px 12px rgba(35, 40, 45, 0.6); }
+  .hero-tag { font-size: 0.98rem; }
+}
+
+/* ---------- home: who we are ---------- */
+@media (max-width: 640px) {
+  .intro-big { font-size: clamp(1.5rem, 6.6vw, 1.85rem); line-height: 1.3; }
+  /* Three cards become one swipeable row: a glance, not three screens. */
+  .intro-cols {
+    display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
+    margin: 36px calc(var(--gutter) * -1) 0; padding: 4px var(--gutter) 18px;
+  }
+  .intro-cols::-webkit-scrollbar { display: none; }
+  .intro-cols > .rv { flex: 0 0 80%; scroll-snap-align: start; }
+  .intro-col { padding: 22px 20px; border-radius: 22px; }
+  .facts { margin-top: 20px; border-radius: 22px; }
+  .facts > div { padding: 20px 18px; gap: 8px; }
+  .facts-n { font-size: 2.4rem; }
+  .facts dd b { font-size: 0.92rem; }
+  .facts dd span { font-size: 0.8rem; }
+}
+
+/* ---------- home: where it's used — a swipe, not a scroll-jacked run ----------
+   On touch, a row that moves sideways while the thumb moves down feels like
+   the page is fighting back. The heading now stays put while the cards are
+   swiped under it with the platform's own momentum and snapping. The run's
+   inline height and transforms are overridden; nothing in its script
+   changes. */
+@media (max-width: 900px) {
+  .apps { height: auto !important; padding-block: 64px 8px; }
+  .apps-pin {
+    position: relative; height: auto; display: grid; align-items: stretch;
+    grid-auto-flow: column; grid-auto-columns: min(80vw, 340px); grid-template-rows: auto auto; gap: 26px 14px;
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
+    padding: 0 var(--gutter) 28px;
+  }
+  .apps-pin::-webkit-scrollbar { display: none; }
+  .apps-track { display: contents; }
+  .apps-track, .apps-card, .apps-ph img { transform: none !important; }
+  /* Sticky offsets count from inside the row's own padding, so 0 keeps the
+     heading on the page gutter. */
+  .apps-intro { grid-row: 1; grid-column: 1; width: calc(100vw - var(--gutter) * 2); max-width: 560px; position: sticky; left: 0; padding-right: 0; }
+  .apps-card, .apps-end { grid-row: 2; width: auto; scroll-snap-align: start; }
+  .apps-card { border-radius: 22px; }
+  .apps-end { padding: 0 8px; }
+  .apps-bar, .apps-hint { display: none; }
+  .apps-n { font-size: 2.6rem; left: 14px; }
+  .apps-body { padding: 18px 18px 20px; }
+}
+
+/* ---------- enquiry, everywhere it appears ----------
+   On a phone the form comes straight after its heading — the thing the
+   visitor came to do — and the ways to reach us follow as large tiles. */
+@media (max-width: 900px) {
+  .enquiry-grid { gap: 28px; }
+  .enquiry-grid > div:first-child { display: contents; }
+  .enquiry-grid > div:first-child > .mz { order: 1; }
+  .enquiry-grid > .rv { order: 2; }
+  .enquiry-grid > div:first-child > .rv { order: 3; }
+  .enquiry-grid .enq-side { margin-top: 0; }
+  /* With the form moved up, the section now ends on a text link; the hills
+     start a little lower so that link stays on paper. */
+  #enquiry.has-ls { padding-bottom: calc(var(--lsh) * 1.12); }
+}
+
+/* ---------- photo carousels: one clean control row ---------- */
+@media (max-width: 640px) {
+  .car-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .car-label, .car-status { display: flex; align-items: center; gap: 14px; }
+  .car-hint { display: none; }
+}
+@media (max-width: 640px) {
+  .enquiry-card { padding: 22px 18px 24px; border-radius: 24px; }
+  .contact-grid .form { padding: 22px 18px 24px; border-radius: 24px; }
+  /* Contact tiles: call and WhatsApp side by side, email and place below. */
+  .es-in { padding: 20px 18px; gap: 14px; }
+  .es-rows { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .es-rows li:has(a[href^="tel:"]), .es-rows li:has(a[href*="wa.me"]) { order: -1; }
+  .es-rows li:has(a[href^="mailto:"]), .es-rows li:has(a[href*="maps"]) { grid-column: 1 / -1; }
+  .es-rows a { height: 100%; margin: 0; padding: 14px; gap: 12px; border-radius: 18px; background: var(--tint); }
+  .es-rows li:has(a[href^="tel:"]) a, .es-rows li:has(a[href*="wa.me"]) a { flex-direction: column; align-items: flex-start; }
+  .es-ico { width: 40px; height: 40px; }
+  .es-txt b { font-size: 0.95rem; }
+  .es-steps { gap: 14px; }
+}
+
+/* ---------- forms: styling only (the form's behaviour is untouched) ---------- */
+@media (max-width: 900px) {
+  /* 16px is the size below which iOS zooms the page on every field tap. */
+  .field input, .field select, .field textarea { font-size: 16px; padding: 14px 16px; border-radius: 14px; }
+  .field textarea { min-height: 130px; }
+  /* Labels read as sentences, not as spaced-out capitals that wrapped onto
+     three lines. */
+  .field label { font-size: 0.86rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink); line-height: 1.4; }
+  .field { gap: 8px; }
+  .form { gap: 18px; }
+}
+@media (max-width: 640px) {
+  .form span:has(> button[type="submit"]) { display: flex !important; }
+  .form button[type="submit"] { width: 100%; min-height: 56px; justify-content: center; }
+  .form-alt { margin-top: 18px; }
+}
+
+/* ---------- one level of card on phones ----------
+   Desktop sets plates inside trays (.bz around .bz-in). At 390px the tray's
+   padding, hairline and second radius only take width from the content, so
+   phones keep the plate and drop the tray. */
+@media (max-width: 640px) {
+  .bz, .on-dark .bz { padding: 0; background: none; box-shadow: none; border-radius: 22px; }
+  .bz-in { border-radius: 22px; }
+}
+
+/* ---------- products ---------- */
+@media (max-width: 700px) {
+  .pr-hero { padding-top: calc(var(--nav-h) + 28px); }
+  .pr-doors-3 { gap: 10px; }
+  .pr-doors-3 .pr-door { aspect-ratio: 16 / 9; border-radius: 22px; }
+
+  /* Door acts: the photograph leads, edge to edge in its card; the words
+     follow. Two photographs sit side by side instead of in a stack of
+     frames. */
+  .act { padding: 0; border-radius: 26px; box-shadow: 0 0 0 1px rgba(66, 71, 77, 0.1), 0 18px 40px -28px rgba(35, 40, 45, 0.4); }
+  .on-dark.tone-dark { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 18px 40px -24px rgba(0, 0, 0, 0.6); }
+  .act-in { display: flex; flex-direction: column; border-radius: 26px; }
+  .act-ph { order: -1; flex-direction: row; gap: 8px; margin: 0; padding: 8px 8px 0; border-radius: 0; background: none; box-shadow: none; }
+  .tone-sage .act-ph, .tone-dark .act-ph { background: none; box-shadow: none; }
+  .act-ghost { display: none; }
+  .af, .k2 .af0, .k2 .af1 { flex: 1 1 0; width: auto; margin: 0; padding: 0; translate: none; aspect-ratio: 1; border-radius: 20px; background: none; box-shadow: none; }
+  .tone-dark .af { background: none; box-shadow: none; }
+  .k1 .af { aspect-ratio: 4 / 3; }
+  .af.tall { aspect-ratio: 4 / 3; }
+  .af-in, .af img { border-radius: 20px; }
+  .af figcaption { left: 10px; bottom: 10px; padding: 5px 10px; font-size: 0.72rem; gap: 6px; }
+  .act-text { padding: 22px 20px 24px; gap: 20px; }
+  .act-h { margin-top: 14px; font-size: 1.65rem; }
+  .act-p { font-size: 0.96rem; line-height: 1.65; }
+  .act-rows li { padding: 11px 0; }
+
+  /* Specification: four tidy cards, then the six variants as one list. */
+  .bd-steps { gap: 10px; }
+  .bd-core { padding: 18px; gap: 14px; }
+  .bd-step-k b { font-size: 1.8rem; }
+  .bd-size { margin-top: 22px; }
+  .bd-vk { margin-top: 28px; }
+  .bd-vars { grid-template-columns: 1fr; gap: 0; border-radius: 22px; overflow: hidden; background: var(--card); box-shadow: 0 0 0 1px rgba(66, 71, 77, 0.1); }
+  .bd-vars .bz { border-radius: 0; }
+  .bd-vars .bz-in { border-radius: 0; background: none; box-shadow: none; padding: 14px 18px; grid-template-columns: 52px minmax(0, 1fr); align-items: baseline; gap: 10px; }
+  .bd-vars li + li .bz-in { border-top: 1px solid rgba(66, 71, 77, 0.1); }
+
+  /* Panels */
+  .pn { padding-block: 64px; }
+  .pn-head { margin-bottom: 28px; }
+  .rc { --w: 84vw; }
+  .rc-ph { border-radius: 22px; }
+  .rc-h { min-height: 0; }
+  .pn-spec { margin-top: 56px; }
+  .pn-ledger { padding: 20px 18px; }
+
+  /* Profiles: the strips sit on the page, and the three figures read as
+     one short list of label and value. */
+  .pf2 { padding-block: 64px; }
+  .pf2-head { margin-bottom: 24px; }
+  .slats-bz { padding: 0; border-radius: 26px; }
+  .slat { border-radius: 22px; }
+  .pf2-facts { grid-template-columns: 1fr; gap: 0; margin-top: 24px; border-radius: 22px; overflow: hidden; background: var(--card); box-shadow: 0 0 0 1px rgba(66, 71, 77, 0.1); }
+  .pf2-facts .bz { border-radius: 0; }
+  .pf2-facts .bz-in { border-radius: 0; background: none; box-shadow: none; padding: 16px 18px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .pf2-facts > div + div .bz-in { border-top: 1px solid rgba(66, 71, 77, 0.1); }
+  .pf2-facts dd { margin: 0; font-size: 1.35rem; text-align: right; }
+
+  .cta2 { padding: 18px; border-radius: 24px; }
+  .cta2 .pill-btn { width: 100%; justify-content: space-between; }
+  .dock a { min-height: 44px; }
+}
+
+/* ---------- about ---------- */
+@media (max-width: 640px) {
+  .ab2-hero { padding-top: calc(var(--nav-h) + 28px); }
+  .ab2-band { height: 260px; }
+  .ab2-say { padding-block: 56px; }
+  .ab2-big { font-size: clamp(1.55rem, 6.8vw, 1.95rem); }
+  .ab2-make { padding-bottom: 64px; }
+  /* Three tall photographs were three screens; now one swipe. */
+  .ab2-tri {
+    display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
+    margin-inline: calc(var(--gutter) * -1); padding: 4px var(--gutter) 12px;
+  }
+  .ab2-tri::-webkit-scrollbar { display: none; }
+  .ab2-tri > * { flex: 0 0 80%; scroll-snap-align: start; }
+  .ab2-pc { gap: 16px; }
+  .ab2-pc-ph { border-radius: 24px; }
+  .ab2-pc-txt { padding: 0 2px; }
+  .ab2-pc-txt .h3 { font-size: 1.45rem; }
+  .ab2-pos { padding-block: 16px 64px; }
+  .ab2-why, .ab2-proc, .ab2-work { padding-block: 64px; }
+  .ab2-cn { font-size: 2.8rem; margin-bottom: 14px; }
+  .ab2-ct { font-size: 1.4rem; }
+  .ab2-cols li { padding-block: 24px; }
+  /* How we work: a numbered line down the page instead of four boxes. */
+  .ab2-steps { gap: 0; }
+  .ab2-steps .bz-in { position: relative; border-radius: 0; background: none; box-shadow: none; padding: 20px 0 20px 64px; gap: 6px; border-top: 1px solid rgba(66, 71, 77, 0.12); }
+  .ab2-steps > .rv:last-child .bz-in { border-bottom: 1px solid rgba(66, 71, 77, 0.12); }
+  .ab2-sn { position: absolute; left: 0; top: 20px; font-size: 2rem; }
+}
+
+/* ---------- footer ---------- */
+@media (max-width: 560px) {
+  .foot-top .h2 { font-size: 1.75rem; }
+  .cta-row > span { display: flex !important; flex: 1 1 100%; }
+  .cta-row > span > .btn { justify-content: center; min-height: 54px; }
+  .foot-base { gap: 8px 20px; }
+}
+
+/* ---------- phones held sideways ----------
+   A landscape phone is wide but only ~390px tall. The portrait stacking
+   (drawing above, controls below) left the drawing no height at all, the
+   hero copy ran into itself, and the cards of the sideways run were cut
+   off at their foot. Short landscape screens borrow the desktop answers. */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1000px) {
+  /* Hero: the headline and the two calls to action; the paragraph and
+     the step labels give way. */
+  .hero-copy { bottom: 58px; gap: 8px; max-width: 62%; }
+  .hero-copy .display { font-size: clamp(1.6rem, 4.4vw, 2.3rem); }
+  .hero-tag, .hero-steps, .hero-door > .hd-tag { display: none; }
+  .hero-ctas { margin-top: 4px; gap: 10px; }
+  .hero-ctas .btn { width: auto; flex: none; padding: 13px 22px; }
+
+  /* Exploded door and panel: model on one side, controls on the other,
+     exactly as on desktop — the drawing gets the full height. */
+  .xpl-pin { flex-direction: row; align-items: center; padding-top: var(--nav-h, 64px); }
+  .xpl-door .xpl-pin { padding-top: var(--nav-h, 64px); }
+  .xpl-stage, .xpl-door .xpl-stage, .xpl:not(.xpl-door) .xpl-stage { position: absolute; inset: 0; height: auto; z-index: 0; order: 0; -webkit-mask-image: none; mask-image: none; }
+  .xpl-model { inset: auto; top: var(--nav-h, 64px); bottom: 0; }
+  .xpl-door .xpl-model { left: var(--gutter); width: calc(44% - var(--gutter)); }
+  .xpl-panel .xpl-model { right: var(--gutter); width: calc(44% - var(--gutter)); }
+  .xpl-grid, .xpl-door .xpl-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; pointer-events: none; }
+  .xpl-hold { display: block; }
+  .xpl-copy { pointer-events: auto; }
+  .xpl .h2 { display: none; }
+  .xpl .opt-row { margin-top: 4px; grid-template-columns: 84px minmax(0, 1fr); }
+  .xpl .opt-row .chip { min-height: 34px; padding-block: 0; }
+  .door-sum { margin-top: 8px; padding: 8px 14px; }
+  .xpl-more { margin-top: 10px; }
+
+  /* Where it's used: the same swipe as portrait (set above), with
+     narrower cards and wider photographs for the short screen. */
+  .apps-pin { grid-auto-columns: min(42vw, 340px); }
+  .apps-ph { aspect-ratio: 16 / 9; }
+}
+
+/* ---------- touch: text links get a finger-sized target ----------
+   Inline text links ("Full panel range", "Explore doors") draw 23–28px tall.
+   An invisible hit area around each brings it to ~44px without moving a
+   single pixel of the layout. */
+@media (pointer: coarse) {
+  .link-line::before, .rd-more::before, .to-top::before {
+    content: ''; position: absolute; inset: -9px -6px;
+  }
+  .rd-more, .to-top { position: relative; }
+}

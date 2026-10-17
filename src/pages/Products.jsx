@@ -60,6 +60,7 @@ const jumpTo = (e, id) => {
 function ChapterDock() {
   const [active, setActive] = useState(null);
   const [show, setShow] = useState(false);
+  const [tuck, setTuck] = useState(false);
   useEffect(() => {
     const els = CHAPTERS.map((c) => document.getElementById(c.id)).filter(Boolean);
     if (!els.length) return undefined;
@@ -76,15 +77,30 @@ function ChapterDock() {
        calling getBoundingClientRect after that frame's writes forced a
        second layout. The dock re-renders only when it flips. */
     let was = null;
+    /* Phones and tablets: the dock tucks away while the page moves down
+       and returns on any move up. A few pixels of slack keep a resting
+       thumb's jitter from flickering it. */
+    const narrow = window.matchMedia('(max-width: 900px)');
+    let lastY = window.scrollY;
+    let tucked = false;
     const off = addScrollJob({
       read: () => {
         const mid = window.innerHeight * 0.5;
-        return els[0].getBoundingClientRect().top < mid && els[els.length - 1].getBoundingClientRect().bottom > mid;
+        return [els[0].getBoundingClientRect().top < mid && els[els.length - 1].getBoundingClientRect().bottom > mid, window.scrollY];
       },
-      write: (v) => {
-        if (v === was) return;
-        was = v;
-        setShow(v);
+      write: ([v, y]) => {
+        if (v !== was) {
+          was = v;
+          setShow(v);
+        }
+        const dy = y - lastY;
+        if (Math.abs(dy) < 8) return;
+        lastY = y;
+        const t = narrow.matches && dy > 0;
+        if (t !== tucked) {
+          tucked = t;
+          setTuck(t);
+        }
       },
     });
     return () => {
@@ -102,7 +118,7 @@ function ChapterDock() {
   }, [active]);
   const jump = jumpTo;
   return (
-    <nav className={`dock${show ? ' show' : ''}`} aria-label="Catalogue chapters" aria-hidden={!show}>
+    <nav className={`dock${show ? ' show' : ''}${tuck ? ' tuck' : ''}`} aria-label="Catalogue chapters" aria-hidden={!show}>
       <div className="dock-in">
         {CHAPTERS.map((c) => (
           <a
