@@ -1,0 +1,1 @@
+import{D as e}from"./icons-_t9vJrER.js";var t=e();function n({children:e,def:n}){return(0,t.jsx)(`span`,{className:`term`,tabIndex:0,"data-def":n,"aria-label":`${typeof e==`string`?e:`term`}: ${n}`,children:e})}export{n as t};

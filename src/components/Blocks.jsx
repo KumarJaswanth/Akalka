@@ -38,7 +38,7 @@ export function ImageExpand({ img, left, right, kicker, children }) {
    4. Process — how an order moves, with a rule that fills as the
    section crosses the viewport and lights each step in turn.
    ================================================================= */
-const PROCESS = [
+export const PROCESS = [
   { n: '01', t: 'Choose the range', d: 'Doors, sandwich, cleanroom, partition, glass or profiles — start from the catalogue.' },
   { n: '02', t: 'Send the sizes', d: 'Drawings, opening schedules, panel layouts or a bill of quantities.' },
   { n: '03', t: 'Confirm the specification', d: 'Variant, core, thickness, finish and colour confirmed back to you. Nothing assumed.' },
